@@ -9,7 +9,7 @@ In order to protect against this, the install needs to be as simple as possible
 
 ```bash
 git clone github.com/michaelfortunato/dotfiles ~ \
-  && gnu stow nvim karabiner [etcetra]
+  && stow nvim karabiner [etcetra]
 ```
 
 ## Maintaining
