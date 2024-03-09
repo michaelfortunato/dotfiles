@@ -1,3 +1,6 @@
 *.
 !.git
 !.gitignore
+# Ignore any files whose parent is 'automatic_backups' and whose grandparent 
+# or great grandparanet is 'karabiner'
+karabiner/**/automatic_backups/*
