@@ -25,7 +25,17 @@ Neovim files are stored under `~/.config/nvim`, so its directory structure is
 -- -- -- -- init.lua
 -- -- -- -- lua
 -- -- -- -- -- [other lua files]
+
 ```
+
+## My new keeb
+
+Yeah I built a new keyboard and am pretty excited about it.
+
+- KKT Kang White V3s - Lubed With 205g0. This took approximately 12 hours.
+- Cerakey whites - Ceramic Keys. I think this is the essential piece
+- Neo65
+- Durock Screw In stabs with 205g0 and dialectic grease.
 
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html

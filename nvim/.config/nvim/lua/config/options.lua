@@ -10,4 +10,4 @@ vim.wo.colorcolumn = "80" -- TODO: How do I set the actual color?
 -- * a function with signature `function(buf) -> string|string[]`
 -- vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
 -- To disable root detection set to just "cwd"
-vim.g.root_spec = { "cwd" }
+-- vim.g.root_spec = { "cwd" }
