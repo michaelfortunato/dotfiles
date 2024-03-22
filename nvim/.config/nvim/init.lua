@@ -5,7 +5,7 @@ vim.g.mapleader = " " -- Make sure to set `mapleader` before lazy so your mappin
 -- * the name of a detector function like `lsp` or `cwd`
 -- * a pattern or array of patterns like `.git` or `lua`.
 -- * a function with signature `function(buf) -> string|string[]`
--- vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
+vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
 -- To disable root detection set to just "cwd"
-vim.g.root_spec = { "cwd" }
+-- vim.g.root_spec = { "cwd" }
 require("config.lazy")

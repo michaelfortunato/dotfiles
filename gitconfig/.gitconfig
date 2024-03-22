@@ -10,6 +10,7 @@
 	signingkey = /Users/michaelfortunato/.ssh/id_ed25519.pub
 [core]
 	pager = less -F -X
+	editor = nvim
 [gpg]
 	format = ssh
 [commit]
