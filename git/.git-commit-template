@@ -1,8 +1,7 @@
 # <feat|fix|perf|test|chore|ci|style|x>[optional scope]: <description>
-#
 # ------------------------------------------------
-# [optional body]
 #
+# [optional body]
 # ----------------------------------------------------------------------
 # How to Write a Git Commit Message:
 # https://www.conventionalcommits.org/en/v1.0.0/
