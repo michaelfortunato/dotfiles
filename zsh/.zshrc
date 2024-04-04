@@ -108,9 +108,9 @@ alias yabaiconfig="vim ~/.config/yabai/yabairc"
 alias skhdconfig="vim ~/.config/skhd/skhdrc"
 alias zshconfig="vim  ~/.zshrc"
 alias ohmyzshconfig="vim ~/.oh-my-zsh"
+# fzf - 
+eval "$(fzf --zsh)"
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
-
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
