@@ -1,6 +1,7 @@
 #!/bin/bash
 # Called by "git commit" with one argument, the name of the file
 # that has the commit message
+echo "Running commit-msg hook..."
 
 COMMIT_MSG_FILE=$1
 
