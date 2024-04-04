@@ -10,8 +10,9 @@
 	signingkey = /Users/michaelfortunato/.ssh/id_ed25519.pub
 [core]
 	pager = less -F -X
-	editor = nvim
+	editor = nvim --clean
 [gpg]
 	format = ssh
 [commit]
-	gpgsign = true
+  gpgsign = true
+  template = ~/.git-commit-template
