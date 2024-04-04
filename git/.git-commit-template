@@ -1,19 +1,12 @@
-# Title: Summary, imperative, start upper case, don't end with a period
-# No more than 50 chars. #### 50 chars is here:  #
-
-# Remember blank line between title and body.
-
-# Body: Explain *what* and *why* (not *how*). Include task ID (Jira issue).
-# Wrap at 72 chars. ################################## which is here:  #
-
-
-# At the end: Include Co-authored-by for all contributors. 
-# Include at least one empty line before it. Format: 
-# Co-authored-by: name <user@users.noreply.github.com>
+# <feat|fix|perf|test|chore|ci|style|x>[optional scope]: <description>
 #
+# ------------------------------------------------
+# [optional body]
+#
+# ----------------------------------------------------------------------
 # How to Write a Git Commit Message:
-# https://chris.beams.io/posts/git-commit/
-#
+# https://www.conventionalcommits.org/en/v1.0.0/
+# Tips:
 # 1. Separate subject from body with a blank line
 # 2. Limit the subject line to 50 characters
 # 3. Capitalize the subject line
