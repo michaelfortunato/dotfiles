@@ -108,9 +108,13 @@ alias yabaiconfig="vim ~/.config/yabai/yabairc"
 alias skhdconfig="vim ~/.config/skhd/skhdrc"
 alias zshconfig="vim  ~/.zshrc"
 alias ohmyzshconfig="vim ~/.oh-my-zsh"
-# fzf - 
+# fzf - https://github.com/junegunn/fzf
 eval "$(fzf --zsh)"
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
+# nvm - https://github.com/nvm-sh/nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && \. "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" # This loads nvm
+[ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && \. "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" # This loads nvm bash_completion
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
