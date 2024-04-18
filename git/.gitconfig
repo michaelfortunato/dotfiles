@@ -20,12 +20,10 @@
 [user]
 	name = Michael Fortunato
 	email = michael.n.fortunato@gmail.com
-	signingkey = /Users/michaelfortunato/.ssh/id_ed25519.pub
+	signingkey = B3C97C24E201EF1777ABFF0B1B35E71D2AD7D44E
 [core]
 	pager = less -F -X
 	editor = nvim --clean
-[gpg]
-	format = ssh
 [commit]
-  gpgsign = true
+	gpgsign = true
   template = ~/.git-commit-template
