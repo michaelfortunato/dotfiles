@@ -2,4 +2,9 @@
 return {
   -- disable trouble
   { "akinsho/bufferline.nvim", enabled = false },
+  -- disable auto pairs, yuck!
+  {
+    "echasnovski/mini.pairs",
+    enabled = false,
+  },
 }
