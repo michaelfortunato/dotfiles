@@ -70,7 +70,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # HIST_STAMPS="mm/dd/yyyy"
 
 # Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
+ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 
 # Which plugins would you like to load?
 # Standard plugins can be found in $ZSH/plugins/
@@ -104,10 +104,8 @@ source $ZSH/oh-my-zsh.sh
 # For a full list of active aliases, run `alias`.
 #
 # Example aliases
-alias yabaiconfig="vim ~/.config/yabai/yabairc"
-alias skhdconfig="vim ~/.config/skhd/skhdrc"
-alias zshconfig="vim  ~/.zshrc"
-alias ohmyzshconfig="vim ~/.oh-my-zsh"
+alias zshconfig="vim  $HOME/.zshrc"
+alias ohmyzshconfig="vim $HOME/.oh-my-zsh"
 # fzf - https://github.com/junegunn/fzf
 eval "$(fzf --zsh)"
 # zoxide - https://github.com/ajeetdsouza/zoxide
