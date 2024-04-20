@@ -7,8 +7,8 @@ This repository holds my dear dotfiles
 I have a personality that is susceptible to endless ["ricing"][1].
 In order to protect against this, the install needs to be as simple as possible
 
-```bash
-git clone github.com/michaelfortunato/dotfiles ~ \
+```sh
+git clone --recurse-submodules --shallow-submodules https://github.com/michaelfortunato/dotfiles ~ \
   && stow nvim karabiner [etcetra]
 ```
 
