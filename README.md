@@ -28,7 +28,7 @@ Neovim files are stored under `~/.config/nvim`, so its directory structure is
 
 ```
 
-### How To Migrate An Existing Folder in ~ To ~/dotfiles With Stow
+### How to migrate an existing folder in ~ to ~/dotfiles with Stow
 
 1. `cp -r ~/<your-folder> ~/dotfiles/<stow-package>`
 2. `rm -rf ~/<your-folder>`
