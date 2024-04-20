@@ -28,6 +28,28 @@ Neovim files are stored under `~/.config/nvim`, so its directory structure is
 
 ```
 
+### How To Migrate An Existing Folder in ~ To ~/dotfiles With Stow
+
+1. `cp -r ~/<your-folder> ~/dotfiles/<stow-package>`
+2. `rm -rf ~/<your-folder>`
+3. `cd ~/dotfiles && stow <stow-package>`
+
+Godspeed. And don't try to get fancy with `stow --adopt`, unless you can tell me
+how to get it to work on folders.
+
+### Git Submodule Technique
+
+Do you know what I like about [LazyVim][3]?, it's update system does not rely
+on git. That means that I can remove the .git directory and not maintain LazyVim
+as a git submodule. Unfortunately, the same is not true for oh-my-zsh.
+
+Fortunately, I think I have a pretty good system that allows me to declaratively
+depend on the upstream version of oh-my-zsh. Here is what I did.
+
+1. Delete the hard copy of `~/.oh-my-zsh`
+2. git clone oh-my-zsh ~/dotfiles/zsh
+3. `git submodule add <url> ~/dotfiles/zsh`
+
 ## My new keeb
 
 Yeah I built a new keyboard and am pretty excited about it.
@@ -39,3 +61,4 @@ Yeah I built a new keyboard and am pretty excited about it.
 
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
+[3]: https://www.lazyvim.org
