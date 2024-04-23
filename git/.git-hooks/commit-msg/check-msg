@@ -6,7 +6,7 @@ echo "Running commit-msg hook..."
 
 COMMIT_MSG_FILE=$1
 
-cat $COMMIT_MSG_FILE | convco check --from-stdin | echo "Good message."
+cat $COMMIT_MSG_FILE | convco check --from-stdin ~/.git-commit-msg-schema.yaml | echo "Good message."
 
 # An example hook script to check the commit log message.
 # Called by "git commit" with one argument, the name of the file
