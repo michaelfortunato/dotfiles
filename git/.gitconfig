@@ -25,6 +25,8 @@
 	pager = less -F -X
 	editor = nvim --clean
 	commentChar = ";"
+[init]
+  templateDir = ~/.git-templates/default
 [commit]
 	gpgsign = true
   template = ~/.git-commit-template

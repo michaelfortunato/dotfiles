@@ -1,0 +1,6 @@
+#!/bin/bash
+# Called by "git commit" with one argument, the name of the file
+# that has the commit message.
+# Configure me by doing cp <my-path> $GIT_DIR/hooks
+
+source ~/.git-hooks/commit-msg/check-msg
