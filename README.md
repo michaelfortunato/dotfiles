@@ -50,6 +50,14 @@ depend on the upstream version of oh-my-zsh. Here is what I did.
 2. git clone oh-my-zsh ~/dotfiles/zsh
 3. `git submodule add <url> ~/dotfiles/zsh`
 
+#### Updating Submodules
+
+```bash
+~ $ git submodule update --init --recursive --remote
+```
+
+You can also just go into each submodule and pull
+
 ## My new keeb
 
 Yeah I built a new keyboard and am pretty excited about it.
