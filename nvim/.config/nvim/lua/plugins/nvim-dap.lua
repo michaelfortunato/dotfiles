@@ -7,24 +7,13 @@ return {
       opts = {},
       config = function(_, opts)
         local dap = require("dap")
-        dap.configurations.cpp = {
-          {
-            type = "cppdbg",
-            request = "attach",
-            program = "/Users/mfortuna/Instances/BASIC/bin/irisdb",
-            MIMode = "lldb",
-            miDebuggerPath = "/Users/mfortuna/.iscdev/lldb-mi",
-            name = "New",
-            processId = "${command:pickProcess}",
-          },
-        }
         dap.configurations.c = {
           {
             type = "cppdbg",
             request = "attach",
-            program = "/Users/mfortuna/Instances/BASIC/bin/irisdb",
+            program = "<program-path>",
             MIMode = "lldb",
-            miDebuggerPath = "/Users/mfortuna/.iscdev/lldb-mi",
+            miDebuggerPath = "<debugger-path>",
             name = "New",
             processId = "${command:pickProcess}",
           },
@@ -45,10 +34,5 @@ return {
       end,
     },
   },
-  config = function()
-    -- "Joakker/lua-json5",
-    -- require("dap.ext.vscode").json_decode = require("json5").parse
-    -- /Users/mfortuna/Perforce/Users/mfortuna/iris/latest/.vscode/launch.json
-    -- require("dap.ext.vscode" ).load_launchjs("/Users/mfortuna/.iscdev/launch.json", { cppdbg = { "c", "cpp" } })
-  end,
+  config = function() end,
 }
