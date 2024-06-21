@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# This hook is used in my dotfiles repository to encourage mirroring between
+# my local computer state and whats on github
+# from githooks(5), the interface is
+# <local ref> SP <local object name> SP <remote ref> SP <remote object name> LF
+
+GIT_DIR="$(git rev-parse --git-dir)"
+
+function update_brewfile() {
+	cd "$GIT_DIR/../brew" && brew bundle dump --force
+}
+
+(update_brewfile)
