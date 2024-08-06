@@ -10,3 +10,10 @@
   path = zsh/.oh-my-zsh-custom/themes/powerlevel10k
   url = https://github.com/romkatv/powerlevel10k
   branch = master
+[submodule "zsh/.oh-my-zsh-custom/plugins/zsh-nvm"]
+	path = zsh/.oh-my-zsh-custom/plugins/zsh-nvm
+	url = https://github.com/lukechilds/zsh-nvm
+  branch = master
+[submodule "scripts/thirdparty/zsh-bench"]
+	path = scripts/thirdparty/zsh-bench
+	url = https://github.com/romkatv/zsh-bench.git
