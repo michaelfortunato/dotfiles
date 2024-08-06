@@ -1,9 +1,16 @@
+# Benchmarking (see also https://github.com/romkatv/zsh-bench):
+# zmodload zsh/zprof # put at top of .zshrc
+# zprof # put at bottom of .zshrc
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+
+# HomeBrew completions See here: https://docs.brew.sh/Shell-Completion 
+FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
@@ -77,7 +84,8 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git gpg-agent fzf-tab)
+export NVM_LAZY_LOAD=true # nvm is slow, see here: https://armno.in.th/blog/zsh-startup-time/
+plugins=(git gpg-agent fzf-tab zsh-nvm)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -108,19 +116,16 @@ source $ZSH/oh-my-zsh.sh
 bindkey \^U backward-kill-line
 
 # aliases
-alias zshconfig="vim  $HOME/.zshrc"
-alias ohmyzshconfig="vim $HOME/.oh-my-zsh"
+alias cd=z
+alias zshconfig="nvim  $HOME/.zshrc"
+alias ohmyzshconfig="nvim $HOME/.oh-my-zsh"
+alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
 
 # fzf - https://github.com/junegunn/fzf
 eval "$(fzf --zsh)"
 
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
-
-# nvm - https://github.com/nvm-sh/nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && \. "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" # This loads nvm
-[ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && \. "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" # This loads nvm bash_completion
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
