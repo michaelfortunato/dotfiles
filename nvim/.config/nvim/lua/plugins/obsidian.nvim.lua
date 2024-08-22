@@ -24,6 +24,11 @@ return {
         path = "~/notes",
       },
     }
+    opts.daily_notes = {
+      -- Optional, if you keep daily notes in a separate directory.
+      -- Does not sync with .obsidian/daily-notes.json for some reason
+      folder = "dailies",
+    }
     -- Register <leader>o> as the Obsidian keygroup with which-key
   end,
   -- Taken, shamelessly, and happily, from
@@ -41,14 +46,14 @@ return {
     { "<leader>od", "<cmd>ObsidianToday<cr>", desc = "Open Today's Note" },
     { "<leader>on", "<cmd>ObsidianNew<cr>", desc = "New note" },
     { "<leader>oo", "<cmd>ObsidianOpen<cr>", desc = "Open Note In Obsidian App" },
-    { "<leader>ot", "<cmd>ObsidianTags<cr>", desc = "Obsidian Tags" },
+    { "<leader>ot", "<cmd>ObsidianTemplate<cr>", desc = "Obsidian Template" },
+    { "<leader>om", "<cmd>ObsidianTags<cr>", desc = "Obsidian Tags" },
     { "<leader>os", "<cmd>ObsidianSearch<cr>", desc = "Obsidian Search" },
     { "<leader>op", "<cmd>ObsidianPasteImg<cr>", desc = "Obsidian Paste image" },
     { "<leader>oq", "<cmd>ObsidianQuickSwitch<cr>", desc = "Obsidian Quick switch" },
     { "<leader>ol", "<cmd>ObsidianLinks<cr>", desc = "Obsidian Links" },
     { "<leader>ob", "<cmd>ObsidianBacklinks<cr>", desc = "Obsidian Backlinks" },
     -- { "<leader>ob","<cmd>luafile lua/backlinks.lua<cr>", desc = "Obsidian Backlinks" },
-    { "<leader>om", "<cmd>ObsidianTemplate<cr>", desc = "Obsidian Template" },
     { "<leader>or", "<cmd>ObsidianRename<cr>", desc = "Obsidian Rename" },
     { "<leader>oc", "<cmd>ObsidianTOC<cr>", desc = "Obsidian Contents (TOC)" },
   },
