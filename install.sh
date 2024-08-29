@@ -1,31 +1,31 @@
 #!/bin/bash
 
 install() {
-	#install_via_stow
-	dev_install
+  #install_via_stow
+  dev_install
 }
 
 install_via_stow() {
-	stow nvim karabiner kitty git
+  stow nvim kitty git
 }
 
 dev_install() {
-	echo "Setting up dev environment..."
-	echo "NOTE: Needs to be run after install (stow'ed etc)."
-	dev_install_git_hooks
+  echo "Setting up dev environment..."
+  echo "NOTE: Needs to be run after install (stow'ed etc)."
+  dev_install_git_hooks
 
 }
 
 dev_install_git_hooks() {
-	GIT_DIR="$(git rev-parse --git-dir)"
-	GIT_HOOKS_DIR="$(git config --get core.hooksPath || git rev-parse --git-path hooks)"
-	echo "Installling pre-push"
-	GIT_HOOK_FILE="$GIT_HOOKS_DIR/pre-push"
-	cat <<"EOF" >$GIT_HOOK_FILE
+  GIT_DIR="$(git rev-parse --git-dir)"
+  GIT_HOOKS_DIR="$(git config --get core.hooksPath || git rev-parse --git-path hooks)"
+  echo "Installling pre-push"
+  GIT_HOOK_FILE="$GIT_HOOKS_DIR/pre-push"
+  cat <<"EOF" >$GIT_HOOK_FILE
 #!/bin/bash
 source ~/.git-hooks/pre-push/dotfiles
 EOF
-	chmod +x $GIT_HOOK_FILE
+  chmod +x $GIT_HOOK_FILE
 }
 
 install
