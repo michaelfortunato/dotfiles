@@ -58,6 +58,62 @@ depend on the upstream version of oh-my-zsh. Here is what I did.
 
 You can also just go into each submodule and pull
 
+## Which directories do what
+
+### The `git` directory
+
+Let us take a look at the structure here
+
+```text
+git
+├── .git-commit-msg-schema.yaml
+├── .git-commit-template
+├── .git-hooks
+│   ├── commit-msg
+│   └── pre-push
+├── .git-templates
+│   └── default
+└── .gitconfig
+```
+
+#### The `.git-hooks` directory
+
+This directory consists of subdirectories, where each subdirectory is named after
+a git hook type. As of 2024, the following exist, and so we could reasonably
+populate the .git-hooks directory with them. So anytime I want to add a new git
+hook, I should add it to one of the appropriate folders. Then later the
+files will be sourced.
+
+```text
+applypatch-msg
+pre-applypatch
+post-applypatch
+pre-commit
+prepare-commit-msg
+commit-msg
+post-commit
+pre-rebase
+post-checkout
+post-merge
+pre-push
+pre-receive
+update
+post-receive
+post-update
+reference-transaction
+push-to-checkout
+pre-auto-gc
+post-rewrite
+sendemail-validat
+```
+
+#### The `.git-templates` directory
+
+This directory consists of subdirectories, where each subdirectory is a
+[git-template](https://git-scm.com/docs/git-init#Documentation/git-init.txt-code--templatecodeemlttemplate-directorygtem).
+The most important one is the `.git-templates/default` template. Which is
+what every repository on my machine gets after a `git init`.
+
 ## My new keeb
 
 Yeah I built a new keyboard and am pretty excited about it.
