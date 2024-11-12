@@ -229,8 +229,13 @@ Here is what my home.nix looks like so far:
 }
 ```
 
-Another option is to devise a system where each folder has a
-install.sh in the root, and it does the linking.
+Another option is to devise a system where each folder has a install.sh
+in the root, and it does the linking.
+
+> [!IMPORTANT]
+> Look into ways to keep home-manager modular, ideally I
+> would like each of my stow packages (the folders in this repo)
+> to have its corresponding nix file
 
 ## My new Keeb
 
