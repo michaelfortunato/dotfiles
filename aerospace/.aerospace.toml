@@ -190,3 +190,66 @@ alt-shift-h = ['join-with left', 'mode main']
 alt-shift-j = ['join-with down', 'mode main']
 alt-shift-k = ['join-with up', 'mode main']
 alt-shift-l = ['join-with right', 'mode main']
+
+# Mneumonics
+# Below are some app ids
+# 577   | com.apple.finder          | Finder
+# 710   | com.spotify.client        | Spotify
+# 865   | net.kovidgoyal.kitty      | kitty
+# 3021  | com.apple.mail            | Mail
+# 4538  | md.obsidian               | Obsidian
+# 8358  | com.tinyspeck.slackmacgap | Slack
+# 66495 | com.google.Chrome         | Google Chrome
+# 82748 | us.zoom.xos               | zoom.us
+# 82110 | com.apple.iCal            | Calendar
+# 31354 | com.apple.Preview         | Preview
+# 37121 | com.logi.bolt.app         | Logi Bolt
+# 76277 | com.skype.skype           | Skype
+# 33160 | com.apple.Music           | Music
+# 35098 | com.apple.Terminal        | Terminal
+# 47108 | com.apple.Notes           | Notes
+# 47375 | com.apple.TextEdit        | TextEdit
+# 51899 | com.apple.MobileSMS       | Messages
+[[on-window-detected]]
+if.app-id = 'net.kovidgoyal.kitty'
+run = 'move-node-to-workspace T' # mnemonics T - Terminal
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace G' # mnemonics G - Google
+
+[[on-window-detected]]
+if.app-id = 'com.apple.iCal'
+run = 'move-node-to-workspace C' # mnemonics C - Calendar
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Notes'
+run = 'move-node-to-workspace N' # mnemonics N - Notes
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace N' # mnemonics N - Notes
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace S' # mnemonics S - Slack
+
+[[on-window-detected]]
+if.app-id = 'com.skype.skype'
+run = 'move-node-to-workspace S' # mnemonics S - Skype
+
+[[on-window-detected]]
+if.app-id = 'us.zoom.xos'
+run = 'move-node-to-workspace Z' # mnemonics Z - Zoom
+
+[[on-window-detected]]
+if.app-id = 'com.apple.MobileSMS'
+run = 'move-node-to-workspace M' # mnemonics M - Messages
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Preview'
+run = 'move-node-to-workspace P' # mnemonics P - Preview
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Music'
+run = 'move-node-to-workspace M' # mnemonics M - Music

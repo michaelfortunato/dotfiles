@@ -116,6 +116,8 @@ source $ZSH/oh-my-zsh.sh
 bindkey \^U backward-kill-line
 
 # aliases
+alias vi=nvim
+alias vim=nvim
 alias cd=z
 alias zshconfig="nvim  $HOME/.zshrc"
 alias ohmyzshconfig="nvim $HOME/.oh-my-zsh"
