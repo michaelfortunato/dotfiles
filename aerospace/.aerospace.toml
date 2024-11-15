@@ -223,7 +223,7 @@ if.app-id = 'com.apple.iCal'
 run = 'move-node-to-workspace C' # mnemonics C - Calendar
 
 [[on-window-detected]]
-if.app-id = 'com.apple.Notes'
+if.app-id = 'com.goodnotesapp.x'
 run = 'move-node-to-workspace N' # mnemonics N - Notes
 
 [[on-window-detected]]
