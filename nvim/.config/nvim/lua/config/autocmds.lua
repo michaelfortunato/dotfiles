@@ -30,11 +30,11 @@ vim.api.nvim_create_autocmd("FileType", {
   command = "set bufhidden=delete",
 })
 
--- Make sure we RE-enter terminal mode when focusing back on terminal
-vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
-  callback = function()
-    vim.cmd("startinsert")
-  end,
-  pattern = { "term://*" },
-  group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
-})
+-- -- Make sure we RE-enter terminal mode when focusing back on terminal
+-- vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
+--   callback = function()
+--     vim.cmd("startinsert")
+--   end,
+--   pattern = { "term://*" },
+--   group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
+-- })
