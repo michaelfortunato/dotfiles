@@ -3,7 +3,13 @@ return {
   init = function()
     local keys = require("lazyvim.plugins.lsp.keymaps").get()
     -- add a keymap
-    keys[#keys + 1] = { "gh", vim.lsp.buf.hover }
+    keys[#keys + 1] = {
+      "gh",
+      function()
+        return vim.lsp.buf.hover()
+      end,
+      desc = "Hover",
+    }
   end,
   ---@class PluginLspOpts
   opts = { inlay_hints = { enabled = false } },
