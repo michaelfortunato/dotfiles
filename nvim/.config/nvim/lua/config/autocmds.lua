@@ -30,6 +30,14 @@ vim.api.nvim_create_autocmd("FileType", {
   command = "set bufhidden=delete",
 })
 
+vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+  pattern = { "*.tex" },
+  callback = function(ev)
+    local cmp = require("cmp")
+    cmp.setup({ completion = { autocomplete = { cmp.TriggerEvent.TextChanged } } })
+  end,
+})
+
 -- -- Make sure we RE-enter terminal mode when focusing back on terminal
 -- vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
 --   callback = function()

@@ -1,3 +1,8 @@
+--- Disable
+if true then
+  return {}
+end
+
 return {
   "epwalsh/obsidian.nvim",
   version = "*", -- recommended, use latest release instead of latest commit
@@ -17,6 +22,7 @@ return {
 
     -- see below for full list of optional dependencies 👇
   },
+  ---@param opts obsidian
   opts = function(_, opts)
     opts.workspaces = {
       {

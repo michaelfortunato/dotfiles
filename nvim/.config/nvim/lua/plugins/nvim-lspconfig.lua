@@ -1,4 +1,3 @@
--- LSP keymaps
 return {
   "neovim/nvim-lspconfig",
   init = function()
