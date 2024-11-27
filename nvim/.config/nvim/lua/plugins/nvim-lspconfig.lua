@@ -12,5 +12,15 @@ return {
     }
   end,
   ---@class PluginLspOpts
-  opts = { inlay_hints = { enabled = false } },
+  opts = {
+    --- Get that shi out of here!
+    inlay_hints = { enabled = false },
+    servers = {
+      texlab = {
+        keys = {
+          { "<Leader>K", "<plug>(vimtex-doc-package)", desc = "Vimtex Docs", silent = true },
+        },
+      },
+    },
+  },
 }

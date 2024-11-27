@@ -10,3 +10,9 @@ map("n", "<c-\\>", function()
   Snacks.terminal(nil, { cwd = LazyVim.root() })
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
+
+local wk = require("which-key")
+wk.add({
+  { "<leader>m", group = "personal" }, -- group
+})
+-- { "<leader>o", group = "Obsidian" }, -- group
