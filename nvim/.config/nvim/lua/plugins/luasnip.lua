@@ -29,6 +29,11 @@ return {
         end,
         desc = "Reload snippets",
       },
+      {
+        "<leader>mt",
+        "<Cmd> edit " .. SNIPPET_PATH .. "/tex.lua" .. " <CR>",
+        desc = "Open latex snippets",
+      },
     },
   },
 }

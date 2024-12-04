@@ -105,6 +105,8 @@ source $ZSH/oh-my-zsh.sh
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
+#
+EDITOR=nvim
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
@@ -119,6 +121,7 @@ bindkey \^U backward-kill-line
 alias vi=nvim
 alias vim=nvim
 alias cd=z
+alias note="cd $HOME/notes && $EDITOR ."
 alias zshconfig="nvim  $HOME/.zshrc"
 alias ohmyzshconfig="nvim $HOME/.oh-my-zsh"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"

@@ -2,7 +2,8 @@
   "extras": [
     "lazyvim.plugins.extras.editor.outline",
     "lazyvim.plugins.extras.formatting.prettier",
-    "lazyvim.plugins.extras.lang.markdown"
+    "lazyvim.plugins.extras.lang.markdown",
+    "lazyvim.plugins.extras.lang.tex"
   ],
   "news": {
     "NEWS.md": "7429"

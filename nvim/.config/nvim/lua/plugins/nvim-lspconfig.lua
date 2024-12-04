@@ -21,6 +21,16 @@ return {
           { "<Leader>K", "<plug>(vimtex-doc-package)", desc = "Vimtex Docs", silent = true },
         },
       },
+      nixd = {
+        -- https://github.com/NixOS/nixfmt
+        settings = {
+          nixd = {
+            formatting = {
+              command = { "nixfmt" },
+            },
+          },
+        },
+      },
     },
   },
 }

@@ -15,6 +15,23 @@
 --   opts:table|nil      -- *optional* table of additional snippet options
 -- )
 -- return {
+--   s(
+--    { trig = "b[eb]", regTrig = true, snippetType = "autosnippet" },
+--    fmta(
+--      [[
+--        \begin{<>}
+--            <>
+--        \end{<>}
+--      ]],
+--      {
+--        i(1),
+--        d(2, get_visual),
+--        rep(1),
+--      }
+--    ),
+--    { condition = line_begin }
+--  ),
+--
 -- s({trig = "h1", dscr="Top-level section"},
 --   fmta(
 --     [[\section{<>}]],
@@ -22,6 +39,15 @@
 --   ),
 --   {condition = line_begin}  -- set condition in the `opts` table
 -- ),
+--   { trig = "([^%a])l%(", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+--    fmta("<>\\left(<>\\right)", {
+--      f(function(_, snip)
+--        return snip.captures[1]
+--      end),
+--      d(1, get_visual),
+--    })
+--
+-- }
 --
 --
 local PRIORITY = 10000
@@ -48,12 +74,12 @@ end
 return {
   --- mdoc
   s(
-    { trig = "mdoc", snippetType = "autosnippet" },
+    { trig = "m?doc", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
 \documentclass[10pt, letterpaper]{article}
 \usepackage{amsmath}
-\usepackage{amssym}
+\usepackage{amssymb}
 \usepackage{amsthm}
 %
 \newtheorem{theorem}{Theorem}[section]
@@ -85,6 +111,39 @@ return {
     t("\\tableofcontents"),
     { condition = line_begin }
   ),
+  -- SUBSCRIPT
+  s(
+    { trig = "([%w%)%]%}])ss", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^{<>}", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- INVERSE
+  s(
+    { trig = "([%w%)%]%}])inv", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^{-1}<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- SUPERSCRIPT
+  s(
+    { trig = "([%w%)%]%}])SS", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^{<>}", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+    }),
+    { condition = tex.in_mathzone }
+  ),
   -- LEFT/RIGHT PARENTHESES
   s(
     { trig = "([^%a])l%(", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
@@ -93,7 +152,8 @@ return {
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- LEFT/RIGHT SQUARE BRACES
   s(
@@ -103,7 +163,8 @@ return {
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- LEFT/RIGHT CURLY BRACES
   s(
@@ -113,7 +174,8 @@ return {
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- BIG PARENTHESES
   s(
@@ -123,7 +185,8 @@ return {
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- BIG SQUARE BRACES
   s(
@@ -133,7 +196,8 @@ return {
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- BIG CURLY BRACES
   s(
@@ -143,17 +207,19 @@ return {
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- ESCAPED CURLY BRACES
   s(
-    { trig = "([^%a])\\%{", regTrig = true, wordTrig = false, snippetType = "autosnippet", priority = 2000 },
+    { trig = "([^%a])\\%{", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
     fmta("<>\\{<>\\}", {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- DOT PRODUCT, i.e. \cdot
   s({ trig = "x.", snippetType = "autosnippet" }, {
@@ -173,46 +239,44 @@ return {
   }, { condition = tex.in_mathzone }),
   --- Enter display mode quickly
   s(
-    { trig = "([^%a]?)MM", priority = PRIORITY, wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([^%a]?)MM", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>\\[<>\\]", {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    }),
-    { condition = tex.in_text }
+    })
   ),
   --- Enter inline mathmode quickly
   s(
-    { trig = "([^%a]?)mm", priority = PRIORITY, wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([^%a]?)mm", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta([[<>$<>$]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    }),
-    { condition = tex.in_text }
+    })
   ),
   -- Define vectors and matrices quickly
   s(
-    { trig = "([^%a])mb", wordTrig = false, regTrig = true, priority = PRIORITY, snippetType = "autosnippet" },
+    { trig = "([^%a])mb", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta([[<>\mathbf{<>}]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    }),
-    { condition = tex.in_mathzone }
+    })
+    -- { condition = tex.in_mathzone }
   ),
   s(
-    { trig = "([^%a])mB", regTrig = true, wordTrig = false, priority = PRIORITY, snippetType = "autosnippet" },
-    fmta("<>\\mathbb{<>}", {
+    { trig = "([^%a])mB", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    fmta([[<>\mathbb{<>}]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    }),
-    { condition = tex.in_mathzone }
+    })
+    -- { condition = tex.in_mathzone }
   ),
   --- PART (only applicable to book document class)
   s(
@@ -394,7 +458,22 @@ return {
     { condition = line_begin }
   ),
   s(
-    { trig = "bb", snippetType = "autosnippet" },
+    { trig = "bb", regTrig = true, snippetType = "autosnippet" },
+    fmta(
+      [[
+        \begin{<>}
+            <>
+        \end{<>}
+      ]],
+      {
+        i(1),
+        d(2, get_visual),
+        rep(1),
+      }
+    )
+  ),
+  s(
+    { trig = "b[eb]", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{<>}
@@ -411,7 +490,7 @@ return {
   ),
   --- begin theorem
   s(
-    { trig = "bte", snippetType = "autosnippet" },
+    { trig = "(the)|(bte)", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{theorem}
@@ -441,10 +520,10 @@ return {
   ),
   --- begin definition
   s(
-    { trig = "bde", snippetType = "autosnippet" },
+    { trig = "(def)|(bde)", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
-        \begin{definitio}
+        \begin{definition}
             <>
         \end{definition}
       ]],
@@ -456,7 +535,7 @@ return {
   ),
   -- begin PROOF
   s(
-    { trig = "bpro", snippetType = "autosnippet" },
+    { trig = "(pro)|(bpr)", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{proof}
@@ -471,7 +550,7 @@ return {
   ),
   -- begin REMARK
   s(
-    { trig = "bre", snippetType = "autosnippet" },
+    { trig = "(rem)|(bre)", snippetType = "autosnippet" },
     fmta(
       [[
         \begin{remark}
