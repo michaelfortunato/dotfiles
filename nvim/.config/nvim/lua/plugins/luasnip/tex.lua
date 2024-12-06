@@ -104,7 +104,7 @@ return {
         i(0),
       }
     ),
-    { condition = line_begin }
+    { condition = line_begin } --TODO: Condition should be begining of file!
   ),
   s(
     { trig = "([^%a])toc", priority = PRIORITY, wordTrig = false, regTrig = true, snippetType = "autosnippet" },
@@ -114,7 +114,7 @@ return {
   -- SUBSCRIPT
   s(
     { trig = "([%w%)%]%}])ss", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>^{<>}", {
+    fmta("<>_{<>}", {
       f(function(_, snip)
         return snip.captures[1]
       end),
@@ -230,11 +230,11 @@ return {
     t("\\times "),
   }, { condition = tex.in_mathzone }),
   -- CDOTS, i.e. \cdots
-  s({ trig = "cdo", snippetType = "autosnippet" }, {
+  s({ trig = "c.", snippetType = "autosnippet" }, {
     t("\\cdots"),
   }, { condition = tex.in_mathzone }),
   -- LDOTS, i.e. \ldots
-  s({ trig = "ldo", snippetType = "autosnippet" }, {
+  s({ trig = "l.", snippetType = "autosnippet" }, {
     t("\\ldots"),
   }, { condition = tex.in_mathzone }),
   --- Enter display mode quickly

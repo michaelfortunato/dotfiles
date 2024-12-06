@@ -39,9 +39,9 @@ return {
         i(6),
       }
     ),
-    { condition = line_begin }
+    { condition = line_begin } --TODO: Condition should be begining of file!
   ),
-  -- TODO: Finish out tempalte
+  -- Make is not a runner, but it is lol. Use make as a runner here.
   s(
     { trig = "tdoc", snippetType = "autosnippet" },
     fmta(

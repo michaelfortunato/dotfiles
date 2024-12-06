@@ -10,6 +10,14 @@ map("n", "<c-\\>", function()
   Snacks.terminal(nil, { cwd = LazyVim.root() })
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
+--- NOTE: Very important swap. ; -> [ and ' ->]
+
+map({ "n", "v", "s", "o" }, ";", "[", { remap = true, desc = "For backwards textobject navigation" })
+map({ "n", "v", "s", "o" }, ";;", "[[", { noremap = true, desc = "For backwards textobject navigation" })
+map({ "n", "v", "s", "o" }, "'", "]", { remap = true, desc = "For forwards textobject navigation" })
+map({ "n", "v", "s", "o" }, "''", "]]", { noremap = true, desc = "For forwards textobject navigation" })
+map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
+map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
 
 local wk = require("which-key")
 wk.add({

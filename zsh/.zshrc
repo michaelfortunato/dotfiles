@@ -100,7 +100,7 @@ source $ZSH/oh-my-zsh.sh
 # if [[ -n $SSH_CONNECTION ]]; then
 #   export EDITOR='vim'
 # else
-#   export EDITOR='mvim'
+#   export EDITOR='nvim'
 # fi
 
 # Compilation flags
@@ -122,9 +122,17 @@ alias vi=nvim
 alias vim=nvim
 alias cd=z
 alias note="cd $HOME/notes && $EDITOR ."
-alias zshconfig="nvim  $HOME/.zshrc"
+alias shconfig="nvim  $HOME/.zshrc"
 alias ohmyzshconfig="nvim $HOME/.oh-my-zsh"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
+# TODO: Detect kitty emulator using escape codes so this works over ssh
+# See here https://github.com/kovidgoyal/kitty/issues/957#issuecomment-420318828
+# `printf '\eP+q544e\e\\'`
+if [[ -n $KITTY_WINDOW_ID ]]; then
+  alias ssh="kitten ssh"
+fi
+
+
 
 # fzf - https://github.com/junegunn/fzf
 eval "$(fzf --zsh)"
