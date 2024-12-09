@@ -125,6 +125,7 @@ alias note="cd $HOME/notes && $EDITOR ."
 alias shconfig="nvim  $HOME/.zshrc"
 alias ohmyzshconfig="nvim $HOME/.oh-my-zsh"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
+
 # TODO: Detect kitty emulator using escape codes so this works over ssh
 # See here https://github.com/kovidgoyal/kitty/issues/957#issuecomment-420318828
 # `printf '\eP+q544e\e\\'`

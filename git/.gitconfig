@@ -9,7 +9,7 @@
   m = merge
   o = checkout
   p = pull
-  s = status
+  s = status #FIXME: `gs` Conflicts with ghostscript
   w = whatchanged
 [credential "https://github.com"]
 	helper = 
@@ -23,7 +23,7 @@
 	signingkey = B3C97C24E201EF1777ABFF0B1B35E71D2AD7D44E
 [core]
 	pager = less -F -X
-	editor = nvim --clean
+	editor = nvim
 	commentChar = ";"
 [init]
   templateDir = ~/.git-templates/default

@@ -1,0 +1,21 @@
+# Repo repo
+
+TARGET_DIR := "target"
+
+# Builds the pdf like normal but refreshes the viewer
+dev: build
+  sioyek --execute-command reload
+
+# Build the project
+build:
+  rm -rf {{TARGET_DIR}}
+  mkdir -p {{TARGET_DIR}}
+  docker --debug build . --output type=local,dest={{TARGET_DIR}}
+
+# Open the pdf for viewing in a detacthed shell
+open:
+  sioyek {{TARGET_DIR}}/main.pdf
+
+clean:
+  rm -rf {{TARGET_DIR}} 
+

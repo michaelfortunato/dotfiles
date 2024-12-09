@@ -67,20 +67,22 @@ local tex = {}
 tex.in_mathzone = function()
   return vim.fn["vimtex#syntax#in_mathzone"]() == 1
 end
-tex.in_text = function()
+tex.in_textzone = function()
   return not tex.in_mathzone()
 end
 
 return {
-  --- mdoc
+  -- NOTE: Remove auto snippet in the future,
+  -- we keep auto until we create another template snippet for this filetype
   s(
-    { trig = "m?doc", regTrig = true, snippetType = "autosnippet" },
+    { trig = "DOC", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
 \documentclass[10pt, letterpaper]{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{mathtools}
 %
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -144,9 +146,13 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
-  -- LEFT/RIGHT PARENTHESES
+  -- --- Let ".." namespace commonly used operators for me
+  s({ trig = "..g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
+  s({ trig = "..p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
+  -- ESCAPED PARENTHESES (notice that e( or e) works, lest I hit the wrong one!)
+  -- Note, that we specify the priority high so that e) works quickly.
   s(
-    { trig = "([^%a])l%(", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "([^%a])e[%(%)]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
     fmta("<>\\left(<>\\right)", {
       f(function(_, snip)
         return snip.captures[1]
@@ -155,9 +161,9 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
-  -- LEFT/RIGHT SQUARE BRACES
+  -- e(SCAPED) BRACES
   s(
-    { trig = "([^%a])l%[", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "([^%a])e[%[%]]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
     fmta("<>\\left[<>\\right]", {
       f(function(_, snip)
         return snip.captures[1]
@@ -166,9 +172,9 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
-  -- LEFT/RIGHT CURLY BRACES
+  -- e(SCAPED) CURLY BRACES
   s(
-    { trig = "([^%a])l%{", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "([^%a])e[%{%}]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
     fmta("<>\\left\\{<>\\right\\}", {
       f(function(_, snip)
         return snip.captures[1]
@@ -179,7 +185,7 @@ return {
   ),
   -- BIG PARENTHESES
   s(
-    { trig = "([^%a])b%(", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "([^%a])b[%(%)]", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
     fmta("<>\\big(<>\\big)", {
       f(function(_, snip)
         return snip.captures[1]
@@ -190,7 +196,7 @@ return {
   ),
   -- BIG SQUARE BRACES
   s(
-    { trig = "([^%a])b%[", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "([^%a])b[%[%]]", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
     fmta("<>\\big[<>\\big]", {
       f(function(_, snip)
         return snip.captures[1]
@@ -201,7 +207,7 @@ return {
   ),
   -- BIG CURLY BRACES
   s(
-    { trig = "([^%a])b%{", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "([^%a])b[%{%}]", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
     fmta("<>\\big\\{<>\\big\\}", {
       f(function(_, snip)
         return snip.captures[1]
@@ -278,52 +284,83 @@ return {
     })
     -- { condition = tex.in_mathzone }
   ),
+  -- FRACTION
+  s(
+    { trig = "([^%a])ff", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>\\frac{<>}{<>}", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+      i(2),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- SUMMATION
+  s(
+    { trig = "([^%a])su", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>\\sum_{<>}^{<>}", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+      i(2),
+    }),
+    { condition = tex.in_mathzone }
+  ),
   --- PART (only applicable to book document class)
   s(
     { trig = "h-1", snippetType = "autosnippet" },
     fmta([[\part{<>}]], {
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_textzone }
   ),
   --- CHAPTER (only applicable to book document class)
   s(
     { trig = "h0", snippetType = "autosnippet" },
     fmta([[\chapter{<>}]], {
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_textzone }
   ),
   -- SECTION
   s(
     { trig = "h1", snippetType = "autosnippet" },
     fmta([[\section{<>}]], {
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_textzone }
   ),
   -- SUBSECTION
   s(
     { trig = "h2", snippetType = "autosnippet" },
     fmta([[\subsection{<>}]], {
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_textzone }
   ),
   -- SUBSUBSECTION
   s(
     { trig = "h3", snippetType = "autosnippet" },
     fmta([[\subsubsection{<>}]], {
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_textzone }
   ),
   s(
     { trig = "h4", snippetType = "autosnippet" },
     fmta([[\paragraph{<>}]], {
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_textzone }
   ),
   s(
     { trig = "h5", snippetType = "autosnippet" },
     fmta([[\subparagraph{<>}]], {
       d(1, get_visual),
-    })
+    }),
+    { condition = tex.in_textzone }
   ),
   --- GREEK BEGIN
   s({ trig = ";a", snippetType = "autosnippet" }, {
@@ -561,6 +598,14 @@ return {
         d(1, get_visual),
       }
     ),
+    { condition = line_begin }
+  ),
+  s(
+    { trig = "nc", snippetType = "autosnippet" },
+    fmta([[\newcommand{<>}{<>}]], {
+      i(1),
+      i(2),
+    }),
     { condition = line_begin }
   ),
 }

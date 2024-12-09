@@ -1,0 +1,58 @@
+\documentclass[10pt, letterpaper]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+%
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+%
+\begin{document}
+% MNF Default Math Latex Document
+\title{Notes from CMSC-353}
+\author{Michael Newman Fortunato}
+% FIXME: \institute{} is broken
+\maketitle
+
+\subsection{SVD and Ridge Regression}
+We now decompose ridge regression into its essence, its SVD.
+Perhaps there are other ways to view $\mathbf{X}$ that gives us insight,
+but SVD is an essential viewpoint.
+
+\begin{remark}
+   Recall that Singular Value Decomposition of a real matrix $\mathbf{X}$
+   can be viewed as applying the $V^{T}$ rotation, doing a sheering, 
+   scaling along the rows of $\mathbf{V}^{T}$ by potentially different 
+   amounts, and then doing a final rotation in $\mathbf{U}$.
+   \[ X = U \Sigma V^{T} \]
+\end{remark}
+
+\subsubsection{Viewing Ridge Regression through SVD reveals its strength}
+
+We can see in more ways than one, why ridge regression is advantages in certain
+cases, by expressing $X$ by its SVD in the gradient equation of the ridge loss.
+
+\begin{equation}
+    \hat w = \left(X^{T}X + \lambda I \right)^{-1}X^{T}y
+\end{equation}
+
+\paragraph{Questions}
+Some questions come to mind 
+\begin{itemize}
+  \item How do we know $\left(X^{T}X - \lambda I\right)^{-1}$ is invertible?
+\end{itemize}
+
+\newcommand{\svd}[0]{X \Sigma V^T}
+
+\begin{align*}
+    \left(X^{T}X - \lambda I\right)^{-1}X^{T}y  \\
+    \left(\left(\svd\right)^{T}X - \lambda I\right)^{-1}X^{T}y 
+\end{align*}
+
+
+  
+\end{document}

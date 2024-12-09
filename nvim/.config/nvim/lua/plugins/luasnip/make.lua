@@ -9,7 +9,7 @@ end
 local line_begin = require("luasnip.extras.expand_conditions").line_begin
 return {
   s(
-    { trig = "rdoc", snippetType = "autosnippet" },
+    { trig = "DOC" },
     fmta(
       [[
     # This Makefile is to run commands. While justfiles are better purposed
@@ -32,6 +32,28 @@ return {
         i(2, "command2"),
         i(3, "command3"),
       }
+    ),
+    { condition = line_begin }
+  ),
+  s(
+    -- NOTE: Remove auto snippet in the future,
+    -- we keep auto until we create another template snippet for this filetype
+    { trig = "DOCLATEX", snippetType = "autosnippet" },
+    fmt(
+      [[
+      # Makefile for a basic latex project
+      .PHONY: pdf open
+      OBJ_DIR := ./obj
+      BIN_DIR := ./bin
+      pdf:
+      	# NOTE: No way to configure default sttings for latexmk
+      	latexmk -pdf -synctex=true -aux-directory=$(OBJ_DIR) -output-directory=$(BIN_DIR) answers.tex
+      open: pdf
+      	sioyek $(BIN_DIR)/answers.pdf
+      clean:
+      	rm -rf $(OBJ_DIR) $(BIN_DIR)
+   ]],
+      {}
     ),
     { condition = line_begin }
   ),
