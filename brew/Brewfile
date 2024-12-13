@@ -33,7 +33,6 @@ brew "pipenv"
 brew "pkgconf"
 brew "poetry"
 brew "postgresql@15", link: true
-brew "pyenv"
 brew "qemu"
 brew "rclone"
 brew "ripgrep"

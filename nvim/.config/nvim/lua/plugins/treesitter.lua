@@ -1,5 +1,6 @@
 ---@type LazySpec
 return {
+  ---@module "nvim-treesitter/nvim-treesitter"
   "nvim-treesitter/nvim-treesitter",
   opts = {
     textobjects = {

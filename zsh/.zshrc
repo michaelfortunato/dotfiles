@@ -138,10 +138,6 @@ eval "$(fzf --zsh)"
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
 
-# Create default python virtual environment
-# Don't clutter up my terminal PS1
-# FIXME: For some reason this powerlevel 10k does not respect it lol
-export VIRTUAL_ENV_DISABLE_PROMPT=1 
 source ~/.pyenv/bin/activate
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.

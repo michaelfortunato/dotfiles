@@ -1,7 +1,6 @@
 return {
   "folke/snacks.nvim",
   opts = {
-    ---@class snacks.dashboard.Config
     dashboard = {
       preset = { header = [[mnf.]] },
     },

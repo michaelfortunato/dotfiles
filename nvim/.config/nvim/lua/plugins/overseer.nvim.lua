@@ -1,4 +1,5 @@
 return {
+  ---@module "overseer"
   "stevearc/overseer.nvim",
   opts = {},
   -- dependencies = {
