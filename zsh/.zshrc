@@ -103,15 +103,13 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='nvim'
 # fi
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-#
 EDITOR=nvim
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
+#
 
 # keybindings to be like bash
 ## ^U in bash is ^W on zsh, I want to stick with bash
@@ -121,9 +119,9 @@ bindkey \^U backward-kill-line
 alias vi=nvim
 alias vim=nvim
 alias cd=z
+alias c="clear"
 alias note="cd $HOME/notes && $EDITOR ."
-alias shconfig="nvim  $HOME/.zshrc"
-alias ohmyzshconfig="nvim $HOME/.oh-my-zsh"
+alias shellconfig="nvim $HOME/.zshrc"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
 
 # TODO: Detect kitty emulator using escape codes so this works over ssh
@@ -134,12 +132,17 @@ if [[ -n $KITTY_WINDOW_ID ]]; then
 fi
 
 
-
 # fzf - https://github.com/junegunn/fzf
 eval "$(fzf --zsh)"
 
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
+
+# Create default python virtual environment
+# Don't clutter up my terminal PS1
+# FIXME: For some reason this powerlevel 10k does not respect it lol
+export VIRTUAL_ENV_DISABLE_PROMPT=1 
+source ~/.pyenv/bin/activate
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

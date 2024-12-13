@@ -48,7 +48,31 @@
 --    })
 --
 -- }
---
+---- Some LaTeX-specific conditional expansion functions (requires VimTeX)
+--- local tex_utils = {}
+--- tex_utils.in_mathzone = function()  -- math context detection
+---   return vim.fn['vimtex#syntax#in_mathzone']() == 1
+--- end
+--- tex_utils.in_text = function()
+---   return not tex_utils.in_mathzone()
+--- end
+--- tex_utils.in_comment = function()  -- comment detection
+---   return vim.fn['vimtex#syntax#in_comment']() == 1
+--- end
+--- tex_utils.in_env = function(name)  -- generic environment detection
+---     local is_inside = vim.fn['vimtex#env#is_inside'](name)
+---     return (is_inside[1] > 0 and is_inside[2] > 0)
+--- end
+--- -- A few concrete environments---adapt as needed
+--- tex_utils.in_equation = function()  -- equation environment detection
+---     return tex_utils.in_env('equation')
+--- end
+--- tex_utils.in_itemize = function()  -- itemize environment detection
+---     return tex_utils.in_env('itemize')
+--- end
+--- tex_utils.in_tikz = function()  -- TikZ picture environment detection
+---     return tex_utils.in_env('tikzpicture')
+--- end
 --
 local PRIORITY = 10000
 
@@ -81,6 +105,7 @@ return {
 \documentclass[10pt, letterpaper]{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage{mathtools}
 %
@@ -115,7 +140,7 @@ return {
   ),
   -- SUBSCRIPT
   s(
-    { trig = "([%w%)%]%}])ss", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([%w%)%]%}|])ss", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>_{<>}", {
       f(function(_, snip)
         return snip.captures[1]
@@ -137,12 +162,34 @@ return {
   ),
   -- SUPERSCRIPT
   s(
-    { trig = "([%w%)%]%}])SS", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([%w%)%]%}%|])SS", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^{<>}", {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- TRANSPOSE
+  s(
+    { trig = "([%w%)%]%}])st", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>^{T}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- DAGGER
+  s(
+    { trig = "([%w%)%]%}])dagger", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>^{\dagger}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
@@ -243,15 +290,55 @@ return {
   s({ trig = "l.", snippetType = "autosnippet" }, {
     t("\\ldots"),
   }, { condition = tex.in_mathzone }),
-  --- Enter display mode quickly
+  --- common math commands
   s(
-    { trig = "([^%a]?)MM", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>\\[<>\\]", {
+    { trig = "([^%a]?)bxd", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>\boxed{<>}<>]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  --- Accents - Tilde
+  s(
+    { trig = "([^%a]?)tilde", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>\tilde<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  --- Accents - hat
+  s(
+    { trig = "([^%a]?)hat", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>\hat<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  --- Enter display mode quickly
+  s(
+    { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
+    fmta(
+      [[
+\[
+  <>
+\]<>
+    ]],
+      {
+        d(1, get_visual),
+        i(0),
+      }
+    ),
+    { condition = line_begin }
   ),
   --- Enter inline mathmode quickly
   s(
@@ -527,7 +614,7 @@ return {
   ),
   --- begin theorem
   s(
-    { trig = "(the)|(bte)", regTrig = true, snippetType = "autosnippet" },
+    { trig = "bte", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{theorem}
@@ -557,7 +644,7 @@ return {
   ),
   --- begin definition
   s(
-    { trig = "(def)|(bde)", regTrig = true, snippetType = "autosnippet" },
+    { trig = "bde", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{definition}
@@ -572,7 +659,7 @@ return {
   ),
   -- begin PROOF
   s(
-    { trig = "(pro)|(bpr)", regTrig = true, snippetType = "autosnippet" },
+    { trig = "bpr", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{proof}
@@ -587,7 +674,7 @@ return {
   ),
   -- begin REMARK
   s(
-    { trig = "(rem)|(bre)", snippetType = "autosnippet" },
+    { trig = "bre", snippetType = "autosnippet" },
     fmta(
       [[
         \begin{remark}
