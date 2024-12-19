@@ -7,6 +7,8 @@ vim.wo.colorcolumn = "80" -- TODO: How do I set the actual color?
 -- Try this
 vim.opt.number = false
 vim.opt.relativenumber = false
+--- Prepare for lazyvim v14 if I ever decide to go with it.
+vim.g.snacks_animate = false
 
 -- LazyVim root dir detection
 -- Each entry can be:
