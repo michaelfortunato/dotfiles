@@ -690,7 +690,7 @@ return {
     { condition = line_begin }
   ),
   s(
-    { trig = "nc", snippetType = "autosnippet" },
+    { trig = "cmd", snippetType = "autosnippet" },
     fmta([[\newcommand{<>}{<>}]], {
       i(1),
       i(2),
