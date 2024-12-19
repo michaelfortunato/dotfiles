@@ -30,7 +30,7 @@ return {
   keys = {
     -- group
     { "<leader>t", group = "task", desc = "Task Runner" },
-    { "<leader>tt", "<cmd>OverseerToggle<cr>", desc = "Task list" },
+    { "<leader>tt", "<cmd>OverseerToggle<cr>", desc = "Task toggle" },
     { "<leader>tr", "<cmd>OverseerRun<cr>", desc = "Run task" },
     { "<leader>ts", "<cmd>OverseerQuickAction<cr>", desc = "Action recent task" },
     { "<leader>ti", "<cmd>OverseerInfo<cr>", desc = "Overseer Info" },
