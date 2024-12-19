@@ -12,8 +12,11 @@ fi
 # HomeBrew completions See here: https://docs.brew.sh/Shell-Completion 
 FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 
-# If you come from bash you might have to change your $PATH.
+# Struggling to be XDG compliant, this hsould probably be
+# ~/.local/bin, but ~/bin makes more sense to me
+# See here: https://specifications.freedesktop.org/basedir-spec/latest/
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH=$HOME/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -84,8 +87,8 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-export NVM_LAZY_LOAD=true # nvm is slow, see here: https://armno.in.th/blog/zsh-startup-time/
-plugins=(git gpg-agent fzf-tab zsh-nvm)
+#export NVM_LAZY_LOAD=true # nvm is slow, see here: https://armno.in.th/blog/zsh-startup-time/
+plugins=(git gpg-agent fzf-tab)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -103,7 +106,7 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='nvim'
 # fi
 
-EDITOR=nvim
+export EDITOR=nvim
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
@@ -120,9 +123,11 @@ alias vi=nvim
 alias vim=nvim
 alias cd=z
 alias c="clear"
-alias note="cd $HOME/notes && $EDITOR ."
-alias shellconfig="nvim $HOME/.zshrc"
+alias daily="mnf-daily.sh"
+alias shconfig="nvim $HOME/.zshrc"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
+alias termconfig="nvim $HOME/.config/kitty/kitty.conf"
+alias dotconfig="nvim $HOME/dotfiles"
 
 # TODO: Detect kitty emulator using escape codes so this works over ssh
 # See here https://github.com/kovidgoyal/kitty/issues/957#issuecomment-420318828
@@ -139,6 +144,7 @@ eval "$(fzf --zsh)"
 eval "$(zoxide init zsh)"
 
 source ~/.pyenv/bin/activate
+
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
