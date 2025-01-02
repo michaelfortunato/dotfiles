@@ -1,6 +1,7 @@
 # Benchmarking (see also https://github.com/romkatv/zsh-bench):
 # zmodload zsh/zprof # put at top of .zshrc
 # zprof # put at bottom of .zshrc
+#
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -90,6 +91,7 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 #export NVM_LAZY_LOAD=true # nvm is slow, see here: https://armno.in.th/blog/zsh-startup-time/
 plugins=(git gpg-agent fzf-tab)
 
+
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
@@ -126,8 +128,8 @@ alias c="clear"
 alias daily="mnf-daily.sh"
 alias shconfig="nvim $HOME/.zshrc"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
-alias termconfig="nvim $HOME/.config/kitty/kitty.conf"
-alias dotconfig="nvim $HOME/dotfiles"
+alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
+alias dotconfig="cd $HOME/dotfiles && nvim ./"
 
 # TODO: Detect kitty emulator using escape codes so this works over ssh
 # See here https://github.com/kovidgoyal/kitty/issues/957#issuecomment-420318828
@@ -144,6 +146,7 @@ eval "$(fzf --zsh)"
 eval "$(zoxide init zsh)"
 
 source ~/.pyenv/bin/activate
+
 
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
