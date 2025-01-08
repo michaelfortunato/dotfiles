@@ -17,7 +17,7 @@ FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 # ~/.local/bin, but ~/bin makes more sense to me
 # See here: https://specifications.freedesktop.org/basedir-spec/latest/
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
-export PATH=$HOME/bin:$PATH
+export PATH=$PATH:$HOME/bin
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -126,10 +126,10 @@ alias vim=nvim
 alias cd=z
 alias c="clear"
 alias daily="mnf-daily.sh"
-alias shconfig="nvim $HOME/.zshrc"
-alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
-alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
-alias dotconfig="cd $HOME/dotfiles && nvim ./"
+alias shconf="nvim $HOME/.zshrc"
+alias nvimconf="cd $HOME/.config/nvim && nvim ./"
+alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
+alias dotconf="cd $HOME/dotfiles && nvim ./"
 
 # TODO: Detect kitty emulator using escape codes so this works over ssh
 # See here https://github.com/kovidgoyal/kitty/issues/957#issuecomment-420318828

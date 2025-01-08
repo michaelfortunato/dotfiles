@@ -1,11 +1,5 @@
 local SNIPPET_PATH = "~/.config/nvim/lua/plugins/luasnip"
 return {
-  -- {
-  --   "rafamadriz/friendly-snippets",
-  --   config = function()
-  --     require("luasnip.loaders.from_vscode").lazy_load({ include = "tex" })
-  --   end,
-  -- },
   {
     "L3MON4D3/LuaSnip",
     -- dependencies = { "rafamadriz/friendly-snippets" },
@@ -30,7 +24,7 @@ return {
         desc = "Reload snippets",
       },
       {
-        "<leader>mt",
+        "<leader>mst",
         "<Cmd> edit " .. SNIPPET_PATH .. "/tex.lua" .. " <CR>",
         desc = "Open latex snippets",
       },

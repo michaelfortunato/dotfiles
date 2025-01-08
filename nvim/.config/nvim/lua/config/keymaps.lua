@@ -41,6 +41,15 @@ map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
 map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
 
+map({ "n", "v", "o" }, "<leader>r", "<Cmd>make<CR>", { desc = "Run build command" })
+
+--- kitty splits
+map("n", "<C-h>", require("smart-splits").move_cursor_left)
+map("n", "<C-j>", require("smart-splits").move_cursor_down)
+map("n", "<C-k>", require("smart-splits").move_cursor_up)
+map("n", "<C-l>", require("smart-splits").move_cursor_right)
+
+-- Personal key map system?
 local wk = require("which-key")
 wk.add({
   { "<leader>m", group = "personal" }, -- group
