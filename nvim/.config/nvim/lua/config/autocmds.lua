@@ -38,6 +38,13 @@ vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
   end,
 })
 
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "lua" },
+  callback = function(ev)
+    vim.api.nvim_buf_set_keymap(ev.buf, "n", "<leader>ll", "<Cmd>source %<CR>", { desc = "Source lua file" })
+  end,
+})
+
 -- -- Make sure we RE-enter terminal mode when focusing back on terminal
 -- vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
 --   callback = function()

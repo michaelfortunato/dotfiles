@@ -41,7 +41,27 @@ map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
 map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
 
-map({ "n", "v", "o" }, "<leader>r", "<Cmd>make<CR>", { desc = "Run build command" })
+-- map({ "n", "v", "o" }, "<leader>r", "<Cmd>make<CR>", { desc = "Run build command" })
+
+-- WARN: We are remapping LazyVim's <Tab> Commands
+-- TODO:  local wk = require("which-key")
+-- How do I delete a group mapping? { "<leader><tab>", group = "tabs" },
+-- del({"n", "v"}, "<leader><tab>")
+vim.keymap.del("n", "<leader><tab>l", { desc = "Last Tab" })
+-- TODO: Remap me: map("n", "<leader><tab>l", "<cmd>tablast<cr>", { desc = "Last Tab" })
+vim.keymap.del("n", "<leader><tab>o")
+---- TODO: Remap me: map("n", "<leader><tab>o", "<cmd>tabonly<cr>", { desc = "Close Other Tabs" })
+vim.keymap.del("n", "<leader><tab>f", { desc = "First Tab" })
+--- TODO: Remap me: map("n", "<leader><tab>f", "<cmd>tabfirst<cr>", { desc = "First Tab" })
+vim.keymap.del("n", "<leader><tab><tab>", { desc = "New Tab" })
+--- TODO: Remap me: map("n", "<leader><tab><tab>", "<cmd>tabnew<cr>", { desc = "New Tab" })
+vim.keymap.del("n", "<leader><tab>]", { desc = "Next Tab" })
+--- TODO: Remap me: map("n", "<leader><tab>]", "<cmd>tabnext<cr>", { desc = "Next Tab" })
+vim.keymap.del("n", "<leader><tab>d", { desc = "Close Tab" })
+--- TODO: Remap me: map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
+vim.keymap.del("n", "<leader><tab>[", { desc = "Previous Tab" })
+
+map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Other Buffer" })
 
 --- kitty splits
 map("n", "<C-h>", require("smart-splits").move_cursor_left)
