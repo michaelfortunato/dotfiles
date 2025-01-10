@@ -35,14 +35,14 @@ def toggle_term(boss):
     have_only_one = len(all_another_wins) == 0
 
     if have_only_one:
-        boss.launch("--cwd=current", "--location=hsplit")
-        tab.neighboring_window("bottom")
+        boss.launch("--cwd=current", "--location=vsplit")
+        tab.neighboring_window("right")
     else:
         if tab.current_layout.name == "stack":
             tab.last_used_layout()
-            tab.neighboring_window("bottom")
+            tab.neighboring_window("right")
         else:
-            tab.neighboring_window("top")
+            tab.neighboring_window("left")
             tab.goto_layout("stack")
 
 
