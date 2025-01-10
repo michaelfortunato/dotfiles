@@ -26,10 +26,10 @@
 	editor = nvim
 	commentChar = ";"
 [init]
-  templateDir = ~/.git-templates/default
+  templateDir = ~/.config/git/git-templates/default
 [commit]
 	gpgsign = true
-  template = ~/.git-commit-template
+  template = ~/.config/git/git-commit-template
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
