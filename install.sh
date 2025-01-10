@@ -23,7 +23,7 @@ dev_install_git_hooks() {
   GIT_HOOK_FILE="$GIT_HOOKS_DIR/pre-push"
   cat <<"EOF" >$GIT_HOOK_FILE
 #!/bin/bash
-source ~/.git-hooks/pre-push/dotfiles
+source ~/.config/git/git-hooks/pre-push/dotfiles
 EOF
   chmod +x $GIT_HOOK_FILE
 }

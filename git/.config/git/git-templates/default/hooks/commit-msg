@@ -3,4 +3,4 @@
 # that has the commit message.
 # Configure me by doing cp <my-path> $GIT_DIR/hooks
 
-source ~/.git-hooks/commit-msg/check-msg
+source ~/.config/git/git-hooks/commit-msg/check-msg
