@@ -13,11 +13,6 @@ fi
 # HomeBrew completions See here: https://docs.brew.sh/Shell-Completion 
 FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 
-# Struggling to be XDG compliant, this hsould probably be
-# ~/.local/bin, but ~/bin makes more sense to me
-# See here: https://specifications.freedesktop.org/basedir-spec/latest/
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
-export PATH=$PATH:$HOME/bin
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -94,6 +89,10 @@ plugins=(git gpg-agent fzf-tab)
 
 source $ZSH/oh-my-zsh.sh
 
+# keybindings to be like bash
+## ^U in bash is ^W on zsh, I want to stick with bash
+bindkey \^U backward-kill-line
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
@@ -108,27 +107,44 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='nvim'
 # fi
 
+
+# Set environment variables here
+## Set system environment variables
 export EDITOR=nvim
+## XDG Specs
+### defines the base directory relative to which user-specific data files should be stored. If $XDG_DATA_HOME is either not set or empty, a default equal to $HOME/.local/share should be used.
+#export XDG_DATA_HOME=$HOME/.local/share 
+### $XDG_CONFIG_HOME defines the base directory relative to which user-specific configuration files should be stored. If $XDG_CONFIG_HOME is either not set or empty, a default equal to $HOME/.config should be used
+#export XDG_CONFIG_HOME=$HOME/.config
+### $XDG_STATE_HOME defines the base directory relative to which user-specific state files should be stored. If $XDG_STATE_HOME is either not set or empty, a default equal to $HOME/.local/state should be used.
+### The $XDG_STATE_HOME contains state data that should persist between (application) restarts, but that is not important or portable enough to the user that it should be stored in $XDG_DATA_HOME. It may contain:
+### actions history (logs, history, recently used files, …)
+### current state of the application that can be reused on a restart (view, layout, open files, undo history, …)
+#export XDG_STATE_HOME=$HOME/.local/state
+
+## Set personal environment variables
+export MNF_NOTES_DIR=$HOME/notes
+export MNF_BIN_DIR=$HOME/bin
+
+############# PATH ############
+# NOTE: Only set path here!
+export PATH=$PATH:$MNF_BIN_DIR
+###############################
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
-#
-
-# keybindings to be like bash
-## ^U in bash is ^W on zsh, I want to stick with bash
-bindkey \^U backward-kill-line
-
 # aliases
 alias vi=nvim
 alias vim=nvim
 alias cd=z
 alias c="clear"
-alias l1="tree . -L 1"
-alias l2="tree . -L 2"
-alias l3="tree . -L 2"
-alias daily="mnf-daily.sh"
+alias l1="tree -L 1"
+alias l2="tree -L 2"
+alias l3="tree -L 2"
+alias daily="mnf-daily"
+alias gist="mnf-gist"
 alias shconf="nvim $HOME/.zshrc"
 alias nvimconf="cd $HOME/.config/nvim && nvim ./"
 alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
@@ -149,8 +165,6 @@ eval "$(fzf --zsh)"
 eval "$(zoxide init zsh)"
 
 source ~/.pyenv/bin/activate
-
-
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
