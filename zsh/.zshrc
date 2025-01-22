@@ -139,6 +139,7 @@ export PATH=$PATH:$MNF_BIN_DIR
 alias vi=nvim
 alias vim=nvim
 alias cd=z
+alias n="nvim" # This one is aggressive!
 alias c="clear"
 alias l1="tree -L 1"
 alias l2="tree -L 2"
@@ -163,6 +164,9 @@ eval "$(fzf --zsh)"
 
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
+
+# direnv
+eval "$(direnv hook zsh)"
 
 source ~/.pyenv/bin/activate
 

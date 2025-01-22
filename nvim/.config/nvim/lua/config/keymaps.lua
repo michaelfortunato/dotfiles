@@ -3,6 +3,8 @@
 -- Add any additional keymaps here
 local map = vim.keymap.set
 -- floating terminal add ctrl-\
+-- NOTE: This keymap is overridden by kitty
+-- As well as <C-/>, <C-;>
 map("n", "<c-\\>", function()
   Snacks.terminal(nil, { cwd = LazyVim.root() })
 end, { desc = "Terminal (Root Dir)" })

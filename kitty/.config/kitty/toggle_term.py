@@ -28,21 +28,28 @@ def main(args: list[str]) -> str:
     pass
 
 
-def toggle_term(boss):
+def toggle_term(boss, args):
+    # TODO: Add support for options
+    orientation_param = "horizontal"
+    # TODO
+    overlay_param = False
+    if (len(args) == 2) and (args[1] == "overlay"):
+        overlay_param = True
+
     tab = boss.active_tab
 
     all_another_wins = tab.all_window_ids_except_active_window
     have_only_one = len(all_another_wins) == 0
 
     if have_only_one:
-        boss.launch("--cwd=current", "--location=vsplit")
-        tab.neighboring_window("right")
+        boss.launch("--cwd=current", "--location=hsplit", "--bias=30")
+        tab.neighboring_window("bottom")
     else:
         if tab.current_layout.name == "stack":
             tab.last_used_layout()
-            tab.neighboring_window("right")
+            tab.neighboring_window("bottom")
         else:
-            tab.neighboring_window("left")
+            tab.neighboring_window("top")
             tab.goto_layout("stack")
 
 
@@ -55,4 +62,4 @@ def handle_result(
     if window is None:
         return
 
-    toggle_term(boss)
+    toggle_term(boss, args)

@@ -17,12 +17,12 @@ return {
     inlay_hints = { enabled = false },
     servers = {
       texlab = {
-        keys = {
-          { "<Leader>K", "<plug>(vimtex-doc-package)", desc = "Vimtex Docs", silent = true },
-          -- Override [[ goto reference
-          { "[[", mode = { "n", "x", "o" }, "<plug>(vimtex-[[)", desc = "Vimtex Docs", silent = true },
-          { "]]", mode = { "n", "x", "o" }, "<plug>(vimtex-]])", desc = "Vimtex Docs", silent = true },
-        },
+        --  keys = {
+        --    { "<Leader>K", "<plug>(vimtex-doc-package)", desc = "Vimtex Docs", silent = true },
+        --    -- Override [[ goto reference
+        --    { "[[", mode = { "n", "x", "o" }, "<plug>(vimtex-[[)", desc = "Vimtex Docs", silent = true },
+        --    { "]]", mode = { "n", "x", "o" }, "<plug>(vimtex-]])", desc = "Vimtex Docs", silent = true },
+        --  },
       },
       nixd = {
         -- https://github.com/NixOS/nixfmt

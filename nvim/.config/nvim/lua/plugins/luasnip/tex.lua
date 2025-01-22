@@ -101,7 +101,7 @@ return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
   s(
-    { trig = "DOC", regTrig = true, snippetType = "autosnippet" },
+    { trig = "TMPL", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
 \documentclass[10pt, letterpaper]{article}
@@ -110,6 +110,9 @@ return {
 \usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage{mathtools}
+\usepackage{hyperref}
+% Optional Packages
+% \usepackage{csquotes}
 %
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -117,7 +120,13 @@ return {
 \newtheorem{definition}{Definition}[section]
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
+% Math Operators
+\DeclareMathOperator*{\argmax}{arg\,max}
+% \DeclareMathOperator*{\argmin}{arg\,min}
 %
+% Commands
+% 3 is the number of args, 2 is the default value of arg1
+%\newcommand{\plusbinomial}[3][2]{(#2 + #3)^#1}
 \begin{document}
 % MNF Default Math Latex Document
 \title{<>}
@@ -165,11 +174,12 @@ return {
   -- SUPERSCRIPT
   s(
     { trig = "([%w%)%]%}%|])SS", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>^{<>}", {
+    fmta("<>^{<>}<>", {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
@@ -179,6 +189,47 @@ return {
     fmta([[<>^{T}<>]], {
       f(function(_, snip)
         return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- SUBSCRIPT
+  s(
+    { trig = "([%w%)%]%}|])s(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>_{<>}<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      f(function(_, snip)
+        return snip.captures[2]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- SUPERSCRIPT
+  s(
+    { trig = "([%w%)%]%}|])S(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^{<>}<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      f(function(_, snip)
+        return snip.captures[2]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "([%w%)%]%}|])s([ijknm])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>_{<>}<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      f(function(_, snip)
+        return snip.captures[2]
       end),
       i(0),
     }),
@@ -195,43 +246,106 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
-  -- --- Let ".." namespace commonly used operators for me
+  s(
+    { trig = "([^%a])in", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    t("\\in"),
+    { condition = tex.in_mathzone }
+  ),
+  --- https://github.com/michaelfortunato/luasnip-latex-snippets.nvim/blob/main/lua/luasnip-latex-snippets/math_iA.lua
+  --- Investigate this
+  s(
+    { trig = "bmat", snippetType = "autosnippet" },
+    fmta(
+      [[
+  \begin{bmatrix} <> \end{bmatrix}<>]],
+      {
+        i(1),
+        i(0),
+      }
+    ),
+    { condition = tex.in_mathzone }
+  ),
+  s({ trig = "RR", snippetType = "autosnippet" }, t("\\mathbb{R}"), { condition = tex.in_mathzone }),
+  s({ trig = "QQ", snippetType = "autosnippet" }, t("\\mathbb{Q}"), { condition = tex.in_mathzone }),
+  s({ trig = "NN", snippetType = "autosnippet" }, t("\\mathbb{N}"), { condition = tex.in_mathzone }),
+  s({ trig = "ZZ", snippetType = "autosnippet" }, t("\\mathbb{Z}"), { condition = tex.in_mathzone }),
+  s({ trig = "UU", snippetType = "autosnippet" }, t("\\cup"), { condition = tex.in_mathzone }),
+  s({ trig = "II", snippetType = "autosnippet" }, t("\\cap"), { condition = tex.in_mathzone }),
+  s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneqq"), { condition = tex.in_mathzone }),
+  s({ trig = "->", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
+  s({ trig = ":->", snippetType = "autosnippet" }, t("\\mapsto"), { condition = tex.in_mathzone }),
+  s({ trig = "=>", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
+  s({ trig = "-->", snippetType = "autosnippet" }, t("\\longrightarrow"), { condition = tex.in_mathzone }),
+  s({ trig = ">=", snippetType = "autosnippet" }, t("\\geq"), { condition = tex.in_mathzone }),
+  s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = tex.in_mathzone }),
+  -- --- Let ".." namespace commonly used but not yet semantic prefix
   s({ trig = "..g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
   s({ trig = "..p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
   -- ESCAPED PARENTHESES (notice that e( or e) works, lest I hit the wrong one!)
   -- Note, that we specify the priority high so that e) works quickly.
+  -- s(
+  --   { trig = "([^%a])e[%(%)]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+  --   fmta("<>\\left(<>\\right)", {
+  --     f(function(_, snip)
+  --       return snip.captures[1]
+  --     end),
+  --     d(1, get_visual),
+  --   }),
+  --   { condition = tex.in_mathzone }
+  -- ),
+  -- -- e(SCAPED) BRACES
+  -- s(
+  --   { trig = "([^%a])e[%[%]]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+  --   fmta("<>\\left[<>\\right]", {
+  --     f(function(_, snip)
+  --       return snip.captures[1]
+  --     end),
+  --     d(1, get_visual),
+  --   }),
+  --   { condition = tex.in_mathzone }
+  -- ),
+  -- -- e(SCAPED) CURLY BRACES
+  -- s(
+  --   { trig = "([^%a])e[%{%}]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+  --   fmta("<>\\left\\{<>\\right\\}", {
+  --     f(function(_, snip)
+  --       return snip.captures[1]
+  --     end),
+  --     d(1, get_visual),
+  --   }),
+  --   { condition = tex.in_mathzone }
+  -- ),
+
+  -- e(SCAPED) PARENTHESES v2 {{
   s(
-    { trig = "([^%a])e[%(%)]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
-    fmta("<>\\left(<>\\right)", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
+    { trig = "((", PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\left( <> \\right)<>", {
+      i(1),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
-  -- e(SCAPED) BRACES
+
+  -- e(SCAPED) BRACKETS v2 {{
   s(
-    { trig = "([^%a])e[%[%]]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
-    fmta("<>\\left[<>\\right]", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
+    { trig = "[[", PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\left[ <> \\right]<>", {
+      i(1),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
-  -- e(SCAPED) CURLY BRACES
+
+  -- e(SCAPED) CURLY BRACES v2 {{
   s(
-    { trig = "([^%a])e[%{%}]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
-    fmta("<>\\left\\{<>\\right\\}", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
+    { trig = "{{", PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\left{ <> \\right}<>", {
+      i(1),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
+
   -- BIG PARENTHESES
   s(
     { trig = "([^%a])b[%(%)]", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
@@ -277,7 +391,7 @@ return {
     { condition = tex.in_mathzone }
   ),
   -- DOT PRODUCT, i.e. \cdot
-  s({ trig = "x.", snippetType = "autosnippet" }, {
+  s({ trig = "dot", snippetType = "autosnippet" }, {
     t("\\cdot "),
   }, { condition = tex.in_mathzone }),
   -- \times
@@ -285,16 +399,16 @@ return {
     t("\\times "),
   }, { condition = tex.in_mathzone }),
   -- CDOTS, i.e. \cdots
-  s({ trig = "c.", snippetType = "autosnippet" }, {
+  s({ trig = "cdots", snippetType = "autosnippet" }, {
     t("\\cdots"),
   }, { condition = tex.in_mathzone }),
   -- LDOTS, i.e. \ldots
-  s({ trig = "l.", snippetType = "autosnippet" }, {
+  s({ trig = "ldo", snippetType = "autosnippet" }, {
     t("\\ldots"),
   }, { condition = tex.in_mathzone }),
   --- common math commands
   s(
-    { trig = "([^%a]?)bxd", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([^%a])bxd", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta([[<>\boxed{<>}<>]], {
       f(function(_, snip)
         return snip.captures[1]
@@ -306,7 +420,7 @@ return {
   ),
   --- Accents - Tilde
   s(
-    { trig = "([^%a]?)tilde", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([^%a])tilde", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta([[<>\tilde<>]], {
       f(function(_, snip)
         return snip.captures[1]
@@ -317,7 +431,7 @@ return {
   ),
   --- Accents - hat
   s(
-    { trig = "([^%a]?)hat", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([^%a])hat", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta([[<>\hat<>]], {
       f(function(_, snip)
         return snip.captures[1]
@@ -326,9 +440,21 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
+  --- BAR
+  s(
+    { trig = "([^%a])bar", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>\bar{<>}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
   --- Enter display mode quickly
   s(
-    { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
+    { trig = "MM", wordTrig = false, priority = PRIORITY + 10, regTrig = false, snippetType = "autosnippet" },
     fmta(
       [[
 \[
@@ -342,58 +468,104 @@ return {
     ),
     { condition = line_begin }
   ),
-  --- Enter inline mathmode quickly
   s(
-    { trig = "([^%a]?)mm", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>$<>$]], {
+    { trig = "mm", wordTrig = false, priority = PRIORITY, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>$<>$<>]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
+      i(0),
+    }),
+    { condition = line_begin }
+  ),
+  --- Enter inline mathmode quickly
+  s(
+    { trig = "([^%a])mm", wordTrig = false, priority = PRIORITY + 1, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>$<>$<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+      i(0),
     })
   ),
   -- Define vectors and matrices quickly
+  -- TODO, this does not get put inside a $$ snippet so tab jumping does not work?
+  -- OK, I think I know why, the capture group on the negated
+  -- %a class takes in $, which messes up the rnage
   s(
     { trig = "([^%a])mb", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>\mathbf{<>}]], {
+    fmta([[<>\mathbf{<>}<>]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
-    -- { condition = tex.in_mathzone }
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
   ),
   s(
     { trig = "([^%a])mB", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
-    fmta([[<>\mathbb{<>}]], {
+    fmta([[<>\mathbb{<>}<>]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
-    })
-    -- { condition = tex.in_mathzone }
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "([^%a])bb", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    fmta([[<>\mathbb{<>}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- FRACTION
   s(
     { trig = "([^%a])ff", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>\\frac{<>}{<>}", {
+    fmta("<>\\frac{<>}{<>}<>", {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
       i(2),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
   -- SUMMATION
   s(
     { trig = "([^%a])su", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>\\sum_{<>}^{<>}", {
+    fmta("<>\\sum_{<>}^{<>}<>", {
       f(function(_, snip)
         return snip.captures[1]
       end),
       d(1, get_visual),
       i(2),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "mcal", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\mathcal{<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "mathcal", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\mathcal{<>}<>]], {
+      d(1, get_visual),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
@@ -573,9 +745,9 @@ return {
     { trig = "al", snippetType = "autosnippet" },
     fmta(
       [[
-        \begin{align*}
+        \begin{align}
             <>
-        \end{align*}
+        \end{align}
       ]],
       {
         i(1),
@@ -596,10 +768,11 @@ return {
         d(2, get_visual),
         rep(1),
       }
-    )
+    ),
+    { condition = line_begin }
   ),
   s(
-    { trig = "b[eb]", regTrig = true, snippetType = "autosnippet" },
+    { trig = "beg", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{<>}
@@ -691,10 +864,16 @@ return {
   ),
   s(
     { trig = "cmd", snippetType = "autosnippet" },
-    fmta([[\newcommand{<>}{<>}]], {
-      i(1),
-      i(2),
-    }),
+    fmta(
+      [[
+      % MNF: newcommand, usage \newcommand{hi}[numparams][defaultvalue]{#1 + #2}
+      \newcommand{<>}{<>}
+      ]],
+      {
+        i(1),
+        i(2),
+      }
+    ),
     { condition = line_begin }
   ),
 }

@@ -30,11 +30,19 @@ vim.api.nvim_create_autocmd("FileType", {
   command = "set bufhidden=delete",
 })
 
-vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
-  pattern = { "*.tex" },
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "tex" },
   callback = function(ev)
     local cmp = require("cmp")
-    cmp.setup({ completion = { autocomplete = { cmp.TriggerEvent.TextChanged } } })
+    cmp.setup({
+      sources = {
+        { name = "luasnip", option = { show_autosnippets = false } },
+        --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
+        { name = "buffer" },
+        { name = "emoji" },
+      },
+      completion = { autocomplete = { cmp.TriggerEvent.TextChanged } },
+    })
   end,
 })
 

@@ -1,19 +1,27 @@
 -- override nvim-cmp
 -- turn off autocompletions
--- Make sure to unmap <C-Space> https://github.com/AstroNvim/AstroNvim/issues/601 on mac
+-- Make sure to unmap <C-Space> https://github.com/AstroNvim/AstroNvim/issues/601 on macro
 return {
   "hrsh7th/nvim-cmp",
-  dependencies = { "hrsh7th/cmp-emoji", "saadparwaiz1/cmp_luasnip", "gitaarik/nvim-cmp-toggle" },
+  dependencies = { "hrsh7th/cmp-emoji", "saadparwaiz1/cmp_luasnip" },
+  ---@module "cmp"
+  ---@param opts cmp.ConfigSchema
   opts = function(_, opts)
     opts.snippet = {
       expand = function(args)
         require("luasnip").lsp_expand(args.body)
       end,
     }
-
     opts.completion.autocomplete = false
-    table.insert(opts.sources, { name = "emoji" })
-    table.insert(opts.sources, { name = "luasnip" })
+    -- TODO: Disabling `{ name = 'nvim_lsp' }`, is desired in latex documents
+    -- I can do `opts.sources = {}`, but that removes lsp for all file types
+    -- Order detrmines priority as well
+    opts.sources = {
+      { name = "luasnip", option = { show_autosnippets = false } },
+      { name = "nvim_lsp" },
+      { name = "buffer" },
+      { name = "emoji" },
+    }
 
     local luasnip = require("luasnip")
     local cmp = require("cmp")
@@ -44,6 +52,7 @@ return {
       -- end
       -- cmp.select_next_item()
       -- else
+      -- WARN: Maybe use luasnip.jumpable(1) ??
       if luasnip.locally_jumpable(1) then
         luasnip.jump(1)
       else
@@ -63,6 +72,13 @@ return {
     return opts
   end,
   keys = {
-    { "<leader>ua", "<cmd>NvimCmpToggle<cr>", desc = "Toggle autocomplete" },
+    {
+      "<leader>ua",
+      function()
+        -- This is totally fucking stupid and broken. Fuck this.
+        -- vim.notify("Auto completion " .. (vim.g.mnf_enable_autocomplete and "enabled" or "disabled"))
+      end,
+      desc = "Toggle autocomplete. This is a bit of sledge hammer",
+    },
   },
 }
