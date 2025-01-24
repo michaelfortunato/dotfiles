@@ -100,13 +100,6 @@ bindkey \^U backward-kill-line
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='nvim'
-# fi
-
 
 # Set environment variables here
 ## Set system environment variables
@@ -141,6 +134,7 @@ alias vim=nvim
 alias cd=z
 alias n="nvim" # This one is aggressive!
 alias c="clear"
+alias lt="tree" #Maybe l0
 alias l1="tree -L 1"
 alias l2="tree -L 2"
 alias l3="tree -L 2"
@@ -165,10 +159,13 @@ eval "$(fzf --zsh)"
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
 
+
+# activate the default virtual env
+source ~/.pyenv/bin/activate
+
 # direnv
 eval "$(direnv hook zsh)"
 
-source ~/.pyenv/bin/activate
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

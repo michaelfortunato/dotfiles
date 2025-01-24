@@ -1,3 +1,5 @@
+--- FIXME: I am not a fan of this plugin. I think I can do 
+--- something much simpler.
 return {
   ---@module "overseer"
   "stevearc/overseer.nvim",

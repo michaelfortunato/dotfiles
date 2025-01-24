@@ -9,6 +9,7 @@ map("n", "<c-\\>", function()
   Snacks.terminal(nil, { cwd = LazyVim.root() })
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
+map("n", "<localleader><localleader>", require("telescope.builtin").buffers, { desc = "Telescope buffers" })
 
 -- TODO: Try to get scrolling in integrateered terminal to work
 -- See: https://vt100.net/docs/vt510-rm/SD.html

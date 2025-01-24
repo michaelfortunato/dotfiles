@@ -1,8 +1,8 @@
--- Options are automatically loaded before lazy.nvim startup
+-- Options are automatically loaded before lazy.nvim startupopt
 -- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
 -- Add any additional options here
 vim.g.mapleader = " "
-vim.g.maplocalleader = ","
+vim.g.maplocalleader = "."
 vim.wo.colorcolumn = "80" -- TODO: How do I set the actual color?
 -- Try this
 vim.opt.number = false

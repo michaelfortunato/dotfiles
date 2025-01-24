@@ -38,15 +38,29 @@ vim.api.nvim_create_autocmd("FileType", {
       sources = {
         { name = "luasnip", option = { show_autosnippets = false } },
         --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
-        { name = "buffer" },
-        { name = "emoji" },
+        -- { name = "buffer" },
+        -- { name = "emoji" },
       },
       completion = { autocomplete = { cmp.TriggerEvent.TextChanged } },
     })
   end,
 })
 
+-- vim.api.nvim_create_autocmd("FileType", {
+--   --- TODO: Problably should be moved into an ftpluin or a snippet
+--   --- Going to make this a snippet
+--   pattern = { "tex" },
+--   callback = function(ev)
+--     local MiniPairs = require("mini.pairs")
+--     MiniPairs.map_buf(0, "i", "$", { action = "closeopen", pair = "$$" })
+--     MiniPairs.map_buf(0, "i", "(", { action = "open", pair = "()" })
+--     MiniPairs.map_buf(0, "i", "[", { action = "open", pair = "[]" })
+--     MiniPairs.map_buf(0, "i", "{", { action = "open", pair = "{}" })
+--   end,
+-- })
+
 vim.api.nvim_create_autocmd("FileType", {
+  --- TODO: Problably should be moved into an ftpluin
   pattern = { "lua" },
   callback = function(ev)
     vim.api.nvim_buf_set_keymap(ev.buf, "n", "<leader>ll", "<Cmd>source %<CR>", { desc = "Source lua file" })

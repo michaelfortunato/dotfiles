@@ -87,6 +87,26 @@ local get_visual = function(args, parent)
 end
 
 local line_begin = require("luasnip.extras.expand_conditions").line_begin
+local cond_obj = require("luasnip.extras.conditions")
+
+-----------------------
+-- PRESET CONDITIONS --
+-----------------------
+local function mnf_wordtrig(line_to_cursor, matched_trigger)
+  -- +1 because `string.sub("abcd", 1, -2)` -> abc
+  --
+  if #line_to_cursor == #matched_trigger then
+    return true
+  end
+  local char_idx = #line_to_cursor - #matched_trigger
+  return not string.sub(line_to_cursor, char_idx, char_idx):match("%w")
+end
+
+local mnf_wordtrig = cond_obj.make_condition(mnf_wordtrig)
+local ls = require("luasnip")
+--- FIXME: This stuipd shit down not work
+--- local mnf_snip = ls.extend_decorator.apply(s, { wordTrig = false }, nil, { condition = mnf_wordtrig })
+local mnf_snip = ls.extend_decorator.apply(s)
 
 -- Math context detection
 local tex = {}
@@ -185,7 +205,7 @@ return {
   ),
   -- TRANSPOSE
   s(
-    { trig = "([%w%)%]%}])st", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([%w%)%]%}])ST", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta([[<>^{T}<>]], {
       f(function(_, snip)
         return snip.captures[1]
@@ -223,7 +243,7 @@ return {
     { condition = tex.in_mathzone }
   ),
   s(
-    { trig = "([%w%)%]%}|])s([ijknm])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([%w%)%]%}|])s([ijknmt])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>_{<>}<>", {
       f(function(_, snip)
         return snip.captures[1]
@@ -275,6 +295,8 @@ return {
   s({ trig = "->", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
   s({ trig = ":->", snippetType = "autosnippet" }, t("\\mapsto"), { condition = tex.in_mathzone }),
   s({ trig = "=>", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
+  --- For now going to make this a snippet
+  s({ trig = "implies", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
   s({ trig = "-->", snippetType = "autosnippet" }, t("\\longrightarrow"), { condition = tex.in_mathzone }),
   s({ trig = ">=", snippetType = "autosnippet" }, t("\\geq"), { condition = tex.in_mathzone }),
   s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = tex.in_mathzone }),
@@ -315,10 +337,25 @@ return {
   --   }),
   --   { condition = tex.in_mathzone }
   -- ),
-
+  s(
+    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
+    fmta("(<>)<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "{", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\{<>\\}<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
   -- e(SCAPED) PARENTHESES v2 {{
   s(
-    { trig = "((", PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "((", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\left( <> \\right)<>", {
       i(1),
       i(0),
@@ -328,7 +365,7 @@ return {
 
   -- e(SCAPED) BRACKETS v2 {{
   s(
-    { trig = "[[", PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "[[", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\left[ <> \\right]<>", {
       i(1),
       i(0),
@@ -338,8 +375,8 @@ return {
 
   -- e(SCAPED) CURLY BRACES v2 {{
   s(
-    { trig = "{{", PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\left{ <> \\right}<>", {
+    { trig = "{{", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\left\\{ <> \\right\\}<>", {
       i(1),
       i(0),
     }),
@@ -454,7 +491,7 @@ return {
   ),
   --- Enter display mode quickly
   s(
-    { trig = "MM", wordTrig = false, priority = PRIORITY + 10, regTrig = false, snippetType = "autosnippet" },
+    { trig = "MM", wordTrig = false, priority = PRIORITY, regTrig = false, snippetType = "autosnippet" },
     fmta(
       [[
 \[
@@ -468,56 +505,41 @@ return {
     ),
     { condition = line_begin }
   ),
-  s(
-    { trig = "mm", wordTrig = false, priority = PRIORITY, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>$<>$<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+  --- Enter inline mathmode quickly
+  mnf_snip(
+    { trig = "mm", snippetType = "autosnippet", wordTrig = false },
+    fmta([[$<>$<>]], {
       d(1, get_visual),
       i(0),
     }),
-    { condition = line_begin }
-  ),
-  --- Enter inline mathmode quickly
-  s(
-    { trig = "([^%a])mm", wordTrig = false, priority = PRIORITY + 1, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>$<>$<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
-      i(0),
-    })
+    { condition = mnf_wordtrig }
   ),
   -- Define vectors and matrices quickly
-  -- TODO, this does not get put inside a $$ snippet so tab jumping does not work?
+  -- TODO: this does not get put inside a $$ snippet so tab jumping does not work?
   -- OK, I think I know why, the capture group on the negated
   -- %a class takes in $, which messes up the rnage
+  -- wordTrig=true only expands if the charcter before the cursor is NOT  pattern is [%w_] not sure why they want _
+  -- a word https://github.com/L3MON4D3/LuaSnip/blob/c9b9a22904c97d0eb69ccb9bab76037838326817/lua/luasnip/nodes/snippet.lua#L827
+  -- s(
+  --   { trig = "([^%a])mb", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+  --   fmta([[<>\mathbf{<>}]], {
+  --     f(function(_, snip)
+  --       return snip.captures[1]
+  --     end),
+  --     d(1, get_visual),
+  --   }),
+  --   { condition = tex.in_mathzone }
+  -- ),
   s(
-    { trig = "([^%a])mb", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>\mathbf{<>}<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+    { trig = "mb", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\mathbf{<>}<>]], {
       d(1, get_visual),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone + mnf_wordtrig }
   ),
   s(
     { trig = "([^%a])mB", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
-    fmta([[<>\mathbb{<>}<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
-      i(0),
-    }),
-    { condition = tex.in_mathzone }
-  ),
-  s(
-    { trig = "([^%a])bb", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
     fmta([[<>\mathbb{<>}<>]], {
       f(function(_, snip)
         return snip.captures[1]
@@ -568,6 +590,21 @@ return {
       i(0),
     }),
     { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "case", snippetType = "autosnippet" },
+    fmta(
+      [[
+\left\{\begin{array}{lr}
+  <>
+\end{array}\right\}<>
+      ]],
+      {
+        d(1, get_visual),
+        i(0),
+      }
+    ),
+    { condition = line_begin }
   ),
   --- PART (only applicable to book document class)
   s(
@@ -620,6 +657,15 @@ return {
     { trig = "h5", snippetType = "autosnippet" },
     fmta([[\subparagraph{<>}]], {
       d(1, get_visual),
+    }),
+    { condition = tex.in_textzone }
+  ),
+  --- PART (only applicable to book document class)
+  s(
+    { trig = "_", snippetType = "autosnippet" },
+    fmta([[\textit{<>}<>]], {
+      d(1, get_visual),
+      i(0),
     }),
     { condition = tex.in_textzone }
   ),
