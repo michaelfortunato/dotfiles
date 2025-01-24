@@ -92,21 +92,52 @@ local cond_obj = require("luasnip.extras.conditions")
 -----------------------
 -- PRESET CONDITIONS --
 -----------------------
-local function mnf_wordtrig(line_to_cursor, matched_trigger)
-  -- +1 because `string.sub("abcd", 1, -2)` -> abc
-  --
-  if #line_to_cursor == #matched_trigger then
-    return true
+--- The wordTrig flag will only expand the snippet if
+--- the proceeding character is NOT %w or `_`.
+--- This is quite useful. The only issue is that the characters
+--- on which we negate on hard coded. See here for the actual implementation
+--- https://github.com/L3MON4D3/LuaSnip/blob/c9b9a22904c97d0eb69ccb9bab76037838326817/lua/luasnip/nodes/snippet.lua#L827
+---
+--- As a result, authors willl turn their plain triggers into regexTrig=true
+--- triggers and proceed their regex with a negated capture group.
+--- The issue is that the capture group on which the pattern matched, although
+--- its negated, still expands with the rest of the trigger.
+--- So people have worked around that by doing inserting the capture group
+--- back into the snippet
+--- https://ejmastnak.com/tutorials/vim-latex/luasnip/#after-a
+---
+--- This is an issue because it can break LuaSnips understanding
+--- of parent and child snippets, resulting in broken jump_next() etc.
+--- For instance, consider
+--- ```text
+--- $mbb$
+---    ^
+--- Cursor is here
+--- ```
+--- Some latex snippet authors will have their snippet definition
+--- for mbb look like s(trig="([^%w])mbb", t("\mathbb{}")
+--- The problem is that this consume the leading `$~ character, and even if
+--- the snippet re-inserts the `$` back, the parent snippet $$ will be broken.
+---
+--- I think the character wordTrig=true uses should be customized
+--- A condtion seems like the best way to do it
+---
+--- @param pattern string valid lua pattern
+local function make_trigger_does_not_follow_char(pattern)
+  local condition = function(line_to_cursor, matched_trigger)
+    local line_to_trigger_len = #line_to_cursor - #matched_trigger
+    if line_to_trigger_len == 0 then
+      return true
+    end
+    return not string.sub(line_to_cursor, line_to_trigger_len, line_to_trigger_len):match(pattern)
   end
-  local char_idx = #line_to_cursor - #matched_trigger
-  return not string.sub(line_to_cursor, char_idx, char_idx):match("%w")
+  return cond_obj.make_condition(condition)
 end
 
-local mnf_wordtrig = cond_obj.make_condition(mnf_wordtrig)
 local ls = require("luasnip")
---- FIXME: This stuipd shit down not work
---- local mnf_snip = ls.extend_decorator.apply(s, { wordTrig = false }, nil, { condition = mnf_wordtrig })
-local mnf_snip = ls.extend_decorator.apply(s)
+local trigger_does_not_follow_alpha_num_char = make_trigger_does_not_follow_char("%w")
+local trigger_does_not_follow_alpha_char = make_trigger_does_not_follow_char("%a")
+local mnf_s = ls.extend_decorator.apply(s, { wordTrig = false, condition = trigger_does_not_follow_alpha_num_char })
 
 -- Math context detection
 local tex = {}
@@ -345,13 +376,20 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
-  s(
-    { trig = "{", wordTrig = false, snippetType = "autosnippet" },
+  mnf_s(
+    { trig = "{", snippetType = "autosnippet" },
     fmta("\\{<>\\}<>", {
       i(1),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "{", wordTrig = false, snippetType = "autosnippet" },
+    fmta("{<>}<>", {
+      i(1),
+      i(0),
+    })
   ),
   -- e(SCAPED) PARENTHESES v2 {{
   s(
@@ -445,41 +483,32 @@ return {
   }, { condition = tex.in_mathzone }),
   --- common math commands
   s(
-    { trig = "([^%a])bxd", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>\boxed{<>}<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+    { trig = "bxd", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\boxed{<>}<>]], {
       d(1, get_visual),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- Accents - Tilde
   s(
-    { trig = "([^%a])tilde", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>\tilde<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+    { trig = "([^%a])tilde", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\tilde<>]], {
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- Accents - hat
   s(
-    { trig = "([^%a])hat", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta([[<>\hat<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+    { trig = "hat", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\hat<>]], {
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- BAR
   s(
-    { trig = "([^%a])bar", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "bar", wordTrig = false, snippetType = "autosnippet" },
     fmta([[<>\bar{<>}<>]], {
       f(function(_, snip)
         return snip.captures[1]
@@ -487,7 +516,7 @@ return {
       i(1),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- Enter display mode quickly
   s(
@@ -506,13 +535,13 @@ return {
     { condition = line_begin }
   ),
   --- Enter inline mathmode quickly
-  mnf_snip(
-    { trig = "mm", snippetType = "autosnippet", wordTrig = false },
+  s(
+    { trig = "mm", wordtrig = false, snippetType = "autosnippet" },
     fmta([[$<>$<>]], {
       d(1, get_visual),
       i(0),
     }),
-    { condition = mnf_wordtrig }
+    { condition = trigger_does_not_follow_alpha_char }
   ),
   -- Define vectors and matrices quickly
   -- TODO: this does not get put inside a $$ snippet so tab jumping does not work?
@@ -536,47 +565,38 @@ return {
       d(1, get_visual),
       i(0),
     }),
-    { condition = tex.in_mathzone + mnf_wordtrig }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s(
-    { trig = "([^%a])mB", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
-    fmta([[<>\mathbb{<>}<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+    { trig = "mB", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\mathbb{<>}<>]], {
       d(1, get_visual),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   -- FRACTION
   s(
-    { trig = "([^%a])ff", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>\\frac{<>}{<>}<>", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+    { trig = "ff", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\frac{<>}{<>}<>", {
       d(1, get_visual),
       i(2),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   -- SUMMATION
-  s(
-    { trig = "([^%a])su", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>\\sum_{<>}^{<>}<>", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
+  mnf_s(
+    { trig = "su", snippetType = "autosnippet" },
+    fmta("\\sum_{<>}^{<>}<>", {
       d(1, get_visual),
       i(2),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s(
-    { trig = "mcal", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "mcal", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\mathcal{<>}<>]], {
       d(1, get_visual),
       i(0),
@@ -584,7 +604,7 @@ return {
     { condition = tex.in_mathzone }
   ),
   s(
-    { trig = "mathcal", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    { trig = "mathcal", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\mathcal{<>}<>]], {
       d(1, get_visual),
       i(0),
@@ -662,12 +682,28 @@ return {
   ),
   --- PART (only applicable to book document class)
   s(
-    { trig = "_", snippetType = "autosnippet" },
+    { trig = "tt", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\text{<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "tii", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\textit{<>}<>]], {
       d(1, get_visual),
       i(0),
     }),
-    { condition = tex.in_textzone }
+    { condition = trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "tbb", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\textbf{<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char }
   ),
   --- GREEK BEGIN
   s({ trig = ";a", snippetType = "autosnippet" }, {
