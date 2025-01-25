@@ -1,21 +1,44 @@
-# Repo repo
 
-TARGET_DIR := "target"
+ROOT_DIR := justfile_directory()
+SRC_DIR := '.'
+BUILD_DIR := 'target'
+OBJ_DIR := BUILD_DIR/'obj'
+BIN_DIR := BUILD_DIR/'bin'
+INSTALL_DIR := '.'
+#SRC_FILES := shell("find $1 -name '*.tex'",  SRC_DIR)
+SRC := shell("find $1 -maxdepth 1 -name '*.tex' | xargs",  SRC_DIR) # |xargs to replace newline with space
+OBJ := shell("find $1 -maxdepth 1 -name '*' | xargs",  OBJ_DIR)
+BIN := shell("find $1 -maxdepth 1 -name '*.pdf' | xargs",  BIN_DIR)
 
-# Builds the pdf like normal but refreshes the viewer
-dev: build
+
+# List help
+help:
+  just --list
+
+alias default := help
+
+[doc("""
+Install artifacts to final resting place
+  1. Runs build target
+  2. Moves files in
+""")]
+install: build
+  mkdir -p {{INSTALL_DIR}}
+  cp -r {{BIN_DIR}}/* {{INSTALL_DIR}}
+
+# Build all files 
+build:
+  mkdir -p {{OBJ_DIR}} {{BIN_DIR}}
+  latexmk -interaction=nonstopmode -synctex=true -aux-directory={{OBJ_DIR}} -output-directory={{BIN_DIR}} -pdf {{SRC}}
+
+open file:
+  sioyek --new-window {{file}} &
+
+# Refresh the veiwer
+refresh: install
   sioyek --execute-command reload
 
-# Build the project
-build:
-  rm -rf {{TARGET_DIR}}
-  mkdir -p {{TARGET_DIR}}
-  docker --debug build . --output type=local,dest={{TARGET_DIR}}
-
-# Open the pdf for viewing in a detacthed shell
-open:
-  sioyek {{TARGET_DIR}}/main.pdf
-
+# remove all generated artifacts
 clean:
-  rm -rf {{TARGET_DIR}} 
+  rm -rf {{BIN}} {{OBJ}}
 
