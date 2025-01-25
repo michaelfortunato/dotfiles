@@ -132,6 +132,7 @@ export PATH=$PATH:$MNF_BIN_DIR
 alias vi=nvim
 alias vim=nvim
 alias cd=z
+alias cdi=zi
 alias n="nvim" # This one is aggressive!
 alias c="clear"
 alias lt="tree" #Maybe l0
