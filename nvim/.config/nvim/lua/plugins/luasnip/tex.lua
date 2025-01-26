@@ -76,6 +76,7 @@
 ---     return tex_utils.in_env('tikzpicture')
 --- end
 --
+--- FIXME: Delete this silliness
 local PRIORITY = 10000
 
 local get_visual = function(args, parent)
@@ -152,7 +153,7 @@ return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
   s(
-    { trig = "TMPL", regTrig = true, snippetType = "autosnippet" },
+    { trig = "DOC", snippetType = "autosnippet" },
     fmta(
       [[
 \documentclass[10pt, letterpaper]{article}
@@ -196,7 +197,7 @@ return {
     { condition = line_begin } --TODO: Condition should be begining of file!
   ),
   s(
-    { trig = "([^%a])toc", priority = PRIORITY, wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "toc", priority = PRIORITY, snippetType = "autosnippet" },
     t("\\tableofcontents"),
     { condition = line_begin }
   ),
@@ -214,7 +215,7 @@ return {
   -- INVERSE
   s(
     { trig = "([%w%)%]%}])inv", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    fmta("<>^{-1}<>", {
+    fmta([[<>^{-1}<>]], {
       f(function(_, snip)
         return snip.captures[1]
       end),
@@ -297,10 +298,11 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
+  --- This kinda works with \infty and \int too!
   s(
-    { trig = "([^%a])in", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "in", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     t("\\in"),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- https://github.com/michaelfortunato/luasnip-latex-snippets.nvim/blob/main/lua/luasnip-latex-snippets/math_iA.lua
   --- Investigate this
@@ -334,40 +336,6 @@ return {
   -- --- Let ".." namespace commonly used but not yet semantic prefix
   s({ trig = "..g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
   s({ trig = "..p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
-  -- ESCAPED PARENTHESES (notice that e( or e) works, lest I hit the wrong one!)
-  -- Note, that we specify the priority high so that e) works quickly.
-  -- s(
-  --   { trig = "([^%a])e[%(%)]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
-  --   fmta("<>\\left(<>\\right)", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     d(1, get_visual),
-  --   }),
-  --   { condition = tex.in_mathzone }
-  -- ),
-  -- -- e(SCAPED) BRACES
-  -- s(
-  --   { trig = "([^%a])e[%[%]]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
-  --   fmta("<>\\left[<>\\right]", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     d(1, get_visual),
-  --   }),
-  --   { condition = tex.in_mathzone }
-  -- ),
-  -- -- e(SCAPED) CURLY BRACES
-  -- s(
-  --   { trig = "([^%a])e[%{%}]", regTrig = true, PRIORITY = 1000, wordTrig = false, snippetType = "autosnippet" },
-  --   fmta("<>\\left\\{<>\\right\\}", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     d(1, get_visual),
-  --   }),
-  --   { condition = tex.in_mathzone }
-  -- ),
   s(
     { trig = "(", wordTrig = false, snippetType = "autosnippet" },
     fmta("(<>)<>", {
@@ -483,6 +451,22 @@ return {
   }, { condition = tex.in_mathzone }),
   --- common math commands
   s(
+    { trig = "lbl", snippetType = "autosnippet" },
+    fmta([[\label{<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "erf", snippetType = "autosnippet" },
+    fmta([[\eqref{eq:<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
     { trig = "bxd", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\boxed{<>}<>]], {
       d(1, get_visual),
@@ -490,9 +474,24 @@ return {
     }),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
+  s(
+    { trig = "lll", wordTrig = false, snippetType = "autosnippet" },
+    t("\\ell"),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "exists", wordTrig = false, snippetType = "autosnippet" },
+    t("\\exists"),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "forall", wordTrig = false, snippetType = "autosnippet" },
+    t("\\forall"),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
   --- Accents - Tilde
   s(
-    { trig = "([^%a])tilde", wordTrig = false, snippetType = "autosnippet" },
+    { trig = "tilde", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\tilde<>]], {
       i(0),
     }),
