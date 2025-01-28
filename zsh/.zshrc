@@ -10,9 +10,11 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# HomeBrew completions See here: https://docs.brew.sh/Shell-Completion 
-FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
-
+# HomeBrew completions See here: https://docs.brew.sh/Shell-Completion
+MNF_OS=$(uname -s)
+if [[ $MNF_OS = "Darwin" ]]; then
+  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+fi
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -155,7 +157,7 @@ fi
 
 
 # fzf - https://github.com/junegunn/fzf
-eval "$(fzf --zsh)"
+if [[ $MNF_OS = "Darwin" ]]; then eval "$(fzf --zsh)"; fi
 
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
