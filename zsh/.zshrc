@@ -143,10 +143,16 @@ alias l2="tree -L 2"
 alias l3="tree -L 2"
 alias daily="mnf-daily"
 alias gist="mnf-gist"
+alias git-ignore-local="$EDITOR .git/info/exclude"
 alias shconf="nvim $HOME/.zshrc"
+alias shellconf="nvim $HOME/.zshrc"
+alias shellconfig="nvim $HOME/.zshrc"
 alias nvimconf="cd $HOME/.config/nvim && nvim ./"
+alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
 alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
+alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
 alias dotconf="cd $HOME/dotfiles && nvim ./"
+alias dotconfig="cd $HOME/dotfiles && nvim ./"
 
 # TODO: Detect kitty emulator using escape codes so this works over ssh
 # See here https://github.com/kovidgoyal/kitty/issues/957#issuecomment-420318828
@@ -162,13 +168,8 @@ if [[ $MNF_OS = "Darwin" ]]; then eval "$(fzf --zsh)"; fi
 # zoxide - https://github.com/ajeetdsouza/zoxide
 eval "$(zoxide init zsh)"
 
-
-# activate the default virtual env
-source ~/.pyenv/bin/activate
-
 # direnv
 eval "$(direnv hook zsh)"
-
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

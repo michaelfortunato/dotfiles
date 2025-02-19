@@ -214,6 +214,7 @@ alt-shift-l = ['join-with right', 'mode main']
 # 47108 | com.apple.Notes           | Notes
 # 47375 | com.apple.TextEdit        | TextEdit
 # 51899 | com.apple.MobileSMS       | Messages
+#68141 | com.apple.QuickTimePlayerX | QuickTime Player
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
 run = 'move-node-to-workspace T' # mnemonics T - Terminal
@@ -248,7 +249,7 @@ run = 'move-node-to-workspace Z' # mnemonics Z - Zoom
 
 [[on-window-detected]]
 if.app-id = 'com.apple.MobileSMS'
-run = 'move-node-to-workspace M' # mnemonics M - Messages
+run = 'move-node-to-workspace B' # mnemonics B - (Bad/Distracting) Messages
 
 [[on-window-detected]]
 if.app-id = 'com.apple.Preview'
@@ -270,3 +271,7 @@ run = 'move-node-to-workspace M' # mnemonics M - Music
 [[on-window-detected]]
 if.app-id = 'org.zotero.zotero'
 run = 'move-node-to-workspace R' # mnemonics R - Research
+
+[[on-window-detected]]
+if.app-id = 'com.apple.QuickTimePlayerX'
+run = 'layout floating'

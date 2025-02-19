@@ -138,7 +138,8 @@ end
 local ls = require("luasnip")
 local trigger_does_not_follow_alpha_num_char = make_trigger_does_not_follow_char("%w")
 local trigger_does_not_follow_alpha_char = make_trigger_does_not_follow_char("%a")
-local mnf_s = ls.extend_decorator.apply(s, { wordTrig = false, condition = trigger_does_not_follow_alpha_num_char })
+--- FIXME: mnf_s is bullshit, and it fucking sucks!
+--- local mnf_s = ls.extend_decorator.apply(s, { wordTrig = false, condition = trigger_does_not_follow_alpha_num_char })
 
 -- Math context detection
 local tex = {}
@@ -163,6 +164,7 @@ return {
 \usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage{hyperref}
+\usepackage{nicematrix} % for matrix/block drawing
 % Optional Packages
 % \usepackage{csquotes}
 %
@@ -173,19 +175,32 @@ return {
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 % Math Operators
-\DeclareMathOperator*{\argmax}{arg\,max}
-% \DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max} % \DeclareMathOperator*{\argmin}{arg\,min}
+%% Absolute values \abs and \norm
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+%%% Swap the definition of \abs* and \norm*, so that \abs
+%%% and \norm resizes the size of the brackets, and the 
+%%% starred version does not.
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
 %
 % Commands
 % 3 is the number of args, 2 is the default value of arg1
-%\newcommand{\plusbinomial}[3][2]{(#2 + #3)^#1}
+% \newcommand{\plusbinomial}[3][2]{(#2 + #3)^#1}
+% Usage: \plusbinomial[4]{x}{y} becomes (x + y)^4
 \begin{document}
-% MNF Default Math Latex Document
+% Title Section
 \title{<>}
 \author{<>}
-% FIXME: \institute{} is broken
+\date{\today}
 \maketitle
-  <>
+%
+<>
 \end{document}
       ]],
       {
@@ -196,11 +211,7 @@ return {
     ),
     { condition = line_begin } --TODO: Condition should be begining of file!
   ),
-  s(
-    { trig = "toc", priority = PRIORITY, snippetType = "autosnippet" },
-    t("\\tableofcontents"),
-    { condition = line_begin }
-  ),
+  s({ trig = "toc", snippetType = "autosnippet" }, t("\\tableofcontents"), { condition = line_begin }),
   -- SUBSCRIPT
   s(
     { trig = "([%w%)%]%}|])ss", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
@@ -322,20 +333,38 @@ return {
   s({ trig = "QQ", snippetType = "autosnippet" }, t("\\mathbb{Q}"), { condition = tex.in_mathzone }),
   s({ trig = "NN", snippetType = "autosnippet" }, t("\\mathbb{N}"), { condition = tex.in_mathzone }),
   s({ trig = "ZZ", snippetType = "autosnippet" }, t("\\mathbb{Z}"), { condition = tex.in_mathzone }),
+  s({ trig = "SS", snippetType = "autosnippet" }, t("\\mathbb{S}"), { condition = tex.in_mathzone }),
   s({ trig = "UU", snippetType = "autosnippet" }, t("\\cup"), { condition = tex.in_mathzone }),
   s({ trig = "II", snippetType = "autosnippet" }, t("\\cap"), { condition = tex.in_mathzone }),
-  s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneqq"), { condition = tex.in_mathzone }),
+  s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = tex.in_mathzone }),
   s({ trig = "->", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
   s({ trig = ":->", snippetType = "autosnippet" }, t("\\mapsto"), { condition = tex.in_mathzone }),
   s({ trig = "=>", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
+  --- Relations
   --- For now going to make this a snippet
   s({ trig = "implies", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
   s({ trig = "-->", snippetType = "autosnippet" }, t("\\longrightarrow"), { condition = tex.in_mathzone }),
   s({ trig = ">=", snippetType = "autosnippet" }, t("\\geq"), { condition = tex.in_mathzone }),
   s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = tex.in_mathzone }),
-  -- --- Let ".." namespace commonly used but not yet semantic prefix
-  s({ trig = "..g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
-  s({ trig = "..p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
+  s({ trig = "~~", snippetType = "autosnippet" }, t("\\sim"), { condition = tex.in_mathzone }),
+  --- TODO: See if I actually use these
+  s({ trig = "<|", snippetType = "autosnippet" }, t("\\triangleleft"), { condition = tex.in_mathzone }),
+  s({ trig = "<j", snippetType = "autosnippet" }, t("\\trianglelefteq"), { condition = tex.in_mathzone }),
+  s({ trig = "normalsubgroup", snippetType = "autosnippet" }, t("\\trianglelefteq"), { condition = tex.in_mathzone }),
+  s({ trig = "normalpsubgroup", snippetType = "autosnippet" }, t("\\triangleleft"), { condition = tex.in_mathzone }),
+  -- Operators
+  s(
+    { trig = "||", snippetType = "autosnippet" },
+    fmta("\\norm{<>}<>", { i(1), i(0) }),
+    { condition = tex.in_mathzone }
+  ),
+  s({ trig = "xmb", snippetType = "autosnippet" }, t("\\mathbf{x}"), { condition = tex.in_mathzone }),
+  --- FIXME: This one is tricky, I think this works though smoothly so long as I put the space back `\mid `
+  s({ trig = "| ", snippetType = "autosnippet" }, t("\\mid "), { condition = tex.in_mathzone }),
+  -- --- Let "@" namespace operators
+  s({ trig = "@g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
+  s({ trig = "@p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
+  s({ trig = "@c", snippetType = "autosnippet" }, t("\\circle"), { condition = tex.in_mathzone }),
   s(
     { trig = "(", wordTrig = false, snippetType = "autosnippet" },
     fmta("(<>)<>", {
@@ -344,7 +373,7 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
-  mnf_s(
+  s(
     { trig = "{", snippetType = "autosnippet" },
     fmta("\\{<>\\}<>", {
       i(1),
@@ -353,118 +382,95 @@ return {
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s(
-    { trig = "{", wordTrig = false, snippetType = "autosnippet" },
-    fmta("{<>}<>", {
-      i(1),
-      i(0),
-    })
-  ),
-  -- e(SCAPED) PARENTHESES v2 {{
-  s(
-    { trig = "((", wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\left( <> \\right)<>", {
+    { trig = "[", wordTrig = false, snippetType = "autosnippet" },
+    fmta("[<>]<>", {
       i(1),
       i(0),
     }),
-    { condition = tex.in_mathzone }
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
-
-  -- e(SCAPED) BRACKETS v2 {{
   s(
-    { trig = "[[", wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\left[ <> \\right]<>", {
+    { trig = "lr(", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\left(<>\\right)<>", {
       i(1),
       i(0),
     }),
     { condition = tex.in_mathzone }
   ),
-
-  -- e(SCAPED) CURLY BRACES v2 {{
   s(
-    { trig = "{{", wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\left\\{ <> \\right\\}<>", {
+    { trig = "lr{", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\left\\{<>\\right\\}<>", {
       i(1),
       i(0),
     }),
     { condition = tex.in_mathzone }
   ),
-
-  -- BIG PARENTHESES
   s(
-    { trig = "([^%a])b[%(%)]", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
-    fmta("<>\\big(<>\\big)", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
+    { trig = "lr[", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\left[<>\\right]<>", {
+      i(1),
+      i(0),
     }),
     { condition = tex.in_mathzone }
   ),
-  -- BIG SQUARE BRACES
-  s(
-    { trig = "([^%a])b[%[%]]", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
-    fmta("<>\\big[<>\\big]", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
-    }),
-    { condition = tex.in_mathzone }
-  ),
-  -- BIG CURLY BRACES
-  s(
-    { trig = "([^%a])b[%{%}]", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
-    fmta("<>\\big\\{<>\\big\\}", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
-    }),
-    { condition = tex.in_mathzone }
-  ),
-  -- ESCAPED CURLY BRACES
-  s(
-    { trig = "([^%a])\\%{", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
-    fmta("<>\\{<>\\}", {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      d(1, get_visual),
-    }),
-    { condition = tex.in_mathzone }
-  ),
-  -- DOT PRODUCT, i.e. \cdot
-  s({ trig = "dot", snippetType = "autosnippet" }, {
-    t("\\cdot "),
+  s({ trig = "..", snippetType = "autosnippet" }, {
+    t("\\cdot"),
   }, { condition = tex.in_mathzone }),
   -- \times
   s({ trig = "xx", snippetType = "autosnippet" }, {
-    t("\\times "),
+    t("\\times"),
+  }, { condition = tex.in_mathzone }),
+  -- CDOTS, i.e. \cdots
+  -- DOT PRODUCT, i.e. \cdot
+  s({ trig = "dot", snippetType = "autosnippet" }, {
+    t("\\cdot"),
+  }, { condition = tex.in_mathzone }),
+  -- \times
+  s({ trig = "times", snippetType = "autosnippet" }, {
+    t("\\times"),
   }, { condition = tex.in_mathzone }),
   -- CDOTS, i.e. \cdots
   s({ trig = "cdots", snippetType = "autosnippet" }, {
     t("\\cdots"),
   }, { condition = tex.in_mathzone }),
   -- LDOTS, i.e. \ldots
-  s({ trig = "ldo", snippetType = "autosnippet" }, {
+  s({ trig = "ldots", snippetType = "autosnippet" }, {
     t("\\ldots"),
   }, { condition = tex.in_mathzone }),
-  --- common math commands
+  s({ trig = "vdots", snippetType = "autosnippet" }, {
+    t("\\vdots"),
+  }, { condition = tex.in_mathzone }),
+  s({ trig = "ddots", snippetType = "autosnippet" }, {
+    t("\\ddots"),
+  }, { condition = tex.in_mathzone }),
+  s({ trig = "<>", snippetType = "autosnippet" }, {
+    t("\\langle "),
+    i(1),
+    t(" \\rangle"),
+    i(0),
+  }, { condition = tex.in_mathzone }),
+  --- common math commands, notice wordTrig=true
   s(
     { trig = "lbl", snippetType = "autosnippet" },
     fmta([[\label{<>}<>]], {
       d(1, get_visual),
       i(0),
-    }),
-    { condition = tex.in_mathzone }
+    })
   ),
   s(
     { trig = "erf", snippetType = "autosnippet" },
     fmta([[\eqref{eq:<>}<>]], {
       d(1, get_visual),
       i(0),
-    }),
-    { condition = tex.in_mathzone }
+    })
+  ),
+  s(
+    { trig = "rrf", snippetType = "autosnippet" },
+    fmta([[\ref{<>:<>}<>]], {
+      d(1, get_visual),
+      i(2),
+      i(0),
+    })
   ),
   s(
     { trig = "bxd", wordTrig = false, snippetType = "autosnippet" },
@@ -475,7 +481,7 @@ return {
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s(
-    { trig = "lll", wordTrig = false, snippetType = "autosnippet" },
+    { trig = "ell", wordTrig = false, snippetType = "autosnippet" },
     t("\\ell"),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
@@ -585,9 +591,18 @@ return {
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   -- SUMMATION
-  mnf_s(
-    { trig = "su", snippetType = "autosnippet" },
+  s(
+    { trig = "su", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\sum_{<>}^{<>}<>", {
+      d(1, get_visual),
+      i(2),
+      i(0),
+    }),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "int", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\int_{<>}^{<>}<>", {
       d(1, get_visual),
       i(2),
       i(0),
@@ -817,7 +832,7 @@ return {
         \end{equation}
       ]],
       {
-        i(1),
+        d(1, get_visual),
       }
     ),
     { condition = line_begin }
@@ -831,7 +846,7 @@ return {
         \end{align}
       ]],
       {
-        i(1),
+        d(1, get_visual),
       }
     ),
     { condition = line_begin }

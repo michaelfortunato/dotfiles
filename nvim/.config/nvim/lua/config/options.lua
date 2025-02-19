@@ -10,6 +10,9 @@ vim.opt.relativenumber = false
 --- Prepare for lazyvim v14 if I ever decide to go with it.
 vim.g.snacks_animate = false
 
+--- "+y$
+vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
+
 -- LazyVim root dir detection
 -- Each entry can be:
 -- * the name of a detector function like `lsp` or `cwd`

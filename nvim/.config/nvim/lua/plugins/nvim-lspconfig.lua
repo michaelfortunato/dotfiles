@@ -10,6 +10,13 @@ return {
       end,
       desc = "Hover",
     }
+    keys[#keys + 1] = {
+      "gi",
+      function()
+        return vim.lsp.buf.implementation()
+      end,
+      desc = "Goto Implementation",
+    }
   end,
   ---@class PluginLspOpts
   opts = {
