@@ -200,13 +200,22 @@ return {
     fmta(
       [[
 \documentclass[10pt, letterpaper]{article}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts, see https://tex.stackexchange.com/questions/664/why-should-i-use-usepackaget1fontenc
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{amsthm}
 \usepackage{mathtools}
-\usepackage{hyperref}
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
 \usepackage{nicematrix} % for matrix/block drawing
+
 % Optional Packages
 % \usepackage{csquotes}
 %
@@ -239,6 +248,14 @@ return {
 \newcommand{\ddx}[1]{\frac{d}{d#1}}
 \newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
 \newcommand{\ppx}[1]{\frac{\partial}{\partial#1}}
+% bibliography
+% See here: https://www.overleaf.com/learn/latex/Bibliography_management_with_biblatex
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+%\addbibresource{main.bib}
 
 \begin{document}
 % Title Section
@@ -521,6 +538,13 @@ return {
     i(0),
   }, { condition = tex.in_mathzone }),
   --- common math commands, notice wordTrig=true
+  s(
+    { trig = "#c", snippetType = "autosnippet" },
+    fmta([[\cite{<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    })
+  ),
   s(
     { trig = "#l", snippetType = "autosnippet" },
     fmta([[\label{<>}<>]], {
