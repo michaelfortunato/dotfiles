@@ -41,7 +41,7 @@ vim.api.nvim_create_autocmd("FileType", {
         -- { name = "buffer" },
         -- { name = "emoji" },
       },
-      completion = { autocomplete = { cmp.TriggerEvent.TextChanged } },
+      completion = { autocomplete = false },
     })
   end,
 })

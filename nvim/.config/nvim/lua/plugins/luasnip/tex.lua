@@ -150,7 +150,90 @@ tex.in_textzone = function()
   return not tex.in_mathzone()
 end
 
+-- Generating functions for Matrix/Cases - thanks L3MON4D3!
+local generate_matrix = function(args, snip)
+  local rows = tonumber(snip.captures[2])
+  local cols = tonumber(snip.captures[3])
+  local nodes = {}
+  local ins_indx = 1
+  for j = 1, rows do
+    table.insert(nodes, r(ins_indx, tostring(j) .. "x1", i(1)))
+    ins_indx = ins_indx + 1
+    for k = 2, cols do
+      table.insert(nodes, t(" & "))
+      table.insert(nodes, r(ins_indx, tostring(j) .. "x" .. tostring(k), i(1)))
+      ins_indx = ins_indx + 1
+    end
+    table.insert(nodes, t({ "\\\\", "" }))
+  end
+  -- fix last node.
+  nodes[#nodes] = t("\\\\")
+  return sn(nil, nodes)
+end
+
+-- update for cases
+local generate_cases = function(args, snip)
+  local rows = tonumber(snip.captures[1]) or 2 -- default option 2 for cases
+  local cols = 2 -- fix to 2 cols
+  local nodes = {}
+  local ins_indx = 1
+  for j = 1, rows do
+    table.insert(nodes, r(ins_indx, tostring(j) .. "x1", i(1)))
+    ins_indx = ins_indx + 1
+    for k = 2, cols do
+      table.insert(nodes, t(" & "))
+      table.insert(nodes, r(ins_indx, tostring(j) .. "x" .. tostring(k), i(1)))
+      ins_indx = ins_indx + 1
+    end
+    table.insert(nodes, t({ "\\\\", "" }))
+  end
+  -- fix last node.
+  table.remove(nodes, #nodes)
+  return sn(nil, nodes)
+end
+
 return {
+  -- Matrices and Cases
+  s(
+    { trig = "([bBpvV])mat(%d+)x(%d+)([ar])", name = "[bBpvV]matrix", desc = "matrices", regTrig = true },
+    fmta(
+      [[
+    \begin{<>}<>
+    <>
+    \end{<>}]],
+      {
+        f(function(_, snip)
+          return snip.captures[1] .. "matrix"
+        end),
+        f(function(_, snip)
+          if snip.captures[4] == "a" then
+            out = string.rep("c", tonumber(snip.captures[3]) - 1)
+            return "[" .. out .. "|c]"
+          end
+          return ""
+        end),
+        d(1, generate_matrix),
+        f(function(_, snip)
+          return snip.captures[1] .. "matrix"
+        end),
+      }
+    ),
+    { condition = tex.in_mathzone }
+  ),
+
+  s(
+    { trig = "(%d?)cases", name = "cases", desc = "cases", regTrig = true },
+    fmta(
+      [[
+    \begin{cases}
+    <>
+    \end{cases}
+    ]],
+      { d(1, generate_cases) }
+    ),
+    { condition = tex.in_mathzone }
+  ),
+
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
   s(
@@ -193,6 +276,11 @@ return {
 % 3 is the number of args, 2 is the default value of arg1
 % \newcommand{\plusbinomial}[3][2]{(#2 + #3)^#1}
 % Usage: \plusbinomial[4]{x}{y} becomes (x + y)^4
+\newcommand{\dxdy}[2]{\frac{d#1}{d#2}}
+\newcommand{\ddx}[1]{\frac{d}{d#1}}
+\newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\ddx}[1]{\frac{\partial}{\partial#1}}
+
 \begin{document}
 % Title Section
 \title{<>}
@@ -358,13 +446,46 @@ return {
     fmta("\\norm{<>}<>", { i(1), i(0) }),
     { condition = tex.in_mathzone }
   ),
-  s({ trig = "xmb", snippetType = "autosnippet" }, t("\\mathbf{x}"), { condition = tex.in_mathzone }),
   --- FIXME: This one is tricky, I think this works though smoothly so long as I put the space back `\mid `
   s({ trig = "| ", snippetType = "autosnippet" }, t("\\mid "), { condition = tex.in_mathzone }),
   -- --- Let "@" namespace operators
   s({ trig = "@g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
   s({ trig = "@p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
   s({ trig = "@c", snippetType = "autosnippet" }, t("\\circle"), { condition = tex.in_mathzone }),
+  s(
+    { trig = "dxdy", snippetType = "autosnippet" },
+    fmta([[\frac{d<>}{d<>}<>]], {
+      d(1, get_visual),
+      i(2),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "ddx", snippetType = "autosnippet" },
+    fmta([[\frac{d}{d<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "pxpy", snippetType = "autosnippet" },
+    fmta([[\frac{\partial <>}{\partial <>}<>]], {
+      d(1, get_visual),
+      i(2),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "ppx", snippetType = "autosnippet" },
+    fmta([[\frac{\partial}{\partial <>}<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
   s(
     { trig = "(", wordTrig = false, snippetType = "autosnippet" },
     fmta("(<>)<>", {
@@ -413,6 +534,9 @@ return {
     }),
     { condition = tex.in_mathzone }
   ),
+  s({ trig = "**", snippetType = "autosnippet" }, {
+    t("\\cdot"),
+  }, { condition = tex.in_mathzone }),
   s({ trig = "..", snippetType = "autosnippet" }, {
     t("\\cdot"),
   }, { condition = tex.in_mathzone }),
@@ -458,7 +582,7 @@ return {
     })
   ),
   s(
-    { trig = "erf", snippetType = "autosnippet" },
+    { trig = "#", snippetType = "autosnippet" },
     fmta([[\eqref{eq:<>}<>]], {
       d(1, get_visual),
       i(0),
@@ -548,22 +672,16 @@ return {
     }),
     { condition = trigger_does_not_follow_alpha_char }
   ),
-  -- Define vectors and matrices quickly
-  -- TODO: this does not get put inside a $$ snippet so tab jumping does not work?
-  -- OK, I think I know why, the capture group on the negated
-  -- %a class takes in $, which messes up the rnage
-  -- wordTrig=true only expands if the charcter before the cursor is NOT  pattern is [%w_] not sure why they want _
-  -- a word https://github.com/L3MON4D3/LuaSnip/blob/c9b9a22904c97d0eb69ccb9bab76037838326817/lua/luasnip/nodes/snippet.lua#L827
-  -- s(
-  --   { trig = "([^%a])mb", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-  --   fmta([[<>\mathbf{<>}]], {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     d(1, get_visual),
-  --   }),
-  --   { condition = tex.in_mathzone }
-  -- ),
+  s(
+    { trig = "(%a)mb", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\mathbf{<>}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
   s(
     { trig = "mb", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\mathbf{<>}<>]], {
@@ -579,6 +697,16 @@ return {
       i(0),
     }),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "(%a)mB", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\mathbb{<>}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
   ),
   -- FRACTION
   s(
@@ -651,25 +779,43 @@ return {
   --- CHAPTER (only applicable to book document class)
   s(
     { trig = "h0", snippetType = "autosnippet" },
-    fmta([[\chapter{<>}]], {
-      d(1, get_visual),
-    }),
+    fmta(
+      [[\chapter{<>}(\label{sec:<>})
+<>]],
+      {
+        d(1, get_visual),
+        rep(1),
+        i(0),
+      }
+    ),
     { condition = tex.in_textzone }
   ),
   -- SECTION
   s(
     { trig = "h1", snippetType = "autosnippet" },
-    fmta([[\section{<>}]], {
-      d(1, get_visual),
-    }),
+    fmta(
+      [[\section{<>}(\label{sec:<>})
+<>]],
+      {
+        d(1, get_visual),
+        rep(1),
+        i(0),
+      }
+    ),
     { condition = tex.in_textzone }
   ),
   -- SUBSECTION
   s(
     { trig = "h2", snippetType = "autosnippet" },
-    fmta([[\subsection{<>}]], {
-      d(1, get_visual),
-    }),
+    fmta(
+      [[\subsection{<>}(\label{subsec:<>})
+<>]],
+      {
+        d(1, get_visual),
+        rep(1),
+        i(0),
+      }
+    ),
     { condition = tex.in_textzone }
   ),
   -- SUBSUBSECTION

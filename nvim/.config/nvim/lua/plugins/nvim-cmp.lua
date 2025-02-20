@@ -1,6 +1,7 @@
 -- override nvim-cmp
 -- turn off autocompletions
 -- Make sure to unmap <C-Space> https://github.com/AstroNvim/AstroNvim/issues/601 on macro
+vim.g.mnf_enable_autocomplete = false
 return {
   "hrsh7th/nvim-cmp",
   dependencies = { "hrsh7th/cmp-emoji", "saadparwaiz1/cmp_luasnip" },
@@ -12,11 +13,16 @@ return {
         require("luasnip").lsp_expand(args.body)
       end,
     }
+    --- NOTE: Setting opts.completion.autcomplete = false
+    --- stops the  annoying table from showing, BUT still lets luasnip
+    --- automatically insert snippets, which is exactly what I wanted! Yay.
     opts.completion.autocomplete = false
-    -- TODO: Disabling `{ name = 'nvim_lsp' }`, is desired in latex documents
+    -- NOTE: Disabling `{ name = 'nvim_lsp' }`, is desired in latex documents
     -- I can do `opts.sources = {}`, but that removes lsp for all file types
-    -- Order detrmines priority as well
+    -- Order detrmines priority as well so do it in autocommand for tex buffer
     opts.sources = {
+      --- NOTE: It's not always the worst idea to show autosnippets.
+      --- TODO: Come up with a way of showing autosnippets in completion window via toggle.
       { name = "luasnip", option = { show_autosnippets = false } },
       { name = "nvim_lsp" },
       { name = "buffer" },
@@ -75,10 +81,21 @@ return {
     {
       "<leader>ua",
       function()
-        -- This is totally fucking stupid and broken. Fuck this.
-        -- vim.notify("Auto completion " .. (vim.g.mnf_enable_autocomplete and "enabled" or "disabled"))
+        -- This is totally fucking stupid but not broken. Fuck this.
+        vim.g.mnf_enable_autocomplete = not vim.g.mnf_enable_autocomplete
+        local cmp = require("cmp")
+        cmp.setup({
+          sources = {
+            { name = "luasnip", option = { show_autosnippets = false } },
+            { name = "nvim_lsp" },
+            { name = "buffer" },
+            { name = "emoji" },
+          },
+          completion = { autocomplete = vim.g.mnf_enable_autocomplete and { cmp.TriggerEvent.TextChanged } },
+        })
+        vim.notify("Auto completion " .. (vim.g.mnf_enable_autocomplete and "enabled" or "disabled"))
       end,
-      desc = "Toggle autocomplete. This is a bit of sledge hammer",
+      desc = "Toggle autocomplete. UI Will go crazy if enabled. Off by default. This is a bit of sledge hammer",
     },
   },
 }
