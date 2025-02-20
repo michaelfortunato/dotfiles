@@ -195,7 +195,13 @@ end
 return {
   -- Matrices and Cases
   s(
-    { trig = "([bBpvV])mat(%d+)x(%d+)([ar])", name = "[bBpvV]matrix", desc = "matrices", regTrig = true },
+    {
+      trig = "([bBpvV])mat(%d+)x(%d+)([ar])",
+      name = "[bBpvV]matrix",
+      desc = "matrices",
+      regTrig = true,
+      snippetType = "autosnippet",
+    },
     fmta(
       [[
     \begin{<>}<>
@@ -222,7 +228,7 @@ return {
   ),
 
   s(
-    { trig = "(%d?)cases", name = "cases", desc = "cases", regTrig = true },
+    { trig = "(%d?)cases", name = "cases", desc = "cases", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
     \begin{cases}
@@ -752,21 +758,6 @@ return {
       i(0),
     }),
     { condition = tex.in_mathzone }
-  ),
-  s(
-    { trig = "case", snippetType = "autosnippet" },
-    fmta(
-      [[
-\left\{\begin{array}{lr}
-  <>
-\end{array}\right\}<>
-      ]],
-      {
-        d(1, get_visual),
-        i(0),
-      }
-    ),
-    { condition = line_begin }
   ),
   --- PART (only applicable to book document class)
   s(

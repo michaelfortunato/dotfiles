@@ -36,7 +36,8 @@ vim.api.nvim_create_autocmd("FileType", {
     local cmp = require("cmp")
     cmp.setup({
       sources = {
-        { name = "luasnip", option = { show_autosnippets = false } },
+        -- { name = "luasnip", option = { show_autosnippets = false } },
+        { name = "luasnip", option = { show_autosnippets = true } },
         --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
         -- { name = "buffer" },
         -- { name = "emoji" },

@@ -23,7 +23,8 @@ return {
     opts.sources = {
       --- NOTE: It's not always the worst idea to show autosnippets.
       --- TODO: Come up with a way of showing autosnippets in completion window via toggle.
-      { name = "luasnip", option = { show_autosnippets = false } },
+      --- Honestly lets just show them!
+      { name = "luasnip", option = { show_autosnippets = true } },
       { name = "nvim_lsp" },
       { name = "buffer" },
       { name = "emoji" },
