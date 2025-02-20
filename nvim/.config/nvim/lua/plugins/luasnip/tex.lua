@@ -249,6 +249,7 @@ return {
 \newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
 \newcommand{\ppx}[1]{\frac{\partial}{\partial#1}}
 % bibliography
+% Usage: \cite{keyword}
 % See here: https://www.overleaf.com/learn/latex/Bibliography_management_with_biblatex
 \usepackage[
 backend=biber,
@@ -265,6 +266,9 @@ sorting=ynt
 \maketitle
 %
 <>
+% \printbibliography
+% \printbibliography[type=book,title={Books only}] 
+% \printbibliography[keyword={physics},title={Physics-related only}]
 \end{document}
       ]],
       {

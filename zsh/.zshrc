@@ -120,6 +120,7 @@ export EDITOR=nvim
 ## Set personal environment variables
 export MNF_NOTES_DIR=$HOME/notes
 export MNF_BIN_DIR=$HOME/bin
+export MNF_TEMPLATE_DIR=$HOME/dotfiles/templates #TODO: should be $HOME/.templates
 
 ############# PATH ############
 # NOTE: Only set path here!
@@ -127,9 +128,7 @@ export PATH=$PATH:$MNF_BIN_DIR
 ###############################
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
+# plugins, and themes.
 # aliases
 alias vi=nvim
 alias vim=nvim
