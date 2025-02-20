@@ -193,53 +193,6 @@ local generate_cases = function(args, snip)
 end
 
 return {
-  -- Matrices and Cases
-  s(
-    {
-      trig = "([bBpvV])mat(%d+)x(%d+)([ar])",
-      name = "[bBpvV]matrix",
-      desc = "matrices",
-      regTrig = true,
-      snippetType = "autosnippet",
-    },
-    fmta(
-      [[
-    \begin{<>}<>
-    <>
-    \end{<>}]],
-      {
-        f(function(_, snip)
-          return snip.captures[1] .. "matrix"
-        end),
-        f(function(_, snip)
-          if snip.captures[4] == "a" then
-            out = string.rep("c", tonumber(snip.captures[3]) - 1)
-            return "[" .. out .. "|c]"
-          end
-          return ""
-        end),
-        d(1, generate_matrix),
-        f(function(_, snip)
-          return snip.captures[1] .. "matrix"
-        end),
-      }
-    ),
-    { condition = tex.in_mathzone }
-  ),
-
-  s(
-    { trig = "(%d?)cases", name = "cases", desc = "cases", regTrig = true, snippetType = "autosnippet" },
-    fmta(
-      [[
-    \begin{cases}
-    <>
-    \end{cases}
-    ]],
-      { d(1, generate_cases) }
-    ),
-    { condition = tex.in_mathzone }
-  ),
-
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
   s(
@@ -285,7 +238,7 @@ return {
 \newcommand{\dxdy}[2]{\frac{d#1}{d#2}}
 \newcommand{\ddx}[1]{\frac{d}{d#1}}
 \newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
-\newcommand{\ddx}[1]{\frac{\partial}{\partial#1}}
+\newcommand{\ppx}[1]{\frac{\partial}{\partial#1}}
 
 \begin{document}
 % Title Section
@@ -411,18 +364,6 @@ return {
   ),
   --- https://github.com/michaelfortunato/luasnip-latex-snippets.nvim/blob/main/lua/luasnip-latex-snippets/math_iA.lua
   --- Investigate this
-  s(
-    { trig = "bmat", snippetType = "autosnippet" },
-    fmta(
-      [[
-  \begin{bmatrix} <> \end{bmatrix}<>]],
-      {
-        i(1),
-        i(0),
-      }
-    ),
-    { condition = tex.in_mathzone }
-  ),
   s({ trig = "RR", snippetType = "autosnippet" }, t("\\mathbb{R}"), { condition = tex.in_mathzone }),
   s({ trig = "QQ", snippetType = "autosnippet" }, t("\\mathbb{Q}"), { condition = tex.in_mathzone }),
   s({ trig = "NN", snippetType = "autosnippet" }, t("\\mathbb{N}"), { condition = tex.in_mathzone }),
@@ -581,6 +522,13 @@ return {
   }, { condition = tex.in_mathzone }),
   --- common math commands, notice wordTrig=true
   s(
+    { trig = "#l", snippetType = "autosnippet" },
+    fmta([[\label{<>}<>]], {
+      d(1, get_visual),
+      i(0),
+    })
+  ),
+  s(
     { trig = "lbl", snippetType = "autosnippet" },
     fmta([[\label{<>}<>]], {
       d(1, get_visual),
@@ -588,14 +536,14 @@ return {
     })
   ),
   s(
-    { trig = "#", snippetType = "autosnippet" },
+    { trig = "#e", snippetType = "autosnippet" },
     fmta([[\eqref{eq:<>}<>]], {
       d(1, get_visual),
       i(0),
     })
   ),
   s(
-    { trig = "rrf", snippetType = "autosnippet" },
+    { trig = "#r", snippetType = "autosnippet" },
     fmta([[\ref{<>:<>}<>]], {
       d(1, get_visual),
       i(2),
@@ -771,7 +719,7 @@ return {
   s(
     { trig = "h0", snippetType = "autosnippet" },
     fmta(
-      [[\chapter{<>}(\label{sec:<>})
+      [[\chapter{<>}\label{sec:<>}
 <>]],
       {
         d(1, get_visual),
@@ -785,7 +733,7 @@ return {
   s(
     { trig = "h1", snippetType = "autosnippet" },
     fmta(
-      [[\section{<>}(\label{sec:<>})
+      [[\section{<>}\label{sec:<>}
 <>]],
       {
         d(1, get_visual),
@@ -799,7 +747,7 @@ return {
   s(
     { trig = "h2", snippetType = "autosnippet" },
     fmta(
-      [[\subsection{<>}(\label{subsec:<>})
+      [[\subsection{<>}\label{subsec:<>}
 <>]],
       {
         d(1, get_visual),
@@ -975,6 +923,21 @@ return {
     { condition = line_begin }
   ),
   s(
+    { trig = "leq", snippetType = "autosnippet" },
+    fmta(
+      [[
+        \begin{equation}\label{eq:<>}
+            <>
+        \end{equation}
+      ]],
+      {
+        i(1),
+        d(2, get_visual),
+      }
+    ),
+    { condition = line_begin }
+  ),
+  s(
     { trig = "al", snippetType = "autosnippet" },
     fmta(
       [[
@@ -1108,5 +1071,51 @@ return {
       }
     ),
     { condition = line_begin }
+  ),
+  -- Matrices and Cases
+  s(
+    {
+      trig = "([bBpvV])mat(%d+)x(%d+)",
+      name = "[bBpvV]matrix",
+      desc = "matrices",
+      regTrig = true,
+      snippetType = "autosnippet",
+    },
+    fmta(
+      [[
+    \begin{<>}<>
+    <>
+    \end{<>}]],
+      {
+        f(function(_, snip)
+          return snip.captures[1] .. "matrix"
+        end),
+        f(function(_, snip)
+          -- if snip.captures[4] == "a" then
+          --   out = string.rep("c", tonumber(snip.captures[3]) - 1)
+          --   return "[" .. out .. "|c]"
+          -- end
+          return ""
+        end),
+        d(1, generate_matrix),
+        f(function(_, snip)
+          return snip.captures[1] .. "matrix"
+        end),
+      }
+    ),
+    { condition = tex.in_mathzone }
+  ),
+
+  s(
+    { trig = "(%d?)cases", name = "cases", desc = "cases", regTrig = true, snippetType = "autosnippet" },
+    fmta(
+      [[
+    \begin{cases}
+    <>
+    \end{cases}
+    ]],
+      { d(1, generate_cases) }
+    ),
+    { condition = tex.in_mathzone }
   ),
 }
