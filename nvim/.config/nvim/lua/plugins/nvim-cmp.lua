@@ -85,12 +85,6 @@ return {
         vim.g.mnf_enable_autocomplete = not vim.g.mnf_enable_autocomplete
         local cmp = require("cmp")
         cmp.setup({
-          sources = {
-            { name = "luasnip", option = { show_autosnippets = false } },
-            { name = "nvim_lsp" },
-            { name = "buffer" },
-            { name = "emoji" },
-          },
           completion = { autocomplete = vim.g.mnf_enable_autocomplete and { cmp.TriggerEvent.TextChanged } },
         })
         vim.notify("Auto completion " .. (vim.g.mnf_enable_autocomplete and "enabled" or "disabled"))
