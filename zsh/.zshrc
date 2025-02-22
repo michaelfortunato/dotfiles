@@ -141,6 +141,7 @@ alias lt="tree" #TODO: Choose
 alias l1="tree -L 1"
 alias l2="tree -L 2"
 alias l3="tree -L 2"
+alias t="tree" #TODO: Decide on this
 alias tt="tree" #TODO: Decide on this
 alias t1="tree -L 1"
 alias t2="tree -L 2"

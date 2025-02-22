@@ -88,6 +88,7 @@ local get_visual = function(args, parent)
 end
 
 local line_begin = require("luasnip.extras.expand_conditions").line_begin
+-- NOTE: Not in use local line_end = require("luasnip.extras.expand_conditions").line_end
 local cond_obj = require("luasnip.extras.conditions")
 
 -----------------------
@@ -378,9 +379,20 @@ sorting=ynt
     { condition = tex.in_mathzone }
   ),
   --- This kinda works with \infty and \int too!
+  --- NOTE: This won't expand on newline but I tried a regTrig and that did not work
+  --- its probably because trigger_does_not_follow_alpha_char has a bug on newlines
   s(
-    { trig = "in", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-    t("\\in"),
+    { trig = "in ", wordTrig = false, snippetType = "autosnippet" },
+    t("\\in "),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "int", wordTrig = false, snippetType = "autosnippet" },
+    fmta("\\int_{<>}^{<>}<>", {
+      d(1, get_visual),
+      i(2),
+      i(0),
+    }),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- https://github.com/michaelfortunato/luasnip-latex-snippets.nvim/blob/main/lua/luasnip-latex-snippets/math_iA.lua
@@ -419,7 +431,7 @@ sorting=ynt
   -- --- Let "@" namespace operators
   s({ trig = "@g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
   s({ trig = "@p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
-  s({ trig = "@c", snippetType = "autosnippet" }, t("\\circle"), { condition = tex.in_mathzone }),
+  s({ trig = "@c", snippetType = "autosnippet" }, t("\\circ"), { condition = tex.in_mathzone }),
   s(
     { trig = "dxdy", snippetType = "autosnippet" },
     fmta([[\frac{d<>}{d<>}<>]], {
@@ -704,15 +716,6 @@ sorting=ynt
   s(
     { trig = "su", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\sum_{<>}^{<>}<>", {
-      d(1, get_visual),
-      i(2),
-      i(0),
-    }),
-    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
-  s(
-    { trig = "int", wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\int_{<>}^{<>}<>", {
       d(1, get_visual),
       i(2),
       i(0),
