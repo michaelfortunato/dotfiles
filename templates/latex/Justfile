@@ -32,11 +32,10 @@ build:
   latexmk -interaction=nonstopmode -synctex=true -aux-directory={{OBJ_DIR}} -output-directory={{BIN_DIR}} -pdf {{SRC}}
 
 open file:
-  sioyek --new-window {{file}} &
+  open {{BIN_DIR}}/{{file}}
 
-# Refresh the veiwer
-refresh: install
-  sioyek --execute-command reload
+install: build
+  cp {{BIN_DIR}}/* {{INSTALL_DIR}}
 
 # remove all generated artifacts
 clean:
