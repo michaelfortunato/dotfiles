@@ -271,7 +271,39 @@ return {
 )
 #show: equate.with(breakable: true, sub-numbering: true)
 #set math.equation(numbering: "(1.1)")
-// TODO: #show heading.where(level: 1): set align() //Removes alignmnet
+// TODO: Is there a better way to customize this?
+// too weak: #show heading.where(level: 1): set align() //Removes alignmnet
+// #show heading.where(level: 1): h  =>> {
+//  show smallcaps: s =>> {
+//      set align(left)
+//      strong(s.body)
+//    }
+//    h
+//  }
+// NOTE: This works but is hacky
+#show heading: it =>> {
+  // Create the heading numbering.
+  let number = if it.numbering != none {
+    counter(heading).display(it.numbering)
+    h(7pt, weak: true)
+  }
+
+  // Level 1 headings are centered and smallcaps.
+  // The other ones are run-in.
+  // set text(size: normal-size, weight: 400)
+  set par(first-line-indent: 0em)
+  set text(size: normal-size, weight: 400)
+  set align(left)
+  if it.level == 1 {
+    v(15pt, weak: true)
+    counter(figure.where(kind: "theorem")).update(0)
+  } else {
+    v(11pt, weak: true)
+  }
+  number
+  strong(it.body)
+  h(7pt, weak: true)
+}
 <>]],
       {
         i(1, "Untitled"),
@@ -437,7 +469,7 @@ return {
   s({ trig = "@c", snippetType = "autosnippet" }, t("compose"), { condition = in_mathzone }),
   s(
     { trig = "dxdy", snippetType = "autosnippet" },
-    fmta([[\frac{d<>}{d<>}<>]], {
+    fmta([[frac((d <>,d <>)<>]], {
       d(1, get_visual),
       i(2),
       i(0),
@@ -479,7 +511,7 @@ return {
   ),
   s(
     { trig = "{", snippetType = "autosnippet" },
-    fmta("\\{<>\\}<>", {
+    fmta("{<>}<>", {
       i(1),
       i(0),
     }),
@@ -495,7 +527,7 @@ return {
   ),
   s(
     { trig = "lr(", wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\left(<>\\right)<>", {
+    fmta("lr(( <> ))<>", {
       i(1),
       i(0),
     }),
@@ -503,7 +535,7 @@ return {
   ),
   s(
     { trig = "lr{", wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\left\\{<>\\right\\}<>", {
+    fmta("lr({ <> })<>", {
       i(1),
       i(0),
     }),
@@ -511,7 +543,7 @@ return {
   ),
   s(
     { trig = "lr[", wordTrig = false, snippetType = "autosnippet" },
-    fmta("\\left[<>\\right]<>", {
+    fmta("lr([ <> ])<>", {
       i(1),
       i(0),
     }),
@@ -519,9 +551,6 @@ return {
   ),
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("cdot.op"),
-  }, { condition = in_mathzone }),
-  s({ trig = "..", snippetType = "autosnippet" }, {
-    t("dot.op"),
   }, { condition = in_mathzone }),
   -- \times
   s({ trig = "xx", snippetType = "autosnippet" }, {
@@ -702,7 +731,7 @@ $<>
   -- FRACTION
   s(
     { trig = "ff", wordTrig = false, snippetType = "autosnippet" },
-    fmta("frac(<>)/(<>)<>", {
+    fmta("frac(<>,<>)<>", {
       d(1, get_visual),
       i(2),
       i(0),
