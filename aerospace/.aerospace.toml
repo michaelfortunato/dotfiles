@@ -89,6 +89,7 @@ PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 alt-slash = 'layout tiles accordion'
 alt-f = 'layout tiles accordion'
 alt-comma = 'layout accordion horizontal vertical'
+alt-shift-space = 'layout tiles accordion'
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#focus
 alt-h = 'focus left'

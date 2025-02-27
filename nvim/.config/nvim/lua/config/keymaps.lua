@@ -67,7 +67,7 @@ map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run make" })
 local ui_input = Snacks.input or vim.ui.input
 
 vim.keymap.set("n", "<leader>mt", function()
-  ui_input({ prompt = "Set makeprog" }, function(input)
+  ui_input({ prompt = "Set makeprg" }, function(input)
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
@@ -81,7 +81,7 @@ wk.add({
 map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run make" })
 map({ "n", "v" }, "<leader>tt", "<Cmd>Make<CR>", { desc = "Run make" })
 vim.keymap.set("n", "<leader>tc", function()
-  ui_input({ prompt = "Set makeprog" }, function(input)
+  ui_input({ prompt = "Set makeprg" }, function(input)
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
