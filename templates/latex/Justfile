@@ -34,9 +34,6 @@ build:
 open file:
   open {{BIN_DIR}}/{{file}}
 
-install: build
-  cp {{BIN_DIR}}/* {{INSTALL_DIR}}
-
 # remove all generated artifacts
 clean:
   rm -rf {{BIN}} {{OBJ}}
