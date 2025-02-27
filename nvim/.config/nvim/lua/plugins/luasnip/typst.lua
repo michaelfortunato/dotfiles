@@ -234,8 +234,11 @@ return {
     { trig = "DOC", snippetType = "autosnippet" },
     fmta(
       [[
-#import "@preview/unequivocal-ams:0.1.2": ams-article, theorem, proof
+#import "@preview/unequivocal-ams:0.1.2": ams-article, theorem, proof, normal-size
 #import "@preview/equate:0.3.0": equate
+// #import "@preview/touying:0.6.0": *
+// #import themes.simple: *
+// #show: simple-theme.with(aspect-ratio: "16-9")
 #let remark(body, numbered: true) = figure(
   body,
   kind: "remark",

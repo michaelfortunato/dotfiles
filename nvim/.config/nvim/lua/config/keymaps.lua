@@ -9,28 +9,7 @@ map("n", "<c-\\>", function()
   Snacks.terminal(nil, { cwd = LazyVim.root() })
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
-map("n", "<localleader><localleader>", require("telescope.builtin").buffers, { desc = "Telescope buffers" })
-
--- TODO: Try to get scrolling in integrateered terminal to work
--- See: https://vt100.net/docs/vt510-rm/SD.html
--- This works: `echo -e "\033[5T"`
--- vim.keymap.set("t", "<C-S-Up>", function()
---   -- vim.api.nvim_feedkeys(, "t", false)
---   -- Emit the xterm control sequence for SD (Scroll Down)
---   -- vim.api.nvim_replace_termcodes("\x1b[5T", true, true, true), "t", false)
---   -- \033[5T
---   -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("\x1b[5T", true, true, true), "t", false)
--- end, { noremap = true, silent = true })
--- vim.keymap.set("t", "<C-S-Up>", function()
---   -- vim.api.nvim_feedkeys(, "t", false)
---   -- print(vim.api.nvim_replace_termcodes("<Esc>[5T", true, true, true))
---   -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>[5S", true, true, true), "t", true)
---   -- return "\x1b[5S"
---   -- Emit the xterm control sequence for SD (Scroll Down)
---   -- vim.api.nvim_input("\033[5T")
---   -- \033[5T
---   -- vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("\x1b[5T", true, true, true), "t", false)
--- end, { noremap = true, silent = true })
+map("n", "<localleader><>", require("telescope.builtin").buffers, { desc = "Telescope buffers" })
 
 -- NOTE: Very important swap. ; -> [ and ' ->]
 -- On second though This is a bad idea
@@ -77,3 +56,20 @@ local wk = require("which-key")
 wk.add({
   { "<leader>m", group = "personal" }, -- group
 })
+map(
+  { "n", "v" },
+  "<leader>mc",
+  "<Cmd>edit " .. LazyVim.root() .. "/.nvim.lua" .. "<CR>",
+  { desc = "Open .lazy.lua project local config" }
+)
+map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run make" })
+wk.add({
+  { "<leader>t", group = "Task" }, -- group
+})
+map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run make" })
+map({ "n", "v" }, "<leader>tc", "<Cmd>echo 'TODO: Configure Make command'<CR>", { desc = "Configure mkprogram" })
+--- TODO: See if you can do this
+-- --- vim.keymap.set("n", "<leader>1", function()
+-- 	local mux = require("smart-splits.mux").get()
+-- 	mux.split_pane("down")
+-- end)

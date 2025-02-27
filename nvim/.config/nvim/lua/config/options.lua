@@ -12,6 +12,7 @@ vim.g.snacks_animate = false
 
 --- "+y$
 vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
+vim.o.exrc = true
 
 -- LazyVim root dir detection
 -- Each entry can be:
