@@ -26,6 +26,8 @@ require("lazy").setup({
     -- have outdated releases, which may break your Neovim install.
     version = false, -- always use the latest git commit
     -- version = "*", -- try installing the latest stable version for plugins that support semver
+    autocmds = true, -- lazyvim.config.autocmds
+    keymaps = true, -- lazyvim.config.keymaps
   },
   install = { colorscheme = { "tokyonight", "habamax" } },
   checker = { enabled = true, notify = false, frequency = 86400 }, -- automatically check for plugin updates, DO NOT notify. I hate that
