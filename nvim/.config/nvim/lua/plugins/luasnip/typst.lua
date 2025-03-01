@@ -195,14 +195,14 @@ local generate_matrix = function(args, snip)
     table.insert(nodes, r(ins_indx, tostring(j) .. "x1", i(1)))
     ins_indx = ins_indx + 1
     for k = 2, cols do
-      table.insert(nodes, t(" & "))
+      table.insert(nodes, t(" , "))
       table.insert(nodes, r(ins_indx, tostring(j) .. "x" .. tostring(k), i(1)))
       ins_indx = ins_indx + 1
     end
-    table.insert(nodes, t({ ",", "" }))
+    table.insert(nodes, t({ ";", "" }))
   end
   -- fix last node.
-  nodes[#nodes] = t(",")
+  nodes[#nodes] = t(";")
   return sn(nil, nodes)
 end
 
@@ -344,6 +344,18 @@ return {
   -- SUPERSCRIPT
   s(
     { trig = "([%w%)%]%}%|])SS", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^(<>)<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = in_mathzone }
+  ),
+  -- SUPERSCRIPT
+  s(
+    { trig = "([%w%)%]%}%|])sp", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^(<>)<>", {
       f(function(_, snip)
         return snip.captures[1]
@@ -505,30 +517,6 @@ return {
     { condition = in_mathzone }
   ),
   s(
-    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
-    fmta("(<>)<>", {
-      i(1),
-      i(0),
-    }),
-    { condition = in_mathzone }
-  ),
-  s(
-    { trig = "{", snippetType = "autosnippet" },
-    fmta("{<>}<>", {
-      i(1),
-      i(0),
-    }),
-    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
-  s(
-    { trig = "[", wordTrig = false, snippetType = "autosnippet" },
-    fmta("[<>]<>", {
-      i(1),
-      i(0),
-    }),
-    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
-  s(
     { trig = "lr(", wordTrig = false, snippetType = "autosnippet" },
     fmta("lr(( <> ))<>", {
       i(1),
@@ -551,6 +539,30 @@ return {
       i(0),
     }),
     { condition = in_mathzone }
+  ),
+  s(
+    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
+    fmta("(<>)<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = in_mathzone }
+  ),
+  s(
+    { trig = "{", snippetType = "autosnippet" },
+    fmta("{<>}<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "[", wordTrig = false, snippetType = "autosnippet" },
+    fmta("[<>]<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("cdot.op"),

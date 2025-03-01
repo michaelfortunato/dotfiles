@@ -3,8 +3,6 @@
 -- Add any additional keymaps here
 local map = vim.keymap.set
 
-map("n", "<localleader><localleader>", require("telescope.builtin").buffers, { desc = "Telescope buffers" })
-
 -- NOTE: Very important swap. ; -> [ and ' ->]
 -- On second though This is a bad idea
 -- map({ "n", "v", "s", "o" }, ";", "[", { remap = true, desc = "For backwards textobject navigation" })
@@ -52,6 +50,7 @@ map("n", "<C-k>", require("smart-splits").move_cursor_up)
 map("n", "<C-l>", require("smart-splits").move_cursor_right)
 
 -- Personal key map system?
+map("n", "<localleader><localleader>", "<Cmd>Make!<CR>", { desc = "Run Make" })
 local wk = require("which-key")
 wk.add({
   { "<leader>m", group = "personal" }, -- group
@@ -62,7 +61,7 @@ map(
   "<Cmd>edit " .. LazyVim.root() .. "/.nvim.lua" .. "<CR>",
   { desc = "Open .lazy.lua project local config" }
 )
-map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run make" })
+map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run Make" })
 
 local ui_input = Snacks.input or vim.ui.input
 
@@ -78,8 +77,8 @@ end, { desc = "Set makeprg" })
 wk.add({
   { "<leader>t", group = "Task" }, -- group
 })
-map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run make" })
-map({ "n", "v" }, "<leader>tt", "<Cmd>Make<CR>", { desc = "Run make" })
+map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run Make" })
+map({ "n", "v" }, "<leader>tt", "<Cmd>Make<CR>", { desc = "Run Make" })
 vim.keymap.set("n", "<leader>tc", function()
   ui_input({ prompt = "Set makeprg" }, function(input)
     if input == nil or input == "" then
@@ -112,28 +111,28 @@ end
 --- Close quickfix list if open
 vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 
-local function kitty_exec(args)
-  local arguments = vim.deepcopy(args)
-  table.insert(arguments, 1, "kitty")
-  table.insert(arguments, 2, "@")
-  -- local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
-  -- if #password > 0 then
-  --   table.insert(arguments, 3, "--password")
-  --   table.insert(arguments, 4, password)
-  -- end
-  return vim.fn.system(arguments)
-end
-
-local function toggle_term()
-  vim.o.lazyredraw = true
-  vim.schedule(function()
-    local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
-  end)
-  vim.o.lazyredraw = false
-  --- vim.o.lazyredraw = true
-  --- local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
-  --- vim.o.lazyredraw = false
-end
+-- local function kitty_exec(args)
+--   local arguments = vim.deepcopy(args)
+--   table.insert(arguments, 1, "kitty")
+--   table.insert(arguments, 2, "@")
+--   -- local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
+--   -- if #password > 0 then
+--   --   table.insert(arguments, 3, "--password")
+--   --   table.insert(arguments, 4, password)
+--   -- end
+--   return vim.fn.system(arguments)
+-- end
+--
+-- local function toggle_term()
+--   vim.o.lazyredraw = true
+--   vim.schedule(function()
+--     local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
+--   end)
+--   vim.o.lazyredraw = false
+--   --- vim.o.lazyredraw = true
+--   --- local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
+--   --- vim.o.lazyredraw = false
+-- end
 --
 -- -- floating terminal add ctrl-\
 -- -- NOTE: This keymap is overridden by kitty

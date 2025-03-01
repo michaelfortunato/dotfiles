@@ -64,7 +64,7 @@ vim.api.nvim_create_autocmd("FileType", {
   --- TODO: Problably should be moved into an ftpluin
   pattern = { "lua" },
   callback = function(ev)
-    vim.api.nvim_buf_set_keymap(ev.buf, "n", "<localleader>r", "<Cmd>source %<CR>", { desc = "Source lua file" })
+    vim.api.nvim_buf_set_keymap(ev.buf, "n", "<localleader>s", "<Cmd>source %<CR>", { desc = "Source lua file" })
   end,
 })
 
@@ -83,7 +83,7 @@ vim.api.nvim_create_user_command("Make", function(params)
   })
   task:start()
 end, {
-  desc = "Run your makeprg as an Overseer task",
+  desc = "Run makeprg asynchronously (using Overseer)",
   nargs = "*",
   bang = true,
 })
