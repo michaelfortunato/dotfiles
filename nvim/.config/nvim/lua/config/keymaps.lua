@@ -58,7 +58,7 @@ wk.add({
 })
 map(
   { "n", "v" },
-  "<leader>mc",
+  "<leader>mp",
   "<Cmd>edit " .. LazyVim.root() .. "/.nvim.lua" .. "<CR>",
   { desc = "Open .lazy.lua project local config" }
 )
@@ -66,7 +66,7 @@ map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run make" })
 
 local ui_input = Snacks.input or vim.ui.input
 
-vim.keymap.set("n", "<leader>mt", function()
+vim.keymap.set("n", "<leader>mc", function()
   ui_input({ prompt = "Set makeprg" }, function(input)
     if input == nil or input == "" then
       vim.cmd("set makeprg?")

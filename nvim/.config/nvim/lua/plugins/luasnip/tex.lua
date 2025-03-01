@@ -751,11 +751,10 @@ sorting=ynt
   s(
     { trig = "h0", snippetType = "autosnippet" },
     fmta(
-      [[\chapter{<>}\label{sec:<>}
+      [[\chapter{<>}
 <>]],
       {
         d(1, get_visual),
-        rep(1),
         i(0),
       }
     ),
@@ -765,11 +764,10 @@ sorting=ynt
   s(
     { trig = "h1", snippetType = "autosnippet" },
     fmta(
-      [[\section{<>}\label{sec:<>}
+      [[\section{<>}
 <>]],
       {
         d(1, get_visual),
-        rep(1),
         i(0),
       }
     ),
@@ -779,11 +777,10 @@ sorting=ynt
   s(
     { trig = "h2", snippetType = "autosnippet" },
     fmta(
-      [[\subsection{<>}\label{subsec:<>}
+      [[\subsection{<>}
 <>]],
       {
         d(1, get_visual),
-        rep(1),
         i(0),
       }
     ),
