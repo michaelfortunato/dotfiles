@@ -642,8 +642,30 @@ sorting=ynt
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s(
-    { trig = "star ", wordTrig = false, snippetType = "autosnippet" },
-    fmta([[\star ]], {}),
+    { trig = "star", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\star]], {}),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "overline", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[<>\overline{<>}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "Bar", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[<>\overline{<>}<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(1),
+      i(0),
+    }),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- BAR
