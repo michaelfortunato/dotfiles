@@ -467,30 +467,8 @@ sorting=ynt
     }),
     { condition = tex.in_mathzone }
   ),
-  s(
-    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
-    fmta("(<>)<>", {
-      i(1),
-      i(0),
-    }),
-    { condition = tex.in_mathzone }
-  ),
-  s(
-    { trig = "{", snippetType = "autosnippet" },
-    fmta("\\{<>\\}<>", {
-      i(1),
-      i(0),
-    }),
-    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
-  s(
-    { trig = "[", wordTrig = false, snippetType = "autosnippet" },
-    fmta("[<>]<>", {
-      i(1),
-      i(0),
-    }),
-    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
+  --- NOTE: These must have higher prioerity than
+  --- the single char snippet versions
   s(
     { trig = "lr(", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\left(<>\\right)<>", {
@@ -514,6 +492,30 @@ sorting=ynt
       i(0),
     }),
     { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
+    fmta("(<>)<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  s(
+    { trig = "{", snippetType = "autosnippet" },
+    fmta("\\{<>\\}<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "[", wordTrig = false, snippetType = "autosnippet" },
+    fmta("[<>]<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("\\cdot"),
