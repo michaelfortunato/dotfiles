@@ -157,7 +157,7 @@ alias nvimconf="cd $HOME/.config/nvim && nvim ./"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
 alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
 alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
-alias conf"cd $HOME/dotfiles"
+alias conf="cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim ./"
 alias dotconfig="cd $HOME/dotfiles && nvim ./"
 
@@ -194,14 +194,15 @@ cpt() {
   fi
   capture_until=$((num_args - 2))
   first_n_minus_2=("")
-
-  if [[ $capture_until -gt 0 ]]; then
-    first_n_minus_2=("${args[@]:0:$capture_until}")
-  fi
   source_and_dest=("${args[@]:$capture_until:$num_args}")
   source_path="${source_and_dest[1]}"
   dest_path="${source_and_dest[2]}"
-  cp "${first_n_minus_2[@]}" "${MNF_TEMPLATE_DIR}/${source_path}" "${dest_path}"
+  if [[ $capture_until -gt 0 ]]; then
+    first_n_minus_2=("${args[@]:0:$capture_until}")
+    cp "${first_n_minus_2[@]}" "${MNF_TEMPLATE_DIR}/${source_path}" "${dest_path}"
+  else 
+    cp "${MNF_TEMPLATE_DIR}/${source_path}" "${dest_path}"
+  fi
 }
 
 # TODO: Detect kitty emulator using escape codes so this works over ssh
