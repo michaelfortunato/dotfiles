@@ -1,0 +1,39 @@
+
+ROOT_DIR := justfile_directory()
+SRC_DIR := ROOT_DIR
+BUILD_DIR := ROOT_DIR/'target'
+OBJ_DIR := BUILD_DIR/'obj'
+BIN_DIR := BUILD_DIR/'bin'
+INSTALL_DIR := ROOT_DIR
+
+SRC := shell("find $1 -maxdepth 1 -name '*.typ' | xargs",  SRC_DIR) # | xargs to replace newline with space
+OBJ := shell("find $1 -maxdepth 1 -name '*' | xargs",  OBJ_DIR)
+BIN := shell("find $1 -maxdepth 1 -name '*.pdf' | xargs",  BIN_DIR)
+
+
+# List help
+help:
+  just --list
+
+alias default := help
+
+[doc("""
+Install artifacts to final resting place
+  1. Runs build target
+  2. Moves files in
+""")]
+install: build
+  mkdir -p {{INSTALL_DIR}}
+  cp -r {{BIN_DIR}}/* {{INSTALL_DIR}}
+
+# Build all files 
+build:
+  mkdir -p {{OBJ_DIR}} {{BIN_DIR}}
+  typst compile {{SRC}} {{ BIN_DIR / file_stem(SRC) + '.pdf' }}
+
+open file:
+  open {{BIN_DIR}}/{{file}}
+
+# remove all generated artifacts
+clean:
+  rm -rf {{BIN}} {{OBJ}}

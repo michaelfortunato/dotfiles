@@ -1,0 +1,8 @@
+name = "MNF's Typst Template"
+description = "Personal Template For Any Typst Project"
+kickstart_version = 1
+
+# [[variables]]
+# name = "directory_name"
+# default = "Hello"
+# prompt = "Directory name?"
