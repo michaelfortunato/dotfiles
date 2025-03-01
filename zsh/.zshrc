@@ -148,7 +148,8 @@ alias t2="tree -a -L 2"
 alias t3="tree -a -L 2"
 alias daily="mnf-daily"
 alias gist="mnf-gist"
-alias git-ignore-local="$EDITOR .git/info/exclude"
+# NOTE: See function git_ignore_local defined here by me
+alias git-ignore-local="git_ignore_local"
 alias shconf="nvim $HOME/.zshrc"
 alias shellconf="nvim $HOME/.zshrc"
 alias shellconfig="nvim $HOME/.zshrc"
@@ -156,8 +157,52 @@ alias nvimconf="cd $HOME/.config/nvim && nvim ./"
 alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
 alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
 alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
+alias conf"cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim ./"
 alias dotconfig="cd $HOME/dotfiles && nvim ./"
+
+git_ignore_local() {
+  local git_dir
+  git_dir="$(git rev-parse --git-dir)" || return -1
+  if [[ ${#} -gt 0 ]]; then 
+    echo ${@} | tee -a "${git_dir}/info/exclude"
+  else 
+    $EDITOR "${git_dir}/info/exclude"
+  fi
+}
+
+lst() {
+  #FIXME: `lst -a` does not work
+  file=""
+  rest=("")
+  args=("$@")
+  if [[ ${#} -gt 0 ]] then;
+    file="${args[@]: -1:1}"
+    rest="${args[@]:0:(($# -1))}"
+    ls ${rest[@]} ${MNF_TEMPLATE_DIR}/${file}
+  else
+    ls ${MNF_TEMPLATE_DIR}
+  fi
+}
+
+cpt() {
+  args=("$@")
+  num_args=$#
+  if [[ num_args -lt 2 ]]; then
+    echo "cpt needs at least two arguments"
+    return 1
+  fi
+  capture_until=$((num_args - 2))
+  first_n_minus_2=("")
+
+  if [[ $capture_until -gt 0 ]]; then
+    first_n_minus_2=("${args[@]:0:$capture_until}")
+  fi
+  source_and_dest=("${args[@]:$capture_until:$num_args}")
+  source_path="${source_and_dest[1]}"
+  dest_path="${source_and_dest[2]}"
+  cp "${first_n_minus_2[@]}" "${MNF_TEMPLATE_DIR}/${source_path}" "${dest_path}"
+}
 
 # TODO: Detect kitty emulator using escape codes so this works over ssh
 # See here https://github.com/kovidgoyal/kitty/issues/957#issuecomment-420318828
