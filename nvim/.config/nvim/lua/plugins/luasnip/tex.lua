@@ -627,9 +627,23 @@ sorting=ynt
   --- Accents - hat
   s(
     { trig = "hat", wordTrig = false, snippetType = "autosnippet" },
-    fmta([[\hat<>]], {
+    fmta([[\hat{<>}<>]], {
+      i(1),
       i(0),
     }),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "what", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\widehat{<>}<>]], {
+      i(1),
+      i(0),
+    }),
+    { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "star ", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[\star ]], {}),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- BAR
