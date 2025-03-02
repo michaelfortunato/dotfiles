@@ -110,7 +110,7 @@ local function kitty_exec(args)
 end
 
 local function run_in_system_terminal(cmd)
-  local ok, _ = pcall(kitty_exec, { "kitten", "mnf.py", cmd })
+  local ok, _ = pcall(kitty_exec, { "kitten", "run_command_in_window.py", cmd })
 end
 
 vim.api.nvim_create_user_command("Run", function(params)

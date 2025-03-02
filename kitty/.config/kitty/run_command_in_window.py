@@ -106,6 +106,10 @@ def run_command(boss, args):
         #     ("send-key", f"--match=id:{id}", "enter"),
         # )
     except Exception as e:
+        # _rc = boss.call_remote_control(
+        #     tab,
+        #     ("goto-layout", "Fat"),
+        # )
         id = boss.call_remote_control(
             tab,
             (
@@ -113,7 +117,8 @@ def run_command(boss, args):
                 "--var=neovim_runner",
                 "--keep-focus",
                 "--cwd=current",
-                "--location=last",
+                "--location=hsplit",  # TODO: ensure stack layout and then run --location last to get hidden window
+                "--bias=30",
             ),
         )
         # my shell is so slow I need to wait for it to catch up before running

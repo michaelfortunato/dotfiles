@@ -130,15 +130,9 @@ map({ "n" }, ";<Tab>", function()
   print("TODO: previous buffer")
 end, { desc = "Open Previous Scratch Buffer" })
 
-vim.keymap.set("n", "<leader>rr", function()
-  ui_input({ prompt = "Set runprg" }, function(input)
-    if input == nil or input == "" then
-      print(vim.g.runprg)
-    else
-      vim.g.runprg = input
-    end
-  end)
-end, { desc = "Run :Run, which invokes vim.g.runprg in your system terminal window" })
+vim.keymap.set("n", "<leader>rr", "<Cmd>Run<CR>", { desc = "Run :Run" })
+
+vim.keymap.set("n", ",,", "<Cmd>Run<CR>", { desc = "Run :Run" })
 
 vim.keymap.set("n", "<leader>rc", function()
   ui_input({ prompt = "Set runprg" }, function(input)
@@ -148,7 +142,7 @@ vim.keymap.set("n", "<leader>rc", function()
       vim.g.runprg = input
     end
   end)
-end, { desc = "Set vim.g.runprg, :Run uses to invoke the command in your system terminal window" })
+end, { desc = "Set vim.g.runprg" })
 
 local function kitty_exec(args)
   local arguments = vim.deepcopy(args)
