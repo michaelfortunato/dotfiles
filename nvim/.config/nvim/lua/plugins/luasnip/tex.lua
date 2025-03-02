@@ -147,9 +147,42 @@ local tex = {}
 tex.in_mathzone = function()
   return vim.fn["vimtex#syntax#in_mathzone"]() == 1
 end
+
 tex.in_textzone = function()
   return not tex.in_mathzone()
 end
+--- TS Implementation
+tex.in_itemize_ts = function()
+  local node = vim.treesitter.get_node({ ignore_injections = false })
+  while node do
+    if TEXT_NODES[node:type()] then
+      return false
+    elseif MATH_NODES[node:type()] then
+      return true
+    end
+    node = node:parent()
+  end
+  return false
+end
+
+tex.in_comment = function() -- comment detection
+  return vim.fn["vimtex#syntax#in_comment"]() == 1
+end
+tex.in_env = function(name) -- generic environment detection
+  local is_inside = vim.fn["vimtex#env#is_inside"](name)
+  return (is_inside[1] > 0 and is_inside[2] > 0)
+end
+-- A few concrete environments---adapt as needed
+tex.in_equation = function() -- equation environment detection
+  return tex.in_env("equation")
+end
+tex.in_itemize_vimtex = function() -- itemize environment detection
+  return tex.in_env("itemize")
+end
+tex.in_tikz = function() -- TikZ picture environment detection
+  return tex.in_env("tikzpicture")
+end
+tex.in_itemize = tex.in_itemize_vimtex
 
 -- Generating functions for Matrix/Cases - thanks L3MON4D3!
 local generate_matrix = function(args, snip)
@@ -170,6 +203,12 @@ local generate_matrix = function(args, snip)
   -- fix last node.
   nodes[#nodes] = t("\\\\")
   return sn(nil, nodes)
+end
+
+local generate_vector = function(args, snip)
+  snip.captures[2] = snip.captures[1]
+  snip.captures[3] = 1
+  return generate_matrix(args, snip)
 end
 
 -- update for cases
@@ -306,6 +345,18 @@ sorting=ynt
   -- SUPERSCRIPT
   s(
     { trig = "([%w%)%]%}%|])SS", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^{<>}<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = tex.in_mathzone }
+  ),
+  -- SUPERSCRIPT
+  s(
+    { trig = "([%w%)%]%}%|])sp", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^{<>}<>", {
       f(function(_, snip)
         return snip.captures[1]
@@ -1172,7 +1223,6 @@ sorting=ynt
     ),
     { condition = tex.in_mathzone }
   ),
-
   s(
     { trig = "(%d?)cases", name = "cases", desc = "cases", regTrig = true, snippetType = "autosnippet" },
     fmta(
@@ -1185,4 +1235,21 @@ sorting=ynt
     ),
     { condition = tex.in_mathzone }
   ),
+  s(
+    { trig = "(%d?)vec", name = "cases", desc = "cases", regTrig = true, snippetType = "autosnippet" },
+    fmta(
+      [[
+    \begin{pmatrix}
+    <>
+    \end{pmatrix}
+    ]],
+      { d(1, generate_vector) }
+    ),
+    { condition = tex.in_mathzone }
+  ),
+  -- s(
+  --   { trig = "-", name = "item", desc = "\\item in itemize environment", snippetType = "autosnippet" },
+  --   t([[\item]]),
+  --   { condition = tex.in_itemize }
+  -- ),
 }

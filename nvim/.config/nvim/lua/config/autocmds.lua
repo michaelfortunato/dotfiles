@@ -65,6 +65,15 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "lua" },
   callback = function(ev)
     vim.api.nvim_buf_set_keymap(ev.buf, "n", "<localleader>s", "<Cmd>source %<CR>", { desc = "Source lua file" })
+    --- NOTE: lua also works I believe and works in any buffer.
+    --- But since this is buffer local, just use the original
+    vim.api.nvim_buf_set_keymap(
+      ev.buf,
+      "v",
+      "<localleader>s",
+      ":'<,'>source<CR>",
+      { desc = "Run visually selected code" }
+    )
   end,
 })
 
@@ -87,6 +96,46 @@ end, {
   nargs = "*",
   bang = true,
 })
+
+local function kitty_exec(args)
+  local arguments = vim.deepcopy(args)
+  table.insert(arguments, 1, "kitty")
+  table.insert(arguments, 2, "@")
+  -- local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
+  -- if #password > 0 then
+  --   table.insert(arguments, 3, "--password")
+  --   table.insert(arguments, 4, password)
+  -- end
+  return vim.fn.system(arguments)
+end
+
+local function run_in_system_terminal(cmd)
+  local ok, _ = pcall(kitty_exec, { "kitten", "mnf.py", cmd })
+end
+
+vim.api.nvim_create_user_command("Run", function(params)
+  -- Insert args at the '$*' in the makeprg
+  local cmd, num_subs = vim.g.runprg:gsub("%$%*", params.args)
+  if num_subs == 0 then
+    cmd = cmd .. " " .. params.args
+  end
+  run_in_system_terminal(cmd)
+end, {
+  desc = "Run runprg asynchronously in your computers terminal emulator",
+  nargs = "*",
+  bang = true,
+})
+--
+-- local function toggle_term()
+--   vim.o.lazyredraw = true
+--   vim.schedule(function()
+--     local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
+--   end)
+--   vim.o.lazyredraw = false
+--   --- vim.o.lazyredraw = true
+--   --- local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
+--   --- vim.o.lazyredraw = false
+-- end
 
 -- -- Make sure we RE-enter terminal mode when focusing back on terminal
 -- vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {

@@ -2,6 +2,11 @@
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
 local map = vim.keymap.set
+--local del = vim.keymap.del
+--NOTE: makes me safe
+local del = function(...)
+  return pcall(vim.keymap.del, ...)
+end
 
 -- NOTE: Very important swap. ; -> [ and ' ->]
 -- On second though This is a bad idea
@@ -21,25 +26,25 @@ map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object naviga
 -- TODO:  local wk = require("which-key")
 -- How do I delete a group mapping? { "<leader><tab>", group = "tabs" },
 -- del({"n", "v"}, "<leader><tab>")
-vim.keymap.del("n", "<leader><tab>l", { desc = "Last Tab" })
+del("n", "<leader><tab>l", { desc = "Last Tab" })
 -- TODO: Remap me: map("n", "<leader><tab>l", "<cmd>tablast<cr>", { desc = "Last Tab" })
-vim.keymap.del("n", "<leader><tab>o")
+del("n", "<leader><tab>o")
 ---- TODO: Remap me: map("n", "<leader><tab>o", "<cmd>tabonly<cr>", { desc = "Close Other Tabs" })
-vim.keymap.del("n", "<leader><tab>f", { desc = "First Tab" })
+del("n", "<leader><tab>f", { desc = "First Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>f", "<cmd>tabfirst<cr>", { desc = "First Tab" })
-vim.keymap.del("n", "<leader><tab><tab>", { desc = "New Tab" })
+del("n", "<leader><tab><tab>", { desc = "New Tab" })
 --- TODO: Remap me: map("n", "<leader><tab><tab>", "<cmd>tabnew<cr>", { desc = "New Tab" })
-vim.keymap.del("n", "<leader><tab>]", { desc = "Next Tab" })
+del("n", "<leader><tab>]", { desc = "Next Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>]", "<cmd>tabnext<cr>", { desc = "Next Tab" })
-vim.keymap.del("n", "<leader><tab>d", { desc = "Close Tab" })
+del("n", "<leader><tab>d", { desc = "Close Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
-vim.keymap.del("n", "<leader><tab>[", { desc = "Previous Tab" })
+del("n", "<leader><tab>[", { desc = "Previous Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
-vim.keymap.del("n", "<leader>ql")
-vim.keymap.del("n", "<leader>qd")
-vim.keymap.del("n", "<leader>qq")
-vim.keymap.del("n", "<leader>qs")
-vim.keymap.del("n", "<leader>qS")
+del("n", "<leader>ql")
+del("n", "<leader>qd")
+del("n", "<leader>qq")
+del("n", "<leader>qs")
+del("n", "<leader>qS")
 
 map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Other Buffer" })
 
@@ -111,17 +116,51 @@ end
 --- Close quickfix list if open
 vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 
--- local function kitty_exec(args)
---   local arguments = vim.deepcopy(args)
---   table.insert(arguments, 1, "kitty")
---   table.insert(arguments, 2, "@")
---   -- local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
---   -- if #password > 0 then
---   --   table.insert(arguments, 3, "--password")
---   --   table.insert(arguments, 4, password)
---   -- end
---   return vim.fn.system(arguments)
--- end
+del({ "n" }, ";")
+map({ "n" }, ";1", function()
+  print("TODO: lua")
+end, { desc = "Open Scratch Lua Buffer" })
+map({ "n" }, ";1", function()
+  print("TODO: lua")
+end, { desc = "Open Scratch Lua Buffer" })
+map({ "n" }, ";2", function()
+  print("TODO: python")
+end, { desc = "Open Scratch Python Buffer" })
+map({ "n" }, ";<Tab>", function()
+  print("TODO: previous buffer")
+end, { desc = "Open Previous Scratch Buffer" })
+
+vim.keymap.set("n", "<leader>rr", function()
+  ui_input({ prompt = "Set runprg" }, function(input)
+    if input == nil or input == "" then
+      print(vim.g.runprg)
+    else
+      vim.g.runprg = input
+    end
+  end)
+end, { desc = "Run :Run, which invokes vim.g.runprg in your system terminal window" })
+
+vim.keymap.set("n", "<leader>rc", function()
+  ui_input({ prompt = "Set runprg" }, function(input)
+    if input == nil or input == "" then
+      print(vim.g.runprg)
+    else
+      vim.g.runprg = input
+    end
+  end)
+end, { desc = "Set vim.g.runprg, :Run uses to invoke the command in your system terminal window" })
+
+local function kitty_exec(args)
+  local arguments = vim.deepcopy(args)
+  table.insert(arguments, 1, "kitty")
+  table.insert(arguments, 2, "@")
+  -- local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
+  -- if #password > 0 then
+  --   table.insert(arguments, 3, "--password")
+  --   table.insert(arguments, 4, password)
+  -- end
+  return vim.fn.system(arguments)
+end
 --
 -- local function toggle_term()
 --   vim.o.lazyredraw = true
@@ -145,4 +184,4 @@ vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 --   return toggle_term()
 -- end, { desc = "Toggle Terminal (Cwd)" })
 --
-vim.keymap.del({ "n" }, "<C-/>")
+del({ "n" }, "<C-/>")
