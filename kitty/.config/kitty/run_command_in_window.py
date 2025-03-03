@@ -91,6 +91,10 @@ def run_command(boss, args):
     # TODO: Add support for options
 
     tab = boss.active_tab
+    _rc = boss.call_remote_control(
+        tab,
+        ("goto-layout", "Fat"),
+    )
     try:
         match = boss.call_remote_control(tab, ("ls", "--match=var:neovim_runner"))
         match_obj = json.loads(match)
@@ -106,10 +110,6 @@ def run_command(boss, args):
         #     ("send-key", f"--match=id:{id}", "enter"),
         # )
     except Exception as e:
-        # _rc = boss.call_remote_control(
-        #     tab,
-        #     ("goto-layout", "Fat"),
-        # )
         id = boss.call_remote_control(
             tab,
             (
