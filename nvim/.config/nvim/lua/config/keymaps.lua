@@ -108,7 +108,7 @@ end
 --- Close quickfix list if open
 vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 
-del({ "n" }, ";")
+del({ "n" }, ";") --NOTE: This makes it hard to use else where, but makes sure which key comes up
 map({ "n" }, ";1", function()
   ---@diagnostic disable-next-line: missing-fields
   Snacks.scratch.open({ ft = "lua" })
@@ -133,12 +133,7 @@ map({ "n" }, ";l", function()
 end, { desc = "Open Scratch Buffer Picker (Don't know how to do previous)" })
 
 map("n", "<leader>rr", "<Cmd>Run<CR>", { desc = "Run :Run" })
-
-map("n", ",,", "<Cmd>Run<CR>", { desc = "Run :Run" })
--- Big if true
-map("n", ";;", "<Cmd>Run<CR>", { desc = "Run :Run" })
-
-vim.keymap.set("n", ",c", function()
+vim.keymap.set("n", "<leader>rc", function()
   ui_input({ prompt = "Set runprg" }, function(input)
     if input == nil or input == "" then
       print(vim.g.runprg)
@@ -148,7 +143,20 @@ vim.keymap.set("n", ",c", function()
   end)
 end, { desc = "Set vim.g.runprg" })
 
-vim.keymap.set("n", "<leader>rc", function()
+-- Big if true
+map("n", ";;", "<Cmd>Run<CR>", { desc = "Run :Run" })
+map("n", ";c", function()
+  ui_input({ prompt = "Set runprg" }, function(input)
+    if input == nil or input == "" then
+      print(vim.g.runprg)
+    else
+      vim.g.runprg = input
+    end
+  end)
+end, { desc = "Set vim.g.runprg" })
+
+map("n", ",,", "<Cmd>Run<CR>", { desc = "Run :Run" })
+vim.keymap.set("n", ",c", function()
   ui_input({ prompt = "Set runprg" }, function(input)
     if input == nil or input == "" then
       print(vim.g.runprg)
@@ -192,4 +200,9 @@ end
 --   return toggle_term()
 -- end, { desc = "Toggle Terminal (Cwd)" })
 --
+-- core adds here, you should try to stick with > but still
+map("v", "<Tab>", "<gv")
+map("v", "<S-Tab>", ">gv")
+
 del({ "n" }, "<C-/>")
+del({ "n" }, "<leader>wm")

@@ -8,6 +8,11 @@ return {
     enabled = false,
   },
   {
+    --- NOTE: brutal, but necessary
+    "echasnovski/mini.ai",
+    enabled = false,
+  },
+  {
     "MeanderingProgrammer/render-markdown.nvim",
     enabled = false,
   },

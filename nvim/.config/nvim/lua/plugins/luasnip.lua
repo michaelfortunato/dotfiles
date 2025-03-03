@@ -10,7 +10,7 @@ return {
       opts.delete_check_events = "TextChanged,InsertLeave"
       opts.update_events = "TextChanged,TextChangedI"
       opts.enable_autosnippets = true
-      opts.cut_selection_keys = "<Tab>"
+      opts.cut_selection_keys = "<BS>"
       return opts
     end,
     keys = {

@@ -10,6 +10,8 @@ return {
     },
   },
   keys = function()
+    --TODO: Don't hardpoon with <leader>H but insteead do <C-1> etc.
+    --
     local keys = {
       {
         "<leader>H",
@@ -33,6 +35,26 @@ return {
         "<leader>" .. i,
         function()
           require("harpoon"):list():select(i)
+        end,
+        -- desc = "Harpoon to File " .. i,
+        -- NOTE: Special value tells which-key not to show this guy
+        desc = "which_key_ignore",
+      })
+      table.insert(keys, {
+        "<C-" .. i .. ">",
+        function()
+          local items = require("harpoon"):list()
+          if i > items:length() then
+            items:replace_at(i)
+          else
+            local old_item = items[i]
+            if old_item ~= nil then
+              items:append(old_item)
+              items:replace_at(i)
+            else
+              items:replace_at(i)
+            end
+          end
         end,
         -- desc = "Harpoon to File " .. i,
         -- NOTE: Special value tells which-key not to show this guy
