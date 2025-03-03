@@ -160,7 +160,7 @@ alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
 alias conf="cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim ./"
 alias dotconfig="cd $HOME/dotfiles && nvim ./"
-alias uva="source venv/bin/activate" #TODO: Do we need to make this smarter?
+alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
 
 
 git_ignore_local() {
