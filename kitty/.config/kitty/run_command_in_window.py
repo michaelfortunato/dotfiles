@@ -91,10 +91,11 @@ def run_command(boss, args):
     # TODO: Add support for options
 
     tab = boss.active_tab
-    _rc = boss.call_remote_control(
-        tab,
-        ("goto-layout", "Fat"),
-    )
+    if tab.current_layout.name == "stack":
+        _rc = boss.call_remote_control(
+            tab,
+            ("goto-layout", "Fat"),
+        )
     try:
         match = boss.call_remote_control(tab, ("ls", "--match=var:neovim_runner"))
         match_obj = json.loads(match)
