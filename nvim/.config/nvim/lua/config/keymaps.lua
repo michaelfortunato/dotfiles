@@ -69,6 +69,7 @@ map(
 map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run Make" })
 
 local ui_input = Snacks.input or vim.ui.input
+local ui_notify = Snacks.notify or print
 
 vim.keymap.set("n", "<leader>mc", function()
   ui_input({ prompt = "Set makeprg" }, function(input)
@@ -118,21 +119,41 @@ vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 
 del({ "n" }, ";")
 map({ "n" }, ";1", function()
-  print("TODO: lua")
-end, { desc = "Open Scratch Lua Buffer" })
-map({ "n" }, ";1", function()
-  print("TODO: lua")
+  ---@diagnostic disable-next-line: missing-fields
+  Snacks.scratch.open({ ft = "lua" })
 end, { desc = "Open Scratch Lua Buffer" })
 map({ "n" }, ";2", function()
-  print("TODO: python")
+  ---@diagnostic disable-next-line: missing-fields
+  Snacks.scratch.open({ ft = "python" })
 end, { desc = "Open Scratch Python Buffer" })
 map({ "n" }, ";<Tab>", function()
-  print("TODO: previous buffer")
-end, { desc = "Open Previous Scratch Buffer" })
+  local buf_list = Snacks.scratch.list()
+  if #buf_list < 2 then
+    ui_notify("No previous scratch buffer for which to switch.")
+    return
+  end
+  local buf = buf_list[2]
+  ---@diagnostic disable-next-line: missing-fields
+  Snacks.scratch.open({ ft = buf.ft, name = buf.name, file = buf.file, icon = buf.icon })
+end, { desc = "Open Scratch Buffer Picker (Don't know how to do previous)" })
 
-vim.keymap.set("n", "<leader>rr", "<Cmd>Run<CR>", { desc = "Run :Run" })
+map({ "n" }, ";l", function()
+  Snacks.scratch.select()
+end, { desc = "Open Scratch Buffer Picker (Don't know how to do previous)" })
 
-vim.keymap.set("n", ",,", "<Cmd>Run<CR>", { desc = "Run :Run" })
+map("n", "<leader>rr", "<Cmd>Run<CR>", { desc = "Run :Run" })
+
+map("n", ",,", "<Cmd>Run<CR>", { desc = "Run :Run" })
+
+vim.keymap.set("n", ",c", function()
+  ui_input({ prompt = "Set runprg" }, function(input)
+    if input == nil or input == "" then
+      print(vim.g.runprg)
+    else
+      vim.g.runprg = input
+    end
+  end)
+end, { desc = "Set vim.g.runprg" })
 
 vim.keymap.set("n", "<leader>rc", function()
   ui_input({ prompt = "Set runprg" }, function(input)

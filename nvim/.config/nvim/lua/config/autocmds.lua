@@ -65,15 +65,9 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "lua" },
   callback = function(ev)
     vim.api.nvim_buf_set_keymap(ev.buf, "n", "<localleader>s", "<Cmd>source %<CR>", { desc = "Source lua file" })
-    --- NOTE: lua also works I believe and works in any buffer.
+    --- NOTE: :lua also works I believe and works in any buffer.
     --- But since this is buffer local, just use the original
-    vim.api.nvim_buf_set_keymap(
-      ev.buf,
-      "v",
-      "<localleader>s",
-      ":'<,'>source<CR>",
-      { desc = "Run visually selected code" }
-    )
+    vim.api.nvim_buf_set_keymap(ev.buf, "v", "<localleader>s", ":'<,'>lua<CR>", { desc = "Run visually selected code" })
   end,
 })
 
@@ -106,7 +100,7 @@ local function kitty_exec(args)
   --   table.insert(arguments, 3, "--password")
   --   table.insert(arguments, 4, password)
   -- end
-  return vim.fn.system(arguments)
+  return vim.system(arguments)
 end
 
 local function run_in_system_terminal(cmd)
@@ -125,6 +119,42 @@ end, {
   nargs = "*",
   bang = true,
 })
+
+-- See here: https://github.com/neovim/neovim/pull/13896
+local function region_to_text(region)
+  local text = ""
+  local maxcol = vim.v.maxcol
+  for line, cols in vim.spairs(region) do
+    local endcol = cols[2] == maxcol and -1 or cols[2]
+    local chunk = vim.api.nvim_buf_get_text(0, line, cols[1], line, endcol, {})[1]
+    text = ("%s%s\n"):format(text, chunk)
+  end
+  return text
+end
+
+local function run_in_integrated_terminal(cmd)
+  Snacks.terminal.get(cmd, {
+    shell = vim.o.shell,
+    win = {
+      position = "bottom",
+      height = 0.3,
+      width = 0.4,
+    },
+    -- interactive = true,
+    auto_insert = false,
+    start_insert = false,
+    auto_close = false,
+  })
+end
+
+vim.api.nvim_create_user_command("IntegratedTerminalRun", function(params)
+  local cmd = params.args
+  run_in_integrated_terminal(cmd)
+end, {
+  desc = "Run a terminal command asynchronously in your integrated terminal emulator",
+  nargs = "*",
+  bang = true,
+})
 --
 -- local function toggle_term()
 --   vim.o.lazyredraw = true
@@ -138,10 +168,39 @@ end, {
 -- end
 
 -- -- Make sure we RE-enter terminal mode when focusing back on terminal
--- vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
---   callback = function()
---     vim.cmd("startinsert")
---   end,
---   pattern = { "term://*" },
---   group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
--- })
+vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
+  callback = function()
+    vim.cmd("startinsert")
+  end,
+  pattern = { "term://*" },
+  group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+  --- TODO: Problably should be moved into an ftpluin
+  pattern = { "python" },
+  callback = function(ev)
+    vim.api.nvim_buf_set_keymap(
+      ev.buf,
+      "n",
+      "<localleader>s",
+      "<Cmd>IntegratedTerminalRun python3 " .. ev.file .. "<CR>",
+      { desc = "Source lua file" }
+    )
+    --- NOTE: :lua also works I believe and works in any buffer.
+    --- But since this is buffer local, just use the original
+    vim.keymap.set("v", "<localleader>s", function()
+      -- local r = vim.region(ev.buf, "'<", "'>", vim.fn.visualmode(), true)
+      -- local cmd = {}
+      -- cmd[#cmd + 1] = vim.o.shell
+      -- cmd[#cmd + 1] = "-c"
+      -- cmd[#cmd + 1] = "python3"
+      -- --cmd[#cmd + 1] = "<<"
+      -- --cmd[#cmd + 1] = "EOF"
+      -- cmd[#cmd + 1] = region_to_text(r)
+      -- cmd[#cmd + 1] = "EOF"
+      -- cmd[#cmd + 1] = "\\n"
+      -- run_in_integrated_terminal(cmd)
+    end, { desc = "Run visually selected code", buffer = ev.buf })
+  end,
+})
