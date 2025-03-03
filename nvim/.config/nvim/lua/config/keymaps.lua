@@ -8,17 +8,8 @@ local del = function(...)
   return pcall(vim.keymap.del, ...)
 end
 
--- NOTE: Very important swap. ; -> [ and ' ->]
--- On second though This is a bad idea
--- map({ "n", "v", "s", "o" }, ";", "[", { remap = true, desc = "For backwards textobject navigation" })
--- map({ "n", "v", "s", "o" }, ";;", "[[", { noremap = true, desc = "For backwards textobject navigation" })
--- map({ "n", "v", "s", "o" }, "g;", "g[", { remap = true, desc = "For forwards textobject navigation" })
--- map({ "n", "v", "s", "o" }, "'", "]", { remap = true, desc = "For forwards textobject navigation" })
--- map({ "n", "v", "s", "o" }, "''", "]]", { noremap = true, desc = "For forwards textobject navigation" })
--- map({ "n", "v", "s", "o" }, "g'", "g]", { remap = true, desc = "For forwards textobject navigation" })
-
-map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
-map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
+-- map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
+-- map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
 
 -- map({ "n", "v", "o" }, "<leader>r", "<Cmd>make<CR>", { desc = "Run build command" })
 
@@ -144,6 +135,8 @@ end, { desc = "Open Scratch Buffer Picker (Don't know how to do previous)" })
 map("n", "<leader>rr", "<Cmd>Run<CR>", { desc = "Run :Run" })
 
 map("n", ",,", "<Cmd>Run<CR>", { desc = "Run :Run" })
+-- Big if true
+map("n", ";;", "<Cmd>Run<CR>", { desc = "Run :Run" })
 
 vim.keymap.set("n", ",c", function()
   ui_input({ prompt = "Set runprg" }, function(input)

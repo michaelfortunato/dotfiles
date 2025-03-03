@@ -20,6 +20,14 @@ return {
     event = "VeryLazy",
     opts = function()
       local ai = require("mini.ai")
+      -- NOTE: Very important swap. ; -> [ and ' ->]
+      -- On second though This is a bad idea
+      -- map({ "n", "v", "s", "o" }, ";", "[", { remap = true, desc = "For backwards textobject navigation" })
+      -- map({ "n", "v", "s", "o" }, ";;", "[[", { desc = "For backwards textobject navigation" })
+      -- map({ "n", "v", "s", "o" }, "g;", "g[", { desc = "For forwards textobject navigation" })
+      -- map({ "n", "v", "s", "o" }, "'", "]", { desc = "For forwards textobject navigation" })
+      -- map({ "n", "v", "s", "o" }, "''", "]]", { desc = "For forwards textobject navigation" })
+      -- map({ "n", "v", "s", "o" }, "g'", "g]", { desc = "For forwards textobject navigation" })
       return {
         n_lines = 500,
         custom_textobjects = {

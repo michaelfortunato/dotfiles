@@ -31,36 +31,6 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "tex" },
-  callback = function(ev)
-    local cmp = require("cmp")
-    cmp.setup({
-      sources = {
-        -- { name = "luasnip", option = { show_autosnippets = false } },
-        { name = "luasnip", option = { show_autosnippets = true } },
-        --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
-        -- { name = "buffer" },
-        -- { name = "emoji" },
-      },
-      completion = { autocomplete = false },
-    })
-  end,
-})
-
--- vim.api.nvim_create_autocmd("FileType", {
---   --- TODO: Problably should be moved into an ftpluin or a snippet
---   --- Going to make this a snippet
---   pattern = { "tex" },
---   callback = function(ev)
---     local MiniPairs = require("mini.pairs")
---     MiniPairs.map_buf(0, "i", "$", { action = "closeopen", pair = "$$" })
---     MiniPairs.map_buf(0, "i", "(", { action = "open", pair = "()" })
---     MiniPairs.map_buf(0, "i", "[", { action = "open", pair = "[]" })
---     MiniPairs.map_buf(0, "i", "{", { action = "open", pair = "{}" })
---   end,
--- })
-
-vim.api.nvim_create_autocmd("FileType", {
   --- TODO: Problably should be moved into an ftpluin
   pattern = { "lua" },
   callback = function(ev)

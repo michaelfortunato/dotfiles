@@ -7,7 +7,7 @@ return {
   dependencies = { "hrsh7th/cmp-emoji", "saadparwaiz1/cmp_luasnip" },
   ---@module "cmp"
   ---@param opts cmp.ConfigSchema
-  opts = function(_, opts)
+  config = function(_, opts)
     opts.snippet = {
       expand = function(args)
         require("luasnip").lsp_expand(args.body)
@@ -76,7 +76,17 @@ return {
         fallback()
       end
     end, { "i", "s" })
-    return opts
+    cmp.setup(opts)
+    cmp.setup.filetype("tex", {
+      sources = {
+        -- { name = "luasnip", option = { show_autosnippets = false } },
+        { name = "luasnip", option = { show_autosnippets = true } },
+        --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
+        -- { name = "buffer" },
+        -- { name = "emoji" },
+      },
+      completion = { autocomplete = false },
+    })
   end,
   keys = {
     {
