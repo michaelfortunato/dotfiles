@@ -205,4 +205,8 @@ map("v", "<Tab>", "<gv")
 map("v", "<S-Tab>", ">gv")
 
 del({ "n" }, "<C-/>")
+map("n", "<c-\\>", function()
+  Snacks.terminal(nil, { cwd = LazyVim.root() })
+end, { desc = "Terminal (Root Dir)" })
+map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 del({ "n" }, "<leader>wm")
