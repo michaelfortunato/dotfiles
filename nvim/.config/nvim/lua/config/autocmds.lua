@@ -98,7 +98,7 @@ end, {
 })
 
 local function run_in_integrated_terminal(cmd, shell)
-  return Snacks.terminal.get(cmd, {
+  local term, created = Snacks.terminal.get(cmd, {
     shell = shell or vim.o.shell,
     win = {
       position = "bottom",
@@ -110,6 +110,25 @@ local function run_in_integrated_terminal(cmd, shell)
     start_insert = false,
     auto_close = false,
   })
+  --- Terminal was previously opened, close it and relaunch.
+  if (created == false) and (term ~= nil) then
+    term:close()
+    local term, created = Snacks.terminal.get(cmd, {
+      shell = shell or vim.o.shell,
+      win = {
+        position = "bottom",
+        height = 0.3,
+        width = 0.4,
+      },
+      -- interactive = true,
+      auto_insert = false,
+      start_insert = false,
+      auto_close = false,
+    })
+    return term, created
+    --- Terminal was previously opened, close it and relaunch.
+  end
+  return term, created
 end
 
 vim.api.nvim_create_user_command("IntegratedTerminalRun", function(params)
