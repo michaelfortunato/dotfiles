@@ -30,23 +30,6 @@ vim.api.nvim_create_autocmd("FileType", {
   command = "set bufhidden=delete",
 })
 
-vim.api.nvim_create_autocmd("FileType", {
-  --- TODO: Problably should be moved into an ftpluin
-  pattern = { "lua" },
-  callback = function(ev)
-    vim.api.nvim_buf_set_keymap(ev.buf, "n", "<localleader>s", "<Cmd>source %<CR>", { desc = "Source lua file" })
-    --- FIXME: There is some error where input flashes quickly, this
-    --- doesn't work
-    vim.api.nvim_buf_set_keymap(
-      ev.buf,
-      "v",
-      "<localleader>s",
-      "<Cmd>source<CR>",
-      { desc = "Run visually selected code" }
-    )
-  end,
-})
-
 vim.api.nvim_create_user_command("Make", function(params)
   -- Insert args at the '$*' in the makeprg
   local cmd, num_subs = vim.o.makeprg:gsub("%$%*", params.args)
@@ -67,37 +50,212 @@ end, {
   bang = true,
 })
 
-local function kitty_exec(args)
+vim.MNF = {}
+vim.MNF.last_used_global_system_terminal_id = nil
+vim.MNF.global_system_terminal_command = nil
+
+vim.MNF.kitty_exec = function(args)
   local arguments = vim.deepcopy(args)
   table.insert(arguments, 1, "kitty")
   table.insert(arguments, 2, "@")
-  -- local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
-  -- if #password > 0 then
-  --   table.insert(arguments, 3, "--password")
-  --   table.insert(arguments, 4, password)
-  -- end
-  return vim.system(arguments)
-end
-
-local function run_in_system_terminal(cmd)
-  local ok, _ = pcall(kitty_exec, { "kitten", "run_command_in_window.py", cmd })
-end
-
-vim.api.nvim_create_user_command("Run", function(params)
-  -- Insert args at the '$*' in the makeprg
-  local cmd, num_subs = vim.g.runprg:gsub("%$%*", params.args)
-  if num_subs == 0 then
-    cmd = cmd .. " " .. params.args
+  local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
+  if #password > 0 then
+    table.insert(arguments, 3, "--password")
+    table.insert(arguments, 4, password)
   end
-  cmd = vim.fn.expandcmd(cmd)
-  run_in_system_terminal(cmd)
-end, {
-  desc = "Run runprg asynchronously in your computers terminal emulator",
-  nargs = "*",
-  bang = true,
-})
+  local output = vim.fn.system(arguments)
+  local sc = (vim.v.shell_error == 0)
+  return sc, output
+end
 
-local function run_in_integrated_terminal(cmd, shell)
+local kitty_exec = vim.MNF.kitty_exec
+
+local function does_system_terminal_exist(id)
+  local sc, value = kitty_exec({ "ls", "--match=id:" .. id })
+  return sc
+end
+
+local function _get_kitty_layout()
+  local _, value = pcall(function()
+    local sc, output = kitty_exec({ "ls", "--self" })
+    if not sc then
+      vim.notify(output, vim.log.levels.ERROR)
+      return nil
+    end
+    local json = vim.json.decode(output)
+    if #json ~= 1 or #json[1]["tabs"] ~= 1 then
+      vim.notify("More than two tabs detected, not getting layout", vim.log.levels.WARN)
+      return nil
+    end
+    return json[1]["tabs"][1]["layout"]
+  end)
+  return value
+end
+
+--- TODO: cmd must be string for now change it later
+--- TODO: remove --bias and figure out how to merge cmd with other options
+--- in table
+--- NOTE: Consider switching to a fat layout before so the split shows up even if in a stack layout
+--- otherwise it'll look like nothing has happend (due to --keep-focus)
+vim.MNF.new_system_terminal = function(cmd, direction)
+  local sc, value
+  local layout = _get_kitty_layout()
+  if layout == "stack" then
+    sc, value = kitty_exec({ "goto-layout", "fat" })
+    if not sc then
+      vim.notify(value, vim.log.levels.ERROR)
+    end
+  end
+  direction = direction or "down"
+  if direction == "up" or direction == "down" then
+    sc, value = kitty_exec({ "launch", "--keep-focus", "--cwd=current", "--location=hsplit", "--bias=30", cmd })
+    --- in this case value is the id
+  else
+    sc, value = kitty_exec({ "launch", "--keep-focus", "--cwd=current", "--location=vsplit", "--bias=30", cmd })
+    --- in this case value is the id
+  end
+  if direction == "up" or direction == "left" then
+    local move_sc, error_msg = kitty_exec({ "action", "move_window", direction })
+    if not move_sc then
+      vim.notify(error_msg, vim.log.levels.ERROR)
+      return move_sc, error_msg
+    end
+  end
+  if not sc then
+    vim.notify(value, vim.log.levels.ERROR)
+  end
+  --- in this case value is the id
+  return sc, value
+end
+
+local new_system_terminal = vim.MNF.new_system_terminal
+
+--- TODO: cmd must be string for now change it later
+--- NOTE: this is inherently asynchronous in a sense as we are writing to the process,
+--- not waiting to it to finish, it is up to the shell to execute the code, safer this way as well
+vim.MNF.run_system_terminal = function(id, cmd)
+  local sc, value
+  sc, value = kitty_exec({ "send-text", "--match=id:" .. id, "--exclude-active", cmd })
+  if not sc then
+    vim.notify(value, vim.log.levels.ERROR)
+    return sc, value
+  end
+  sc, value = kitty_exec({ "send-key", "--match=id:" .. id, "--exclude-active", "enter" })
+  if not sc then
+    vim.notify(value, vim.log.levels.ERROR)
+    return sc, value
+  end
+  return sc, value
+end
+local run_system_terminal = vim.MNF.run_system_terminal
+
+vim.MNF.close_system_terminal = function(id)
+  return kitty_exec({ "close-window", "--match=id:" .. id })
+end
+local close_system_terminal = vim.MNF.close_system_terminal
+
+--- Integrated terminal API, should match what is above
+---
+vim.MNF.new_integrated_terminal = function(cmd)
+  local window = Snacks.terminal.open(cmd, {
+    shell = vim.o.shell,
+    win = {
+      position = "bottom",
+      height = 0.3,
+      width = 0.4,
+    },
+    -- interactive = true,
+    auto_insert = false,
+    start_insert = false,
+    auto_close = false,
+  })
+  if window ~= nil then
+    return true, window.id
+  else
+    return false, "new_intergrated_terminal error I do not know why!"
+  end
+end
+local new_integrated_terminal = vim.MNF.new_integrated_terminal
+
+vim.MNF.run_integrated_terminal = function(buf_id, cmd)
+  -- TODO: need to implement, here is a a first go, having issues though
+  -- vim.api.nvim_chan_send(window.buf, table.concat(lines, "\r\n"))
+  -- vim.api.nvim_chan_send(window.buf, "\r\n") -- NOTE: Send a last one in case we are on a single line
+end
+
+--- 2. User APIs, a combination of
+--- <globally/buffer managerd> and <system/integrated>
+--- So 4 variants
+
+--- 2.1 Terminal Manager , global variant + system
+--- TODO: Ideally we want this manager to be agostic to whether
+--- the underlying terminal is a system one or not.
+--- global plugin downstream of this functionality
+--- This is just a small module for managing the window
+vim.MNF.set_global_system_terminal_command = function(cmd)
+  vim.MNF.global_system_terminal_command = cmd
+end
+
+vim.MNF.get_global_system_terminal_command = function()
+  return vim.MNF.global_system_terminal_command
+end
+
+--- NOTE, we launch a posix like shell around the command here so things like
+--- bash command liens can be used
+vim.MNF.run_global_system_terminal = function()
+  local cmd = vim.MNF.get_global_system_terminal_command()
+  cmd = vim.fn.expandcmd(cmd)
+  if vim.MNF.last_used_global_system_terminal_id ~= nil then
+    if not does_system_terminal_exist(vim.MNF.last_used_global_system_terminal_id) then
+      local sc, id = new_system_terminal(nil, "down")
+      if not sc then
+        vim.notify(id, vim.log.levels.ERROR)
+        return sc, id
+      end
+      vim.MNF.last_used_global_system_terminal_id = id
+    end
+  else
+    local sc, id = new_system_terminal(nil, "down")
+    if not sc then
+      vim.notify(id, vim.log.levels.ERROR)
+      return sc, id
+    end
+    vim.MNF.last_used_global_system_terminal_id = id
+  end
+  if cmd == nil or cmd == "v:null" then -- We launched the shell, so no need to error
+    return true, nil
+  end
+  local run_sc, error = run_system_terminal(vim.MNF.last_used_global_system_terminal_id, cmd)
+  if not run_sc then
+    vim.notify(error, vim.log.levels.ERROR)
+    return run_sc
+  end
+  return true, nil
+end
+
+local run_global_system_terminal = vim.MNF.run_global_system_terminal
+
+vim.MNF.close_global_system_terminal = function()
+  local id = vim.MNF.last_used_global_system_terminal_id
+  if id ~= nil then
+    close_system_terminal(id)
+  end
+  vim.MNF.last_used_global_system_terminal_id = nil
+end
+
+local close_global_system_terminal = vim.MNF.close_global_system_terminal
+
+vim.MNF.new_global_system_terminal = function()
+  close_global_system_terminal()
+  vim.MNF.run_global_system_terminal()
+end
+local new_global_system_terminal = vim.MNF.new_global_system_terminal
+
+--- 2.2 Manager, buffer local + integrated variant
+--- TODO: Ideally we want this manager to be agostic to whether
+--- the underlying terminal is a system one or not.
+
+local function __DEPRECATED_run_in_local_integrated_terminal(cmd, shell)
   local term, created = Snacks.terminal.get(cmd, {
     shell = shell or vim.o.shell,
     win = {
@@ -131,15 +289,40 @@ local function run_in_integrated_terminal(cmd, shell)
   return term, created
 end
 
-vim.api.nvim_create_user_command("IntegratedTerminalRun", function(params)
+--- 2.3 Command wrappers of downstream
+
+vim.api.nvim_create_user_command("RunGlobalSystemTerminal", function(params)
+  run_global_system_terminal()
+end, {
+  desc = "Run `vim.MNF.global_system_terminal_command` asynchronously in your computer's new or existing terminal emulator",
+  nargs = "*",
+  bang = true,
+})
+
+vim.api.nvim_create_user_command("NewGlobalSystemTerminal", function(params)
+  new_global_system_terminal()
+end, {
+  desc = "Run `vim.MNF.global_system_terminal_command` asynchronously in your computer's new terminal emulator",
+  nargs = "*",
+  bang = true,
+})
+
+vim.api.nvim_create_user_command("CloseGlobalSystemTerminal", function(params)
+  close_global_system_terminal()
+end, {
+  desc = "Run `vim.MNF.global_system_terminal_command` asynchronously in your computer's new terminal emulator",
+})
+
+vim.api.nvim_create_user_command("RunLocalIntegratedTerminal", function(params)
   local cmd = vim.fn.expandcmd(params.args)
-  run_in_integrated_terminal(cmd)
+  __DEPRECATED_run_in_local_integrated_terminal(cmd)
 end, {
   desc = "Run a terminal command asynchronously in your integrated terminal emulator",
   nargs = "*",
   bang = true,
 })
--- --- Return the visually selected text as an array with an entry for each line
+
+-- Return the visually selected text as an array with an entry for each line
 --- @see https://www.reddit.com/r/neovim/comments/1b1sv3a/function_to_get_visually_selected_text/--
 --- @return string[]|nil lines The selected text as an array of lines.
 local function get_visual_selection_text()
@@ -183,13 +366,22 @@ local function get_visual_selection_text()
   end
 end
 
--- -- Make sure we RE-enter terminal mode when focusing back on terminal
-vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
-  callback = function()
-    vim.cmd("startinsert")
+--- ALL CUSTOM FILE TYPE autocommands here
+vim.api.nvim_create_autocmd("FileType", {
+  --- TODO: Problably should be moved into an ftpluin
+  pattern = { "lua" },
+  callback = function(ev)
+    vim.api.nvim_buf_set_keymap(ev.buf, "n", "<localleader>s", "<Cmd>source %<CR>", { desc = "Source lua file" })
+    --- FIXME: There is some error where input flashes quickly, this
+    --- doesn't work
+    vim.api.nvim_buf_set_keymap(
+      ev.buf,
+      "v",
+      "<localleader>s",
+      "<Cmd>source<CR>",
+      { desc = "Run visually selected code" }
+    )
   end,
-  pattern = { "term://*" },
-  group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
 })
 
 vim.api.nvim_create_autocmd("FileType", {
@@ -201,14 +393,14 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.api.nvim_buf_set_keymap(
       ev.buf,
       "n",
-      "<localleader>s",
-      "<Cmd>IntegratedTerminalRun python3 " .. ev.file .. "<CR>",
+      "..",
+      "<Cmd>RunLocalIntegratedTerminal python3 " .. ev.file .. "<CR>",
       { desc = "Source lua file" }
     )
     -- FIXME: This is close but not right. I am getting more convinced
     -- to use my system emulator for anew window? I do not know for sure.
-    vim.keymap.set("v", "<localleader>s", function()
-      local window = run_in_integrated_terminal("python3")
+    vim.keymap.set("v", "..", function()
+      local window = __DEPRECATED_run_in_local_integrated_terminal("python3")
       local lines = get_visual_selection_text()
       if lines == nil then
         return
@@ -217,4 +409,13 @@ vim.api.nvim_create_autocmd("FileType", {
       vim.api.nvim_chan_send(window.buf, "\r\n") -- NOTE: Send a last one in case we are on a single line
     end, { desc = "Run visually selected code", buffer = ev.buf })
   end,
+})
+
+-- -- Make sure we RE-enter terminal mode when focusing back on terminal
+vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
+  callback = function()
+    vim.cmd("startinsert")
+  end,
+  pattern = { "term://*" },
+  group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
 })

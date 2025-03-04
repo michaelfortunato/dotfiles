@@ -7,6 +7,8 @@ local map = vim.keymap.set
 local del = function(...)
   return pcall(vim.keymap.del, ...)
 end
+local ui_input = Snacks.input or vim.ui.input
+local ui_notify = Snacks.notify or print
 
 -- map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
 -- map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
@@ -45,8 +47,32 @@ map("n", "<C-j>", require("smart-splits").move_cursor_down)
 map("n", "<C-k>", require("smart-splits").move_cursor_up)
 map("n", "<C-l>", require("smart-splits").move_cursor_right)
 
+del({ "n" }, ";") --NOTE: This makes it hard to use else where, but makes sure which key comes up
+map({ "n" }, ";1", function()
+  ---@diagnostic disable-next-line: missing-fields
+  Snacks.scratch.open({ ft = "lua" })
+end, { desc = "Open Scratch Lua Buffer" })
+map({ "n" }, ";2", function()
+  ---@diagnostic disable-next-line: missing-fields
+  Snacks.scratch.open({ ft = "python" })
+end, { desc = "Open Scratch Python Buffer" })
+map({ "n" }, ";<Tab>", function()
+  local buf_list = Snacks.scratch.list()
+  if #buf_list < 2 then
+    ui_notify("No previous scratch buffer for which to switch.")
+    return
+  end
+  local buf = buf_list[2]
+  ---@diagnostic disable-next-line: missing-fields
+  Snacks.scratch.open({ ft = buf.ft, name = buf.name, file = buf.file, icon = buf.icon })
+end, { desc = "Previous Scratch Buffer" })
+
+map({ "n" }, ";l", function()
+  Snacks.scratch.select()
+end, { desc = "Open Scratch Buffer Picker" })
+
 -- Personal key map system?
-map("n", "<localleader><localleader>", "<Cmd>Make!<CR>", { desc = "Run Make" })
+map("n", "..", "<Cmd>Make!<CR>", { desc = "Run Make" })
 local wk = require("which-key")
 wk.add({
   { "<leader>m", group = "personal" }, -- group
@@ -59,25 +85,19 @@ map(
 )
 map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run Make" })
 
-local ui_input = Snacks.input or vim.ui.input
-local ui_notify = Snacks.notify or print
-
-vim.keymap.set("n", "<leader>mc", function()
-  ui_input({ prompt = "Set makeprg" }, function(input)
+map("n", "<leader>mc", function()
+  return ui_input({ prompt = "Set makeprg" }, function(input)
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
       vim.cmd("let &makeprg='" .. input .. "'")
     end
+    return
   end)
 end, { desc = "Set makeprg" })
-wk.add({
-  { "<leader>t", group = "Task" }, -- group
-})
-map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run Make" })
-map({ "n", "v" }, "<leader>tt", "<Cmd>Make<CR>", { desc = "Run Make" })
-vim.keymap.set("n", "<leader>tc", function()
-  ui_input({ prompt = "Set makeprg" }, function(input)
+
+map("n", ".c", function()
+  return ui_input({ prompt = "Set makeprg" }, function(input)
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
@@ -108,87 +128,39 @@ end
 --- Close quickfix list if open
 vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 
-del({ "n" }, ";") --NOTE: This makes it hard to use else where, but makes sure which key comes up
-map({ "n" }, ";1", function()
-  ---@diagnostic disable-next-line: missing-fields
-  Snacks.scratch.open({ ft = "lua" })
-end, { desc = "Open Scratch Lua Buffer" })
-map({ "n" }, ";2", function()
-  ---@diagnostic disable-next-line: missing-fields
-  Snacks.scratch.open({ ft = "python" })
-end, { desc = "Open Scratch Python Buffer" })
-map({ "n" }, ";<Tab>", function()
-  local buf_list = Snacks.scratch.list()
-  if #buf_list < 2 then
-    ui_notify("No previous scratch buffer for which to switch.")
-    return
-  end
-  local buf = buf_list[2]
-  ---@diagnostic disable-next-line: missing-fields
-  Snacks.scratch.open({ ft = buf.ft, name = buf.name, file = buf.file, icon = buf.icon })
-end, { desc = "Open Scratch Buffer Picker (Don't know how to do previous)" })
-
-map({ "n" }, ";l", function()
-  Snacks.scratch.select()
-end, { desc = "Open Scratch Buffer Picker (Don't know how to do previous)" })
-
-map("n", "<leader>rr", "<Cmd>Run<CR>", { desc = "Run :Run" })
-vim.keymap.set("n", "<leader>rc", function()
-  ui_input({ prompt = "Set runprg" }, function(input)
-    if input == nil or input == "" then
-      print(vim.g.runprg)
-    else
-      vim.g.runprg = input
-    end
-  end)
-end, { desc = "Set vim.g.runprg" })
+--- TODO: Sometimes the UI doesn't return
 
 -- Big if true
-map("n", ";;", "<Cmd>Run<CR>", { desc = "Run :Run" })
+map("n", ";;", "<Cmd>RunGlobalSystemTerminal<CR>", { desc = "Run command in globally dedicated system terminal split" })
 map("n", ";c", function()
-  ui_input({ prompt = "Set runprg" }, function(input)
+  return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
     if input == nil or input == "" then
-      print(vim.g.runprg)
+      print(vim.MNF.get_global_system_terminal_command())
     else
-      vim.g.runprg = input
+      vim.MNF.set_global_system_terminal_command(input)
     end
+    return
   end)
-end, { desc = "Set vim.g.runprg" })
+end, { desc = "Set vim.MNF.global_system_terminal_command" })
 
-map("n", ",,", "<Cmd>Run<CR>", { desc = "Run :Run" })
-vim.keymap.set("n", ",c", function()
-  ui_input({ prompt = "Set runprg" }, function(input)
+map(
+  "n",
+  ",,",
+  "<Cmd>RunGlobalIntegratedTerminal<CR>",
+  { desc = "TODO: Run command in globally dedicated system terminal split" }
+)
+
+map("n", ",c", function()
+  return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
     if input == nil or input == "" then
-      print(vim.g.runprg)
+      print(vim.MNF.get_global_system_terminal_command())
     else
-      vim.g.runprg = input
+      vim.MNF.set_global_system_terminal_command(input)
     end
+    return
   end)
-end, { desc = "Set vim.g.runprg" })
+end, { desc = "Set vim.MNF.global_system_terminal_command" })
 
-local function kitty_exec(args)
-  local arguments = vim.deepcopy(args)
-  table.insert(arguments, 1, "kitty")
-  table.insert(arguments, 2, "@")
-  -- local password = vim.g.smart_splits_kitty_password or require("smart-splits.config").kitty_password or ""
-  -- if #password > 0 then
-  --   table.insert(arguments, 3, "--password")
-  --   table.insert(arguments, 4, password)
-  -- end
-  return vim.fn.system(arguments)
-end
---
--- local function toggle_term()
---   vim.o.lazyredraw = true
---   vim.schedule(function()
---     local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
---   end)
---   vim.o.lazyredraw = false
---   --- vim.o.lazyredraw = true
---   --- local ok, _ = pcall(kitty_exec, { "kitten", "toggle_term.py" })
---   --- vim.o.lazyredraw = false
--- end
---
 -- -- floating terminal add ctrl-\
 -- -- NOTE: This keymap is overridden by kitty
 -- -- As well as <C-/>, <C-;>
@@ -210,3 +182,33 @@ map("n", "<c-\\>", function()
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 del({ "n" }, "<leader>wm")
+
+wk.add({
+  { "<leader>t", group = "Task" }, -- group
+})
+--- Let t (as in "task") namespace all of the various runner combinations
+map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run Make" })
+vim.keymap.set("n", "<leader>tmc", function()
+  return ui_input({ prompt = "Set makeprg" }, function(input)
+    if input == nil or input == "" then
+      vim.cmd("set makeprg?")
+    else
+      vim.cmd("let &makeprg='" .. input .. "'")
+    end
+  end)
+end, { desc = "Set makeprg" })
+map("n", "<leader>tr", "<Cmd>RunGlobalSystemTerminal<CR>", { desc = "Run :Run" })
+vim.keymap.set("n", "<leader>trc", function()
+  return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
+    if input == nil or input == "" then
+      print(vim.MNF.get_global_system_terminal_command())
+    else
+      vim.MNF.set_global_system_terminal_command(input)
+    end
+    return
+  end)
+end, { desc = "Set vim.MNF.global_system_terminal_command" })
+map("n", "<leader>ty", "<Cmd>RunGlobalIntegratedTerminal<CR>", { desc = "Run :Run" })
+vim.keymap.set("n", "<leader>tyc", function()
+  ---
+end, { desc = "Set vim.MNF.global_system_terminal_command" })
