@@ -121,6 +121,9 @@ export EDITOR=nvim
 export MNF_NOTES_DIR=$HOME/notes
 export MNF_BIN_DIR=$HOME/bin
 export MNF_TEMPLATE_DIR=$HOME/dotfiles/templates #TODO: should be $HOME/.templates
+export MNF_BIB_DIR=$HOME/.local/share/zotero/bib
+export BIBINPUTS=$MNF_BIB_DIR
+
 
 ############# PATH ############
 # NOTE: Only set path here!
@@ -142,7 +145,7 @@ alias l1="tree -a -L 1"
 alias l2="tree -a -L 2"
 alias l3="tree -a -L 2"
 alias t="tree -a" #TODO: Decide on this
-alias tt="tree -a" #TODO: Decide on this
+alias tt="tree -a -L 1" #TODO: Decide on this
 alias t1="tree -a -L 1"
 alias t2="tree -a -L 2"
 alias t3="tree -a -L 2"
@@ -161,6 +164,8 @@ alias conf="cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim ./"
 alias dotconfig="cd $HOME/dotfiles && nvim ./"
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
+# Experimental
+alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
 
 
 git_ignore_local() {
