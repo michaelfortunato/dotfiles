@@ -232,6 +232,13 @@ local generate_cases = function(args, snip)
   return sn(nil, nodes)
 end
 
+--- Basically an insert node but if the visual clip register
+--- is not preseet this will dump that content here instead
+--- Note the buffer is cleared after 1 dump so this is good.
+local iv = function(i, ...)
+  return d(i, get_visual, ...)
+end
+
 return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
@@ -297,6 +304,7 @@ style=alphabetic,
 sorting=ynt
 ]{biblatex}
 %\addbibresource{main.bib}
+%\addbibresource{Zotero.bib} %Main bib db, see $BIBINPUTS 
 
 \begin{document}
 % Title Section
@@ -456,11 +464,18 @@ sorting=ynt
   s({ trig = "SS", snippetType = "autosnippet" }, t("\\mathbb{S}"), { condition = tex.in_mathzone }),
   s({ trig = "UU", snippetType = "autosnippet" }, t("\\cup"), { condition = tex.in_mathzone }),
   s({ trig = "II", snippetType = "autosnippet" }, t("\\cap"), { condition = tex.in_mathzone }),
+  --- Relations
+  s({
+    trig = "=",
+    name = "_insert_equal_sign_as_text_node",
+    desc = "Insert a text node in math mode to tab over it. It's nice!",
+    hidden = true,
+    snippetType = "autosnippet",
+  }, t("="), { condition = tex.in_mathzone }),
   s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = tex.in_mathzone }),
   s({ trig = "->", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
   s({ trig = ":->", snippetType = "autosnippet" }, t("\\mapsto"), { condition = tex.in_mathzone }),
   s({ trig = "=>", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
-  --- Relations
   --- For now going to make this a snippet
   s({ trig = "implies", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
   s({ trig = "-->", snippetType = "autosnippet" }, t("\\longrightarrow"), { condition = tex.in_mathzone }),
@@ -523,7 +538,7 @@ sorting=ynt
   s(
     { trig = "lr(", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\left(<>\\right)<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = tex.in_mathzone }
@@ -531,7 +546,7 @@ sorting=ynt
   s(
     { trig = "lr{", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\left\\{<>\\right\\}<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = tex.in_mathzone }
@@ -539,7 +554,7 @@ sorting=ynt
   s(
     { trig = "lr[", wordTrig = false, snippetType = "autosnippet" },
     fmta("\\left[<>\\right]<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = tex.in_mathzone }
@@ -547,7 +562,7 @@ sorting=ynt
   s(
     { trig = "(", wordTrig = false, snippetType = "autosnippet" },
     fmta("(<>)<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = tex.in_mathzone }
@@ -555,7 +570,7 @@ sorting=ynt
   s(
     { trig = "{", snippetType = "autosnippet" },
     fmta("\\{<>\\}<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
@@ -563,7 +578,7 @@ sorting=ynt
   s(
     { trig = "[", wordTrig = false, snippetType = "autosnippet" },
     fmta("[<>]<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = tex.in_mathzone * trigger_does_not_follow_alpha_char }
@@ -1193,7 +1208,7 @@ sorting=ynt
   -- Matrices and Cases
   s(
     {
-      trig = "([bBpvV])mat(%d+)x(%d+)",
+      trig = "([bBpvV]?)mat(%d+)x(%d+)",
       name = "[bBpvV]matrix",
       desc = "matrices",
       regTrig = true,
@@ -1206,7 +1221,7 @@ sorting=ynt
     \end{<>}]],
       {
         f(function(_, snip)
-          return snip.captures[1] .. "matrix"
+          return ((snip.captures[1] == "") and "b" or snip.captures[1]) .. "matrix"
         end),
         f(function(_, snip)
           -- if snip.captures[4] == "a" then
@@ -1217,7 +1232,7 @@ sorting=ynt
         end),
         d(1, generate_matrix),
         f(function(_, snip)
-          return snip.captures[1] .. "matrix"
+          return ((snip.captures[1] == "") and "b" or snip.captures[1]) .. "matrix"
         end),
       }
     ),

@@ -23,10 +23,24 @@ return {
         end,
         desc = "Reload snippets",
       },
+      --- <leader>ms is the snippets group
+      {
+        "<leader>mss",
+        function()
+          return "<Cmd> edit" .. SNIPPET_PATH .. "/" .. vim.bo.filetype .. ".lua" .. " <CR>"
+        end,
+        expr = true,
+        desc = "Open snippet for current filetype",
+      },
       {
         "<leader>mst",
         "<Cmd> edit " .. SNIPPET_PATH .. "/tex.lua" .. " <CR>",
         desc = "Open latex snippets",
+      },
+      {
+        "<leader>msp",
+        "<Cmd> edit " .. SNIPPET_PATH .. "/python.lua" .. " <CR>",
+        desc = "Open python snippets",
       },
     },
   },

@@ -30,6 +30,13 @@ return {
     vim.g.vimtex_parser_bib_backend = "lua"
     vim.g.vimtex_quickfix_open_on_warning = false
 
+    vim.g.vimtex_syntax_packages = {
+      biblatex = {
+        load = 2,
+        --conceal
+      },
+    }
+
     vim.g.vimtex_syntax_conceal_disable = false
     vim.g.vimtex_syntax_conceal = {
       accents = true,

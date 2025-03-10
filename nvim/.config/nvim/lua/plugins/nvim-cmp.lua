@@ -4,7 +4,18 @@
 vim.g.mnf_enable_autocomplete = false
 return {
   "hrsh7th/nvim-cmp",
-  dependencies = { "hrsh7th/cmp-emoji", "saadparwaiz1/cmp_luasnip" },
+  dependencies = {
+    "hrsh7th/cmp-emoji",
+    "saadparwaiz1/cmp_luasnip",
+    "micangl/cmp-vimtex",
+    {
+      "liamvdvyver/cmp-bibtex", -- See issue https://github.com/Myriad-Dreamin/tinymist/pull/993 tinymist does not complete bib yet
+      config = function(_, opts)
+        require("cmp-bibtex").setup({ filetypes = { "typst" }, files = { os.getenv("BIBINPUTS") .. "/Zotero.bib" } })
+      end,
+    },
+  },
+
   ---@module "cmp"
   ---@param opts cmp.ConfigSchema
   config = function(_, opts)
@@ -81,6 +92,21 @@ return {
       sources = {
         -- { name = "luasnip", option = { show_autosnippets = false } },
         { name = "luasnip", option = { show_autosnippets = true } },
+        { name = "vimtex" },
+        --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
+        -- { name = "buffer" },
+        -- { name = "emoji" },
+      },
+      completion = { autocomplete = false },
+    })
+    cmp.setup.filetype("typst", {
+      sources = {
+        --- note we put this first for now I do not know if this will hurt autocomplete
+        { name = "bibtex" }, -- See here: https://github.com/Myriad-Dreamin/tinymist/pull/993
+        { name = "luasnip", option = { show_autosnippets = true } },
+        { name = "nvim_lsp" },
+        { name = "buffer" },
+        { name = "emoji" },
         --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
         -- { name = "buffer" },
         -- { name = "emoji" },

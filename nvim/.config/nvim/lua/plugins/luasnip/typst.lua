@@ -185,6 +185,10 @@ local function in_mathzone()
   return false
 end
 
+local iv = function(i, ...)
+  return d(i, get_visual, ...)
+end
+
 -- Generating functions for Matrix/Cases - thanks L3MON4D3!
 local generate_matrix = function(args, snip)
   local rows = tonumber(snip.captures[2])
@@ -272,18 +276,24 @@ return {
   // abstract: lorem(100),
   // bibliography: bibliography("main.bib"),
 )
-#show: equate.with(breakable: true, sub-numbering: true)
-#set math.equation(numbering: "(1.1)")
-// TODO: Is there a better way to customize this?
-// too weak: #show heading.where(level: 1): set align() //Removes alignmnet
-// #show heading.where(level: 1): h  =>> {
-//  show smallcaps: s =>> {
-//      set align(left)
-//      strong(s.body)
-//    }
-//    h
-//  }
-// NOTE: This works but is hacky
+// Math equation numbering and referencing.
+#set math.equation(numbering: "(1)")
+#show ref: it =>> {
+  let eq = math.equation
+  let el = it.element
+  if el != none and el.func() == eq {
+    let numb = numbering(
+      "1",
+      ..counter(eq).at(el.location())
+    )
+    let color = rgb(0%, 8%, 45%)  // Originally `mydarkblue`. :D
+    let content = link(el.location(), text(fill: color, numb))
+    [(#content)]
+  } else {
+    return it
+  }
+}
+
 #show heading: it =>> {
   // Create the heading numbering.
   let number = if it.numbering != none {
@@ -318,7 +328,218 @@ return {
     ),
     { condition = line_begin } --TODO: Condition should be begining of file!
   ),
+  s(
+    { trig = "DOC", snippetType = "autosnippet" },
+    fmta(
+      [[
+#import "@preview/bloated-neurips:0.5.1": botrule, midrule, neurips2024, paragraph, toprule, url
+
+#let affls = (
+  uChicago: ("University of Chicago", "Chicago", "USA"),
+)
+
+#let authors = (
+  (
+    name: "Michael Newman Fortunato",
+    affl: "uChicago",
+    email: "michaelfortunato@uchicago.edu",
+    equal: true,
+  ),
+)
+
+#show: neurips2024.with(
+  title: [<>],
+  authors: (authors, affls),
+  keywords: (<>),
+  abstract: [<>],
+  bibliography: bibliography(<>),
+  bibliography-opts: (title: none, full: true), // Only for example paper.
+  appendix: [
+    #include <>
+  ],
+  accepted: true,
+)
+
+#let (
+  theorem,
+  lemma,
+  corollary,
+  remark,
+  proposition,
+  definition,
+  example,
+  proof,
+  rules: theorem_rules,
+) = default-theorems("theorem_group", lang: "en")
+
+#show: theorem_rules
+
+// Patch neurips bloated to get it all right
+#let make_figure_caption(it) = {
+  set align(center)
+  block({
+    set align(left)
+    set text(size: font.normal)
+    it.supplement
+    if it.numbering != none {
+      [ ]
+      context it.counter.display(it.numbering)
+    }
+    it.separator
+    [ ]
+    it.body
+  })
+}
+#let make_figure(caption_above: false, it) = {
+  let body = block(
+    width: 100%,
+    {
+      set align(center)
+      set text(size: font.normal)
+      if caption_above {
+        v(1em, weak: true) // Does not work at the block beginning.
+        it.caption
+      }
+      v(1em, weak: true)
+      it.body
+      v(8pt, weak: true) // Original 1em.
+      if not caption_above {
+        it.caption
+        v(1em, weak: true) // Does not work at the block ending.
+      }
+    },
+  )
+
+  if it.placement == none {
+    return body
+  } else {
+    return place(it.placement, body, float: true, clearance: 2.3em)
+  }
+}
+
+#show figure: set block(breakable: false)
+#show figure.caption.where(kind: table): it =>> make_figure_caption(it)
+#show figure.caption.where(kind: image): it =>> make_figure_caption(it)
+#show figure.where(kind: image): it =>> make_figure(it)
+#show figure.where(kind: table): it =>> make_figure(it, caption_above: true)
+
+// Function to draw a star graph with n outer nodes
+#let draw-star-graph(
+  n,
+  node_label_fn: i =>> text(str(i)),
+  node_color_function: i =>> white,
+) = {
+  canvas({
+    import draw: *
+
+    let radius = 1 // Radius of the circle for outer nodes
+    let center = (0, 0) // Position of the central node
+
+    // Calculate positions of outer nodes
+    let nodes = (center,)
+    for i in range(n) {
+      let angle = 360deg / n * i
+      let x = radius * calc.cos(angle)
+      let y = radius * calc.sin(angle)
+      nodes.push((x, y))
+    }
+
+    // Draw edges from center to all outer nodes
+    for i in range(1, n + 1) {
+      line(nodes.at(0), nodes.at(i), stroke: 1pt)
+    }
+
+    // Draw all nodes
+    for (i, pos) in nodes.enumerate() {
+      circle(pos, radius: 0.3, fill: node_color_function(i), stroke: 1pt)
+      content(pos, node_label_fn(i), anchor: "center")
+    }
+  })
+}
+
+// Function to draw a graph from an adjacency matrix
+#let draw-graph-from-adj-matrix(
+  adj-matrix,
+  positions: none,
+  node_label_fn: i =>> text(str(i)),
+  node_color_function: i =>> white,
+  node-radius: 0.45,
+  stroke: (thickness: 1pt), // Changed to dictionary format
+) = {
+  canvas({
+    import draw: *
+
+    // Number of nodes (assuming the matrix is square)
+    let n = adj-matrix.len()
+    if n == 0 or adj-matrix.at(0).len() != n {
+      panic("Adjacency matrix must be square")
+    }
+
+    // Determine node positions
+    let node-positions = if positions == none {
+      // Default: Circular layout
+      let radius = calc.max(2, calc.sqrt(n)) / 2 // Adjust radius based on number of nodes
+      let center = (0, 0)
+      let positions = ()
+      for i in range(n) {
+        let angle = 360deg / n * i
+        let x = radius * calc.cos(angle)
+        let y = radius * calc.sin(angle)
+        positions.push((x, y))
+      }
+      positions
+    } else {
+      // Use provided positions
+      if positions.len() != n {
+        panic("Number of positions must match number of nodes")
+      }
+      positions
+    }
+
+    // Draw edges based on the adjacency matrix
+    for i in range(n) {
+      for j in range(i + 1, n) {
+        // Only upper triangle for undirected graph
+        if adj-matrix.at(i).at(j) == 1 {
+          line(node-positions.at(i), node-positions.at(j), stroke: 1pt)
+        }
+      }
+    }
+
+    // Draw nodes
+    for (i, pos) in node-positions.enumerate() {
+      circle(pos, radius: node-radius, fill: node_color_function(i), stroke: 1pt)
+      content(pos, node_label_fn(i), anchor: "center")
+    }
+  })
+}
+<>]],
+      {
+        i(1),
+        i(2, "main.bib"),
+        i(3, ""),
+        i(4, "Placeholder text for the abstract section."),
+        i(5, "supplemental.bib"),
+        i(0),
+      }
+    ),
+    { condition = line_begin } --TODO: Condition should be begining of file!
+  ),
   s({ trig = "toc", snippetType = "autosnippet" }, t("#outline()"), { condition = line_begin }),
+  s(
+    { trig = "#fig", snippetType = "autosnippet" },
+    fmta(
+      [[
+#figure[
+caption: <>,
+supplement: <>,
+<>
+]<>
+]],
+      { i(1), i(2, "[Supplement]"), iv(3), i(0) }
+    ),
+    { condition = line_begin }
+  ),
   -- SUBSCRIPT
   s(
     { trig = "([%w%)%]%}|])ss", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
@@ -355,7 +576,7 @@ return {
   ),
   -- SUPERSCRIPT
   s(
-    { trig = "([%w%)%]%}%|])sp", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([%w%)%]%}%|])aa", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^(<>)<>", {
       f(function(_, snip)
         return snip.captures[1]
@@ -405,8 +626,35 @@ return {
     { condition = in_mathzone }
   ),
   s(
+    { trig = "([%w%)%]%}|])a(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^(<>)<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      f(function(_, snip)
+        return snip.captures[2]
+      end),
+      i(0),
+    }),
+    { condition = in_mathzone }
+  ),
+  s(
     { trig = "([%w%)%]%}|])s([ijknmt])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>_(<>)<>", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      f(function(_, snip)
+        return snip.captures[2]
+      end),
+      i(0),
+    }),
+    { condition = in_mathzone }
+  ),
+  --- TODO: Conflicts with mat no t then
+  s(
+    { trig = "([%w%)%]%}|])a([ijknm])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^(<>)<>", {
       f(function(_, snip)
         return snip.captures[1]
       end),
@@ -461,12 +709,21 @@ return {
   -- s({ trig = "|->", snippetType = "autosnippet" }, t("mapsto"), { condition = in_mathzone }),
   -- s({ trig = "=>", snippetType = "autosnippet" }, t("arrow.r.double"), { condition = in_mathzone }),
   --- Relations
+  s({
+    trig = "=",
+    name = "_insert_equal_sign_as_text_node",
+    desc = "Insert a text node in math mode to tab over it. It's nice!",
+    hidden = true,
+    snippetType = "autosnippet",
+  }, t("="), { condition = in_mathzone }),
+  s({ trig = "implies", snippetType = "autosnippet" }, t("==>"), { condition = in_mathzone }),
   --- For now going to make this a snippet
   s({ trig = "implies", snippetType = "autosnippet" }, t("==>"), { condition = in_mathzone }),
   -- s({ trig = "-->", snippetType = "autosnippet" }, t(" arrow.r.long"), { condition = in_mathzone }),
   -- s({ trig = ">=", snippetType = "autosnippet" }, t("gt.eq"), { condition = in_mathzone }),
   -- s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = in_mathzone }),
   s({ trig = "~~", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
+  s({ trig = "sime", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
   --- TODO: See if I actually use these
   s({ trig = "<|", snippetType = "autosnippet" }, t("lt.tri"), { condition = in_mathzone }),
   s({ trig = "<j", snippetType = "autosnippet" }, t("lt.tri.eq"), { condition = in_mathzone }),
@@ -485,7 +742,7 @@ return {
   s(
     { trig = "dxdy", snippetType = "autosnippet" },
     fmta([[frac((d <>,d <>)<>]], {
-      d(1, get_visual),
+      iv(1),
       i(2),
       i(0),
     }),
@@ -511,7 +768,7 @@ return {
   s(
     { trig = "ppx", snippetType = "autosnippet" },
     fmta([[\frac{\partial}{\partial <>}<>]], {
-      d(1, get_visual),
+      iv(1),
       i(0),
     }),
     { condition = in_mathzone }
@@ -519,7 +776,7 @@ return {
   s(
     { trig = "lr(", wordTrig = false, snippetType = "autosnippet" },
     fmta("lr(( <> ))<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = in_mathzone }
@@ -527,7 +784,7 @@ return {
   s(
     { trig = "lr{", wordTrig = false, snippetType = "autosnippet" },
     fmta("lr({ <> })<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = in_mathzone }
@@ -535,7 +792,7 @@ return {
   s(
     { trig = "lr[", wordTrig = false, snippetType = "autosnippet" },
     fmta("lr([ <> ])<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = in_mathzone }
@@ -543,7 +800,7 @@ return {
   s(
     { trig = "(", wordTrig = false, snippetType = "autosnippet" },
     fmta("(<>)<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = in_mathzone }
@@ -551,7 +808,7 @@ return {
   s(
     { trig = "{", snippetType = "autosnippet" },
     fmta("{<>}<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
@@ -559,7 +816,7 @@ return {
   s(
     { trig = "[", wordTrig = false, snippetType = "autosnippet" },
     fmta("[<>]<>", {
-      i(1),
+      iv(1),
       i(0),
     }),
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
@@ -576,14 +833,17 @@ return {
   s({ trig = "dot", snippetType = "autosnippet" }, {
     t("dot.op"),
   }, { condition = in_mathzone }),
+  s({ trig = "...", snippetType = "autosnippet" }, {
+    t("..."),
+  }, { condition = in_mathzone }),
+  s({ trig = " .. ", snippetType = "autosnippet" }, {
+    t(" dot.op "),
+  }, { condition = in_mathzone }),
   -- \times
   -- s({ trig = "times", snippetType = "autosnippet" }, {
   --   t("\\times"),
   -- }, { condition = in_mathzone }),
   -- CDOTS, i.e. \cdots
-  s({ trig = "cdots", snippetType = "autosnippet" }, {
-    t("..."),
-  }, { condition = in_mathzone }),
   -- LDOTS, i.e. \ldots
   s({ trig = "ldots", snippetType = "autosnippet" }, {
     t("dots.h"),
@@ -602,14 +862,14 @@ return {
   }, { condition = in_mathzone }),
   --- common math commands, notice wordTrig=true
   s(
-    { trig = "#c", snippetType = "autosnippet" },
+    { trig = "##c", snippetType = "autosnippet" },
     fmta([[#cite(<>)<>]], {
       d(1, get_visual),
       i(0),
     })
   ),
   s(
-    { trig = "#l", snippetType = "autosnippet" },
+    { trig = "##l", snippetType = "autosnippet" },
     fmta([[#label("<>")<>]], {
       d(1, get_visual),
       i(0),
@@ -623,13 +883,13 @@ return {
     })
   ),
   s(
-    { trig = "#e", snippetType = "autosnippet" },
+    { trig = "##e", snippetType = "autosnippet" },
     fmta([[@<>]], {
       d(1, get_visual),
     })
   ),
   s(
-    { trig = "#r", snippetType = "autosnippet" },
+    { trig = "##r", snippetType = "autosnippet" },
     fmta([[@<>]], {
       d(1, get_visual),
     })
@@ -657,7 +917,7 @@ return {
   --- Accents - Tilde
   s(
     { trig = "tilde", wordTrig = false, snippetType = "autosnippet" },
-    fmta([[\tilde<>]], {
+    fmta([[tilde<>]], {
       i(0),
     }),
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
@@ -874,6 +1134,14 @@ $<>
   --   ),
   --- PART (only applicable to book document class)
   s(
+    { trig = [["]], wordTrig = false, snippetType = "autosnippet" },
+    fmta([["<>"<>]], {
+      iv(1),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char * in_mathzone }
+  ),
+  s(
     { trig = "tt", wordTrig = false, snippetType = "autosnippet" },
     fmta([["<>"<>]], {
       d(1, get_visual),
@@ -1016,36 +1284,6 @@ $<>
   s({ trig = ";W", snippetType = "autosnippet" }, {
     t("Omega"),
   }),
-  --- GREEK END
-  s(
-    { trig = "eq", snippetType = "autosnippet" },
-    fmta(
-      [[
-        \begin{equation}
-            <>
-        \end{equation}
-      ]],
-      {
-        d(1, get_visual),
-      }
-    ),
-    { condition = line_begin }
-  ),
-  s(
-    { trig = "leq", snippetType = "autosnippet" },
-    fmta(
-      [[
-        \begin{equation}\label{eq:<>}
-            <>
-        \end{equation}
-      ]],
-      {
-        i(1),
-        d(2, get_visual),
-      }
-    ),
-    { condition = line_begin }
-  ),
   s(
     { trig = "al", snippetType = "autosnippet" },
     fmta(
@@ -1132,12 +1370,14 @@ $
     { trig = "bde", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
-        #definition[
+#definition(name:[<>])[
 <>
-]<>
-      ]],
+]<<def:<>>>
+<>]],
       {
-        d(1, get_visual),
+        i(1),
+        iv(2),
+        rep(1),
         i(0),
       }
     ),
@@ -1161,21 +1401,6 @@ $
   ),
   -- begin REMARK
   s(
-    { trig = "bre", snippetType = "autosnippet" },
-    fmta(
-      [[
-        #remark[
-<>
-]<>
-      ]],
-      {
-        d(1, get_visual),
-        i(0),
-      }
-    ),
-    { condition = line_begin }
-  ),
-  s(
     { trig = "cmd", snippetType = "autosnippet" },
     fmta(
       [[
@@ -1189,7 +1414,7 @@ $
   -- Matrices and Cases
   s(
     {
-      trig = "([bBpvV])mat(%d+)x(%d+)",
+      trig = "([bBpvV]?)mat(%d+)x(%d+)",
       name = "[bBpvV]matrix",
       desc = "matrices",
       regTrig = true,
@@ -1202,21 +1427,14 @@ mat(delim:<>,
 )<>]],
       {
         f(function(_, snip)
-          local prefix = snip.captures[1]
+          local prefix = snip.captures[1] or ""
           if (prefix == "b") or (prefix == "B") then
             return '"["'
-          elseif prefix == "p" then
+          elseif (prefix == "p") or prefix == "v" or prefix == "V" then
             return '"("'
-          elseif prefix == "v" then
-            return '"("'
-          elseif prefix == "V" then
-            return '"("'
+          else
+            return '"["'
           end
-          -- if snip.captures[4] == "a" then
-          --   out = string.rep("c", tonumber(snip.captures[3]) - 1)
-          --   return "[" .. out .. "|c]"
-          -- end
-          return ""
         end),
         d(1, generate_matrix),
         i(0),
