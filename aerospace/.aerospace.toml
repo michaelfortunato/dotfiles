@@ -207,7 +207,7 @@ alt-shift-l = ['join-with right', 'mode main']
 # 3021  | com.apple.mail            | Mail
 # 4538  | md.obsidian               | Obsidian
 # 8358  | com.tinyspeck.slackmacgap | Slack
-# 66495 | com.google.Chrome         | Google Chrome
+# 61319 | org.mozilla.firefox           | Firefox
 # 82748 | us.zoom.xos               | zoom.us
 # 82110 | com.apple.iCal            | Calendar
 # 31354 | com.apple.Preview         | Preview
@@ -224,8 +224,8 @@ if.app-id = 'net.kovidgoyal.kitty'
 run = 'move-node-to-workspace T' # mnemonics T - Terminal
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome'
-run = 'move-node-to-workspace G' # mnemonics G - Google
+if.app-id = 'org.mozilla.firefox'
+run = 'move-node-to-workspace G' # G is leftover - Firefox
 
 [[on-window-detected]]
 if.app-id = 'com.apple.iCal'
@@ -277,4 +277,8 @@ run = 'move-node-to-workspace R' # mnemonics R - Research
 
 [[on-window-detected]]
 if.app-id = 'com.apple.QuickTimePlayerX'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
 run = 'layout floating'
