@@ -73,6 +73,8 @@ end, { desc = "Open Scratch Buffer Picker" })
 
 -- Personal key map system?
 map("n", "..", "<Cmd>Make!<CR>", { desc = "Run Make" })
+del("n", "m")
+map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })
 local wk = require("which-key")
 wk.add({
   { "<leader>m", group = "personal" }, -- group
@@ -173,8 +175,8 @@ end, { desc = "Set vim.MNF.global_system_terminal_command" })
 -- end, { desc = "Toggle Terminal (Cwd)" })
 --
 -- core adds here, you should try to stick with > but still
-map("v", "<Tab>", "<gv")
-map("v", "<S-Tab>", ">gv")
+map("v", "<Tab>", ">gv")
+map("v", "<S-Tab>", "<gv")
 
 del({ "n" }, "<C-/>")
 map("n", "<c-\\>", function()
