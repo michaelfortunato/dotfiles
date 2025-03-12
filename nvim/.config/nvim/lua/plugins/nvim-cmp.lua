@@ -35,7 +35,7 @@ return {
       --- NOTE: It's not always the worst idea to show autosnippets.
       --- TODO: Come up with a way of showing autosnippets in completion window via toggle.
       --- Honestly lets just show them!
-      { name = "luasnip", option = { show_autosnippets = true } },
+      { name = "luasnip", option = { show_autosnippets = false } },
       { name = "nvim_lsp" },
       { name = "buffer" },
       { name = "emoji" },
@@ -91,7 +91,7 @@ return {
     cmp.setup.filetype("tex", {
       sources = {
         -- { name = "luasnip", option = { show_autosnippets = false } },
-        { name = "luasnip", option = { show_autosnippets = true } },
+        { name = "luasnip", option = { show_autosnippets = false } },
         { name = "vimtex" },
         --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
         -- { name = "buffer" },
@@ -103,7 +103,7 @@ return {
       sources = {
         --- note we put this first for now I do not know if this will hurt autocomplete
         { name = "bibtex" }, -- See here: https://github.com/Myriad-Dreamin/tinymist/pull/993
-        { name = "luasnip", option = { show_autosnippets = true } },
+        { name = "luasnip", option = { show_autosnippets = false } },
         { name = "nvim_lsp" },
         { name = "buffer" },
         { name = "emoji" },
