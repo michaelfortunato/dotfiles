@@ -1,0 +1,38 @@
+#!/bin/bash
+# This program creates a daily file
+# Exit codes:
+# 0 - Success
+MNF_EXIT_SUCCESS=0
+# 1 - Other error, came from external program
+MNF_EXIT_OTHER_ERROR=1
+# 2 - Incorrect usage
+MNF_EXIT_INCORRECT_USAGE=2
+
+# -e stops on errors
+# -u catches unset variables
+# -o pipefile: pipe errors lead to errors in this shell
+set -euo pipefail
+
+# utility functions
+log_info() {
+  echo "$@"
+}
+log_error() {
+  echo "$@" >%2
+}
+
+DAILY_NOTE_DIR="${1:-$HOME/notes/daily}"
+DAILY_NOTE_FILENAME="$(date "+%Y-%m-%d" | tr -d '\n').typ"
+DAILY_NOTE_FILEPATH=$DAILY_NOTE_DIR/$DAILY_NOTE_FILENAME
+
+if [ ! -f $DAILY_NOTE_FILEPATH ]; then
+  log_info "Creating $DAILY_NOTE_FILEPATH file"
+  if [ -f "$DAILY_NOTE_DIR/template.typ" ]; then
+    cp "$DAILY_NOTE_DIR/template.typ" $DAILY_NOTE_FILEPATH
+  else
+    touch $DAILY_NOTE_FILEPATH
+  fi
+fi
+
+cd $DAILY_NOTE_DIR
+$EDITOR $DAILY_NOTE_FILENAME

@@ -154,7 +154,7 @@ local CODE_NODES = {
   block = true,
 }
 
-local function in_textzone(check_parent)
+local in_textzone = cond_obj.make_condition(function(check_parent)
   local node = vim.treesitter.get_node({ ignore_injections = false })
   while node do
     if node:type() == "text" then
@@ -173,9 +173,9 @@ local function in_textzone(check_parent)
     node = node:parent()
   end
   return true
-end
+end)
 
-local function in_codezone()
+local in_codezone = cond_obj.make_condition(function()
   local node = vim.treesitter.get_node({ ignore_injections = false })
   while node do
     if CODE_NODES[node:type()] then
@@ -186,9 +186,9 @@ local function in_codezone()
     node = node:parent()
   end
   return false
-end
+end)
 
-local function in_mathzone()
+local in_mathzone = cond_obj.make_condition(function()
   local node = vim.treesitter.get_node({ ignore_injections = false })
   while node do
     if MATH_NODES[node:type()] then
@@ -199,7 +199,7 @@ local function in_mathzone()
     node = node:parent()
   end
   return false
-end
+end)
 
 local iv = function(i, ...)
   return d(i, get_visual, ...)
@@ -901,7 +901,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = in_mathzone }
+    { condition = in_mathzone + in_codezone }
   ),
   s(
     { trig = "{", snippetType = "autosnippet" },
@@ -909,7 +909,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
+    { condition = in_mathzone + in_codezone }
   ),
   s(
     { trig = "[", wordTrig = false, snippetType = "autosnippet" },
@@ -917,7 +917,15 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
+    { condition = in_mathzone + in_codezone }
+  ),
+  s(
+    { trig = [["]], wordTrig = false, snippetType = "autosnippet" },
+    fmta([["<>"<>]], {
+      iv(1),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char * (in_mathzone + in_codezone) }
   ),
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("cdot.op"),
@@ -1137,29 +1145,6 @@ $<>
     }),
     { condition = in_mathzone }
   ),
-  --- PART (only applicable to book document class)
-  --- TODO: Where do I do this
-  s(
-    { trig = "h-1", snippetType = "autosnippet" },
-    fmta([[= <>]], {
-      d(1, get_visual),
-    }),
-    { condition = in_textzone }
-  ),
-  --- CHAPTER (only applicable to book document class)
-  s(
-    { trig = "h0", snippetType = "autosnippet" },
-    fmta(
-      [[= <>  <<sec:<>>>
-<>]],
-      {
-        d(1, get_visual),
-        i(2),
-        i(0),
-      }
-    ),
-    { condition = in_textzone }
-  ),
   -- SECTION
   s(
     { trig = "h1", snippetType = "autosnippet" },
@@ -1167,8 +1152,8 @@ $<>
       [[= <> <<sec:<>>>
 <>]],
       {
-        d(1, get_visual),
-        i(2),
+        iv(1),
+        l(l._1:gsub("%s", "-"), 1),
         i(0),
       }
     ),
@@ -1181,8 +1166,8 @@ $<>
       [[== <>  <<subsec:<>>>
 <>]],
       {
-        d(1, get_visual),
-        i(2),
+        iv(1),
+        l(l._1:gsub("%s", "-"), 1),
         i(0),
       }
     ),
@@ -1192,11 +1177,11 @@ $<>
   s(
     { trig = "h3", snippetType = "autosnippet" },
     fmta(
-      [[== <>  <<subsubsec:<>>>
+      [[=== <>  <<subsubsec:<>>>
 <>]],
       {
-        d(1, get_visual),
-        i(2),
+        iv(1),
+        l(l._1:gsub("%s", "-"), 1),
         i(0),
       }
     ),
@@ -1215,8 +1200,8 @@ $<>
   <>) <<paragraph:<>>>
 <>]],
       {
-        d(1, get_visual),
-        i(2),
+        iv(1),
+        l(l._1:gsub("%s", "-"), 1),
         i(0),
       }
     ),
@@ -1231,14 +1216,6 @@ $<>
   --     { condition = in_textzone }
   --   ),
   --- PART (only applicable to book document class)
-  s(
-    { trig = [["]], wordTrig = false, snippetType = "autosnippet" },
-    fmta([["<>"<>]], {
-      iv(1),
-      i(0),
-    }),
-    { condition = trigger_does_not_follow_alpha_char * in_mathzone }
-  ),
   s(
     { trig = "tt", wordTrig = false, snippetType = "autosnippet" },
     fmta([["<>"<>]], {

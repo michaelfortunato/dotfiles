@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+trap cleanup SIGINT SIGTERM ERR
+
+LOG_LEVEL=4
+LOG_LEVEL_ERROR=1
+LOG_LEVEL_WARN=2
+LOG_LEVEL_INFO=3
+LOG_LEVEL_DEBUG=4
+LOG_LEVEL_TRACE=5
+DEBUG=1
+
+cleanup() {
+  trap - SIGINT SIGTERM ERR
+  [[ $DEBUG == 1 ]] && {
+    log_error "Script failed! See above messages."
+    msg "Exiting"
+  }
+}
+
+setup_colors() {
+  if [[ -t 2 && -z "${NO_COLOR-}" && "${TERM-}" != "dumb" ]]; then
+    NOFORMAT='\033[0m' RED='\033[0;31m' GREEN='\033[0;32m' ORANGE='\033[0;33m' BLUE='\033[0;34m' PURPLE='\033[0;35m' CYAN='\033[0;36m' YELLOW='\033[1;33m'
+    BOLD='\033[1m' ITALIC='\033[3m'
+  else
+    NOFORMAT='' RED='' GREEN='' ORANGE='' BLUE='' PURPLE='' CYAN='' YELLOW='' BOLD='' ITALIC=''
+  fi
+}
+setup_colors
+
+log_error() { [[ $LOG_LEVEL -ge $LOG_LEVEL_ERROR ]] && @echo "${RED}ERROR:${NOFORMAT} $1"; }
+log_warn() { [[ $LOG_LEVEL -ge $LOG_LEVEL_WARN ]] && @echo "${ORANGE}WARNING:${NOFORMAT} $1"; }
+log_info() { [[ $LOG_LEVEL -ge $LOG_LEVEL_INFO ]] && @echo "${GREEN}INFO:${NOFORMAT} $1"; }
+log_debug() { [[ $LOG_LEVEL -ge $LOG_LEVEL_DEBUG ]] && @echo "${BLUE}DEBUG:${NOFORMAT} $1"; }
+
+@echo() { echo >&2 -e "$@"; }
+msg() { echo >&2 -e "${1-}"; }
+abort() {
+  local msg=$1 code=${2-1}
+  log_error "$msg"
+  exit "$code"
+}
+
+# Notes setup
+[[ -z "${MNF_NOTES_DIR-}" ]] && {
+  log_error "MNF_NOTES_DIR not set!"
+  exit 1
+}
+_notes_last_refresh=0
+_notes_file_cache=()
+
+_notes_refresh_cache() {
+  log_debug "Checking cache for ${MNF_NOTES_DIR}"
+  local dir_mtime
+  dir_mtime=$(stat -c %Y "$MNF_NOTES_DIR" 2>/dev/null || stat -f %m "$MNF_NOTES_DIR" 2>/dev/null) || {
+    log_warn "Couldn’t stat ${MNF_NOTES_DIR}, skipping refresh"
+    return 1
+  }
+  if [[ $dir_mtime -gt $_notes_last_refresh ]]; then
+    log_debug "Refreshing cache"
+    _notes_file_cache=($(ls -A "$MNF_NOTES_DIR" 2>/dev/null)) || {
+      log_error "Failed to refresh cache for ${MNF_NOTES_DIR}"
+      return 1
+    }
+    _notes_last_refresh=$dir_mtime
+    log_info "Cache refreshed: ${#_notes_file_cache[@]} files"
+  else
+    log_debug "Cache up-to-date"
+  fi
+}
+
+# Subcommands
+notes_ls() {
+  : "List files in ${MNF_NOTES_DIR} using ls"
+  : "Usage: notes_ls [path] [ls-options]"
+  : "Examples:"
+  : "  notes_ls          - List all files in ${MNF_NOTES_DIR}"
+  : "  notes_ls foo -l   - List foo with details"
+  : "Options: Supports all ls options (e.g., -l, -a, -R)"
+  _notes_refresh_cache
+  log_debug "Running ls on ${MNF_NOTES_DIR}/${1-} with args: ${@:2}"
+  command ls "${MNF_NOTES_DIR}/${1-}" "${@:2}"
+}
+
+notes_cd() {
+  : "Change directory to ${MNF_NOTES_DIR} or a subpath"
+  : "Usage: notes_cd [subpath]"
+  : "Examples:"
+  : "  notes_cd          - Go to ${MNF_NOTES_DIR}"
+  : "  notes_cd subdir   - Go to ${MNF_NOTES_DIR}/subdir"
+  : "Note: Extra args beyond subpath are ignored"
+  _notes_refresh_cache
+  log_debug "Running cd to ${MNF_NOTES_DIR}/${1-}"
+  command cd "${MNF_NOTES_DIR}/${1-}" "${@:2}"
+}
+
+notes_bat() {
+  : "View a note in ${MNF_NOTES_DIR} with bat"
+  : "Usage: notes_bat [path] [bat-options]"
+  : "Examples:"
+  : "  notes_bat foo         - View foo with default bat settings"
+  : "  notes_bat foo --plain - Plain text view of foo"
+  : "Options: Supports all bat options (e.g., --plain, --theme)"
+  _notes_refresh_cache
+  log_debug "Running bat on ${MNF_NOTES_DIR}/${1-} with args: ${@:2}"
+  command bat "${MNF_NOTES_DIR}/${1-}" "${@:2}"
+}
+
+notes_edit() {
+  : "Edit a note in ${MNF_NOTES_DIR} with ${EDITOR:-vi}"
+  : "Usage: notes_edit [path] [editor-options]"
+  : "Examples:"
+  : "  notes_edit foo        - Edit foo in ${EDITOR:-vi}"
+  : "  notes_edit foo -O     - Split view in some editors"
+  : "Note: Editor options depend on ${EDITOR:-vi}"
+  _notes_refresh_cache
+  log_debug "Running ${EDITOR:-vi} on ${MNF_NOTES_DIR}/${1-} with args: ${@:2}"
+  ${EDITOR:-vi} "${MNF_NOTES_DIR}/${1-}" "${@:2}"
+}
+
+notes_new() {
+  : "Create or edit a new note in ${MNF_NOTES_DIR} with ${EDITOR:-vi}"
+  : "Usage: notes_new [path] [editor-options]"
+  : "Examples:"
+  : "  _new bar        - Create/edit bar in ${MNF_NOTES_DIR}"
+  : "  new bar -O     - Split view in some editors"
+  : "Note: Alias for notes_edit, same behavior"
+  _notes_refresh_cache
+  log_debug "Running ${EDITOR:-vi} on ${MNF_NOTES_DIR}/${1-} with args: ${@:2}"
+  ${EDITOR:-vi} "${MNF_NOTES_DIR}/${1-}" "${@:2}"
+}
+
+notes_help() {
+  : "Display detailed help for notes subcommands"
+  : "Usage: notes_help [subcommand]"
+  : "Examples:"
+  : "  help        - List all subcommands with details"
+  : "  help ls     - Show detailed help for ls"
+  _notes_refresh_cache
+  if [[ $# -eq 0 ]]; then
+    @echo "${BOLD}Notes Subcommands${NOFORMAT}"
+    @echo "Usage: <subcommand> [path] [args...]"
+    @echo "Run help <subcommand>' for detailed help."
+    # Subshell to avoid set -e killing us
+    (
+      for fn in $(compgen -A function "notes_" | sort); do
+        log_debug "Processing subcommand: $fn"
+        doc=""
+        local in_doc=0
+        while IFS= read -r line; do
+          if [[ $line =~ ^[[:space:]]*:[[:space:]]*\"?(.*)$ ]]; then
+            doc+=$'\n'"${BASH_REMATCH[1]}"
+            in_doc=1
+          elif [[ $in_doc == 1 ]]; then
+            break
+          fi
+        done < <(type "$fn" 2>/dev/null || log_error "Failed to type $fn")
+        if [[ -z "$doc" ]]; then
+          log_warn "No docstring for $fn"
+          continue
+        fi
+        @echo "${CYAN}${fn#notes_}${NOFORMAT}"
+        printf "  %s\n" "${doc//$'\n'/$'\n'  }"
+        @echo
+      done
+    )
+  else
+    local subcmd="notes_$1"
+    if [[ $(type -t "$subcmd") == "function" ]]; then
+      local fn="notes_$1"
+      doc=""
+      local line=""
+      while IFS= read -r line; do
+        local in_doc=0
+        if [[ $line =~ ^[[:space:]]*:[[:space:]]*\"?(.*)$ ]]; then
+          doc+=$'\n'"${BASH_REMATCH[1]}"
+          in_doc=1
+        elif [[ $in_doc == 1 ]]; then
+          break
+        fi
+      done < <(type "$fn" 2>/dev/null || log_error "Failed to type $fn")
+      if [[ -z "$doc" ]]; then
+        log_error "No docstring for $subcmd"
+        exit 1
+      fi
+      @echo "${BOLD}${CYAN}${subcmd#notes_}${NOFORMAT}"
+      printf "  %s\n" "${doc//$'\n'/$'\n'  }"
+    else
+      log_error "Unknown subcommand: $1"
+      notes_help
+      exit 1
+    fi
+  fi
+}
+
+_notes_complete() {
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  log_debug "Completing: CWORD=$COMP_CWORD, cur=$cur"
+  if [ "$COMP_CWORD" -eq 0 ]; then
+    COMPREPLY=($(compgen -A function -P "notes_" -- "notes_${cur}"))
+  else
+    _notes_refresh_cache
+    COMPREPLY=($(compgen -W "${_notes_file_cache[*]}" -- "$cur"))
+  fi
+}
+complete -F _notes_complete -o bashdefault -o default notes_
+
+main() {
+  log_info "Starting notes script"
+  _notes_refresh_cache
+  if [[ $# -eq 0 ]]; then
+    notes_help
+  else
+    local subcmd="notes_$1"
+    if [[ $(type -t "$subcmd") == "function" ]]; then
+      "$subcmd" "${@:2}"
+    else
+      log_error "Unknown subcommand: $1"
+      notes_help
+      exit 1
+    fi
+  fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi
