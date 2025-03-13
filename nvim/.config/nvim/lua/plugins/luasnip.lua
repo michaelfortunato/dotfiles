@@ -33,14 +33,16 @@ return {
         desc = "Open snippet for current filetype",
       },
       {
-        "<leader>mst",
-        "<Cmd> edit " .. SNIPPET_PATH .. "/tex.lua" .. " <CR>",
-        desc = "Open latex snippets",
-      },
-      {
-        "<leader>msp",
-        "<Cmd> edit " .. SNIPPET_PATH .. "/python.lua" .. " <CR>",
-        desc = "Open python snippets",
+        "<leader>msf",
+        function()
+          local files = vim.fs.find(function(name, path)
+            return name:match(".*%.lua$")
+          end, { limit = math.huge, type = "file", path = SNIPPET_PATH })
+          vim.ui.select(files, {}, function(item)
+            vim.cmd.edit(item)
+          end)
+        end,
+        desc = "Browse your snippet files",
       },
     },
   },

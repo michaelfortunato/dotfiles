@@ -56,8 +56,33 @@ return {
     --   --     end
     --   -- else
     --   fallback()
-    -- end)
-
+    -- end
+    opts.mapping["<C-y>"] = cmp.mapping(function(fallback)
+      -- if cmp.visible() then
+      --  Comment out if you want autoexpand
+      -- if luasnip.expandable() then
+      --   luasnip.expand()
+      -- else
+      --   cmp.confirm({
+      --     select = true,
+      --   })
+      -- end
+      -- cmp.select_next_item()
+      -- else
+      -- WARN: Maybe use luasnip.jumpable(1) ??
+      if luasnip.choice_active() then
+        luasnip.change_choice(1)
+      else
+        fallback()
+      end
+    end, { "i", "s" })
+    opts.mapping["<C-l>"] = cmp.mapping(function(fallback)
+      if luasnip.expandable() then
+        luasnip.expand()
+      else
+        fallback()
+      end
+    end, { "i", "s" })
     opts.mapping["<Tab>"] = cmp.mapping(function(fallback)
       -- if cmp.visible() then
       --  Comment out if you want autoexpand

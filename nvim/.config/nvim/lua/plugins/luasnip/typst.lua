@@ -76,8 +76,6 @@
 ---     return tex_utils.in_env('tikzpicture')
 --- end
 --
---- FIXME: Delete this silliness
-local PRIORITY = 10000
 
 local get_visual = function(args, parent)
   if #parent.snippet.env.LS_SELECT_RAW > 0 then
@@ -1045,7 +1043,7 @@ supplement: <>,
   --- Enter display mode quickly
   --- FIXME: This fails to insert a preceeding newline if MM is not at the beginning of the line
   s(
-    { trig = "MM", wordTrig = false, priority = PRIORITY, regTrig = false, snippetType = "autosnippet" },
+    { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
     fmta(
       [[$
   <>
