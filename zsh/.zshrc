@@ -164,6 +164,8 @@ alias conf="cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim ./"
 alias dotconfig="cd $HOME/dotfiles && nvim ./"
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
+# be more like bash
+alias help='run-help'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
 
@@ -212,7 +214,12 @@ cpt() {
   fi
 }
 
+# NOTE: For bash only, but if I ever switch ...
+# HISTTIMEFORMAT="%d/%m/%y %T "  # for e.g. “29/02/99 23:59:59”
+# HISTTIMEFORMAT="%F %T "        # for e.g. “1999-02-29 23:59:59”
+# INFO: You can use history -E in ZSH
 
+# WARN: Issuing kill %1 will not kill the neovim process if its in the bg
 _zsh_cli_fg() { fg; }
 zle -N _zsh_cli_fg
 bindkey '^Z' _zsh_cli_fg
