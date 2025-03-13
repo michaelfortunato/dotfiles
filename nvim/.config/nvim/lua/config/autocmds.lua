@@ -419,3 +419,17 @@ vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
   pattern = { "term://*" },
   group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "typst" },
+  callback = function()
+    vim.keymap.set("n", "<localleader>p", function()
+      ---@diagnostic disable-next-line: deprecated
+      vim.lsp.buf.execute_command({ command = "tinymist.pinMain", arguments = { vim.api.nvim_buf_get_name(0) } })
+      -- -- unpin the main file
+      -- ---@diagnostic disable-next-line: deprecated
+      -- vim.lsp.buf.execute_command({ command = "tinymist.pinMain", arguments = { nil } })
+    end, { desc = "Pin Typst file for LSP", buffer = true })
+    -- pin the main file
+  end,
+})
