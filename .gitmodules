@@ -17,3 +17,7 @@
 [submodule "scripts/thirdparty/zsh-bench"]
 	path = scripts/thirdparty/zsh-bench
 	url = https://github.com/romkatv/zsh-bench.git
+[submodule "templates/typst/mnf-typst"]
+	path = templates/typst/mnf-typst
+	url = https://github.com/michaelfortunato/mnf-typst.git
+  branch = main

@@ -1462,7 +1462,7 @@ $<>
     { trig = "#[rR][eE][mM][aA][rR][kK]", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
-#theorem(name: [<>])[
+#remark(name: [<>])[
 <>
 ]<>
       ]],
@@ -1496,11 +1496,12 @@ $<>
       [[
 #definition(name: [<>])[
 <>
-]<>
+]<<def:<>>><>
       ]],
       {
         i(1),
         iv(2),
+        l(l._1:gsub("%s", "-"), 1),
         i(0),
       }
     ),
