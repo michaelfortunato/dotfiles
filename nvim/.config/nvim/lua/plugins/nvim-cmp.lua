@@ -40,6 +40,7 @@ return {
       { name = "buffer" },
       { name = "emoji" },
     }
+    opts.experimental.ghost_text = false
 
     local luasnip = require("luasnip")
     local cmp = require("cmp")
