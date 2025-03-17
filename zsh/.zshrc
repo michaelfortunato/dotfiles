@@ -106,6 +106,10 @@ bindkey \^U backward-kill-line
 # Set environment variables here
 ## Set system environment variables
 export EDITOR=nvim
+# Get the colors in the opened man page itself
+if command -v bat &>/dev/null; then
+    export MANPAGER="sh -c 'col -bx | bat -l man -p --paging=always'"
+fi
 ## XDG Specs
 ### defines the base directory relative to which user-specific data files should be stored. If $XDG_DATA_HOME is either not set or empty, a default equal to $HOME/.local/share should be used.
 #export XDG_DATA_HOME=$HOME/.local/share 
@@ -135,8 +139,6 @@ export PATH=$PATH:$MNF_BIN_DIR
 # aliases
 alias vi=nvim
 alias vim=nvim
-alias cd=z
-alias cdi=zi
 alias n="nvim" # This one is aggressive!
 alias e="nvim" # This one is aggressive!
 alias c="clear"
@@ -164,10 +166,12 @@ alias conf="cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim ./"
 alias dotconfig="cd $HOME/dotfiles && nvim ./"
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
+alias yazi="y" #TODO: Do we need to make this smarter?
 # be more like bash
 alias help='run-help'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
+alias cdbin="cd $HOME/bin"
 
 
 git_ignore_local() {
@@ -178,6 +182,15 @@ git_ignore_local() {
   else 
     $EDITOR "${git_dir}/info/exclude"
   fi
+}
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+		builtin cd -- "$cwd"
+	fi
+	rm -f -- "$tmp"
 }
 
 lst() {
@@ -214,6 +227,7 @@ cpt() {
   fi
 }
 
+
 # NOTE: For bash only, but if I ever switch ...
 # HISTTIMEFORMAT="%d/%m/%y %T "  # for e.g. “29/02/99 23:59:59”
 # HISTTIMEFORMAT="%F %T "        # for e.g. “1999-02-29 23:59:59”
@@ -231,12 +245,146 @@ if [[ -n $KITTY_WINDOW_ID ]]; then
   alias ssh="kitten ssh"
 fi
 
+# ** FZF Block **
+# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
+# - The first argument to the function ($1) is the base path to start traversal
+# - See the source code (completion.{bash,zsh}) for the details.
+_fzf_compgen_path() {
+  fd --hidden --follow  --full-path \
+    --exclude "node_modules" \
+    --exclude "target/debug" \
+    --exclude "target/release" \
+    --exclude "obj" \
+    --exclude "build" \
+    --exclude "*.o" \
+    --exclude "*.obj" \
+    --exclude "dist" \
+    --exclude "__pycache__" \
+    --exclude ".git" . "$1"
+}
 
+# Use fd to generate the list for directory completion
+_fzf_compgen_dir() {
+  fd --type d  --hidden --follow --full-path \
+    --exclude ".git" \
+    --exclude "node_modules" \
+    --exclude "target/debug" \
+    --exclude "target/release" \
+    --exclude "obj" \
+    --exclude "build" \
+    --exclude "dist" \
+    --exclude "__pycache__" \
+    . "$1"
+}
+#export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
+export FZF_DEFAULT_COMMAND="fd --hidden --full-path --follow --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
+export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
+export FZF_ALT_C_OPTS="
+  --walker-skip .git,node_modules,target,obj,build,dist
+  --preview 'tree -C {}'"
+export FZF_CTRL_T_COMMAND="command cat <(fd -t d) <(fd -t d . $HOME)"
+export FZF_CTRL_T_OPTS="
+  --walker-skip .git,node_modules,target,obj,build,dist
+  --preview 'bat -n --color=always {}'
+  --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+# CTRL-Y to copy the command into clipboard using pbcopy
+export FZF_CTRL_R_OPTS="
+  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+  --color header:italic
+  --header 'Press CTRL-Y to copy command into clipboard'"
+# Nice idea, pretty buggy
 # fzf - https://github.com/junegunn/fzf
+bindkey '\C-f' fzf-cd-widget
+
+frg() {
+  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+  INITIAL_QUERY="${*:-}"
+  fzf --ansi --disabled --query "$INITIAL_QUERY" \
+      --bind "start:reload:$RG_PREFIX {q}" \
+      --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
+      --bind "alt-enter:unbind(change,alt-enter)+change-prompt(2. fzf> )+enable-search+clear-query" \
+      --color "hl:-1:underline,hl+:-1:underline:reverse" \
+      --prompt '1. ripgrep> ' \
+      --delimiter : \
+      --preview 'bat --color=always {1} --highlight-line {2}' \
+      --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+      --bind 'enter:become(nvim {1} +{2})'
+
+}
+cdi() {
+
+  local search_dirs
+  if [[ $# -eq 0 ]]; then
+    search_dirs=("$PWD" "$HOME")
+  else
+    search_dirs=("$@")  # Use all provided arguments as base directories
+  fi
+  # If no arguments are provided, use fzf to select a directory
+    # Find directories and pipe to fzf, then cd into the selected one
+    local dir
+    dir=$(fd --type d \
+    --hidden --follow \
+    --exclude ".git" \
+    --exclude "node_modules" \
+    --exclude "target/debug" \
+    --exclude "target/release" \
+    --exclude "obj" \
+    --exclude "build" \
+    --exclude "dist" \
+    --exclude "__pycache__" . "${search_dirs[@]}" \
+    2>/dev/null | fzf --walker-skip .git,node_modules,target,obj,build,dist \
+    --preview 'tree -C {}' \
+    --bind 'ctrl-/:change-preview-window(down|hidden|)'
+) && builtin cd "$dir"
+}
+
+# fkill - kill process
+fkill() {
+  local pid
+  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+
+  if [ "x$pid" != "x" ]
+  then
+    echo $pid | xargs kill -${1:-15}
+  fi
+}
+fps() {
+  local pid
+  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+  echo pid
+}
+
+fman() {
+  man -k . | fzf -q "$1" --prompt='man> '  --preview $'echo {} | tr -d \'()\' | awk \'{printf "%s ", $2} {print $1}\' | xargs -r man | col -bx | bat -l man -p --color always' | tr -d '()' | awk '{printf "%s ", $2} {print $1}' | xargs -r man
+}
+
+# Custom cd function to integrate fzf
+cd() {
+  # If no arguments are provided, use fzf to select a directory
+  if [[ $# -eq 0 ]]; then
+    # Find directories and pipe to fzf, then cd into the selected one
+    local dir
+    dir=$(fd --type d \
+    --hidden --follow \
+    --exclude ".git" \
+    --exclude "node_modules" \
+    --exclude "target/debug" \
+    --exclude "target/release" \
+    --exclude "obj" \
+    --exclude "build" \
+    --exclude "dist" \
+    --exclude "__pycache__" \
+    2>/dev/null | fzf --walker-skip .git,node_modules,target,obj,build,dist \
+    --preview 'tree -C {}' \
+    --bind 'ctrl-/:change-preview-window(down|hidden|)'
+) && builtin cd "$dir"
+  else
+    # Otherwise, pass arguments to the built-in cd
+    builtin cd "$@"
+  fi
+}
 if [[ $MNF_OS = "Darwin" ]]; then eval "$(fzf --zsh)"; fi
 
-# zoxide - https://github.com/ajeetdsouza/zoxide
-eval "$(zoxide init zsh)"
 
 # direnv
 eval "$(direnv hook zsh)"

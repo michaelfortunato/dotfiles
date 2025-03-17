@@ -3,13 +3,17 @@
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR
 
-LOG_LEVEL=4
+LOG_LEVEL=${LOG_LEVEL-2}
 LOG_LEVEL_ERROR=1
 LOG_LEVEL_WARN=2
 LOG_LEVEL_INFO=3
 LOG_LEVEL_DEBUG=4
 LOG_LEVEL_TRACE=5
-DEBUG=1
+DEBUG=${DEBUG-0}
+
+if [[ ${DEBUG} == 1 ]]; then
+  set -x
+fi
 
 cleanup() {
   trap - SIGINT SIGTERM ERR
@@ -29,10 +33,10 @@ setup_colors() {
 }
 setup_colors
 
-log_error() { [[ $LOG_LEVEL -ge $LOG_LEVEL_ERROR ]] && @echo "${RED}ERROR:${NOFORMAT} $1"; }
-log_warn() { [[ $LOG_LEVEL -ge $LOG_LEVEL_WARN ]] && @echo "${ORANGE}WARNING:${NOFORMAT} $1"; }
-log_info() { [[ $LOG_LEVEL -ge $LOG_LEVEL_INFO ]] && @echo "${GREEN}INFO:${NOFORMAT} $1"; }
-log_debug() { [[ $LOG_LEVEL -ge $LOG_LEVEL_DEBUG ]] && @echo "${BLUE}DEBUG:${NOFORMAT} $1"; }
+log_error() { [[ $LOG_LEVEL -ge $LOG_LEVEL_ERROR ]] && @echo "${RED}ERROR:${NOFORMAT} $1" || return 0; }
+log_warn() { [[ $LOG_LEVEL -ge $LOG_LEVEL_WARN ]] && @echo "${ORANGE}WARNING:${NOFORMAT} $1" || return 0; }
+log_info() { [[ $LOG_LEVEL -ge $LOG_LEVEL_INFO ]] && @echo "${GREEN}INFO:${NOFORMAT} $1" || return 0; }
+log_debug() { [[ $LOG_LEVEL -ge $LOG_LEVEL_DEBUG ]] && @echo "${BLUE}DEBUG:${NOFORMAT} $1" || return 0; }
 
 @echo() { echo >&2 -e "$@"; }
 msg() { echo >&2 -e "${1-}"; }
@@ -132,11 +136,11 @@ notes_new() {
 }
 
 notes_help() {
-  : "Display detailed help for notes subcommands"
-  : "Usage: notes_help [subcommand]"
-  : "Examples:"
-  : "  help        - List all subcommands with details"
-  : "  help ls     - Show detailed help for ls"
+  : Display detailed help for notes subcommands
+  : Usage: notes_help [subcommand]
+  : Examples:
+  : help - List all subcommands with details
+  : help ls - Show detailed help for ls
   _notes_refresh_cache
   if [[ $# -eq 0 ]]; then
     @echo "${BOLD}Notes Subcommands${NOFORMAT}"
@@ -149,8 +153,8 @@ notes_help() {
         doc=""
         local in_doc=0
         while IFS= read -r line; do
-          if [[ $line =~ ^[[:space:]]*:[[:space:]]*\"?(.*)$ ]]; then
-            doc+=$'\n'"${BASH_REMATCH[1]}"
+          if [[ $line =~ ^[[:space:]]*:[[:space:]]?(.*)\;$ ]]; then
+            doc="${BASH_REMATCH[1]}"$'\n'${doc}
             in_doc=1
           elif [[ $in_doc == 1 ]]; then
             break
@@ -161,7 +165,7 @@ notes_help() {
           continue
         fi
         @echo "${CYAN}${fn#notes_}${NOFORMAT}"
-        printf "  %s\n" "${doc//$'\n'/$'\n'  }"
+        printf "%s\n" "${doc}"
         @echo
       done
     )
@@ -173,8 +177,8 @@ notes_help() {
       local line=""
       while IFS= read -r line; do
         local in_doc=0
-        if [[ $line =~ ^[[:space:]]*:[[:space:]]*\"?(.*)$ ]]; then
-          doc+=$'\n'"${BASH_REMATCH[1]}"
+        if [[ $line =~ ^[[:space:]]*:[[:space:]]?(.*)\;$ ]]; then
+          doc="${BASH_REMATCH[1]}"$'\n'${doc}
           in_doc=1
         elif [[ $in_doc == 1 ]]; then
           break
@@ -185,7 +189,8 @@ notes_help() {
         exit 1
       fi
       @echo "${BOLD}${CYAN}${subcmd#notes_}${NOFORMAT}"
-      printf "  %s\n" "${doc//$'\n'/$'\n'  }"
+      #printf "  %s\n" "${doc//$'\n'/$'\n'  }"
+      printf "%s\n" "${doc}"
     else
       log_error "Unknown subcommand: $1"
       notes_help
