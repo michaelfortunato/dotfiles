@@ -12,8 +12,9 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
 fi
 (( ${+commands[direnv]} )) && emulate zsh -c "$(direnv hook zsh)"
 
-# HomeBrew completions See here: https://docs.brew.sh/Shell-Completion
 MNF_OS=$(uname -s)
+
+# HomeBrew completions See here: https://docs.brew.sh/Shell-Completion
 if [[ $MNF_OS = "Darwin" ]]; then
   FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 fi
@@ -392,8 +393,8 @@ cd() {
     builtin cd "$@"
   fi
 }
-eval "$(fzf --zsh)"
 
+eval "$(fzf --zsh)"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
