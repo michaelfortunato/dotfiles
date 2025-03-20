@@ -128,9 +128,9 @@ return {
     cmp.setup.filetype("typst", {
       sources = {
         --- note we put this first for now I do not know if this will hurt autocomplete
-        { name = "bibtex" }, -- See here: https://github.com/Myriad-Dreamin/tinymist/pull/993
         { name = "luasnip", option = { show_autosnippets = false } },
         { name = "nvim_lsp" },
+        { name = "bibtex" }, -- See here: https://github.com/Myriad-Dreamin/tinymist/pull/993
         { name = "buffer" },
         { name = "emoji" },
         --  NOTE:  Commenting this out is helpful for performance  { name = "nvim_lsp" },
