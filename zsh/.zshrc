@@ -6,9 +6,11 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
+(( ${+commands[direnv]} )) && emulate zsh -c "$(direnv export zsh)"
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+(( ${+commands[direnv]} )) && emulate zsh -c "$(direnv hook zsh)"
 
 # HomeBrew completions See here: https://docs.brew.sh/Shell-Completion
 MNF_OS=$(uname -s)
@@ -281,21 +283,25 @@ export FZF_DEFAULT_COMMAND="fd --hidden --full-path --follow --exclude .git --ex
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
 export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
+  --cycle
   --preview 'tree -C {}'"
 export FZF_CTRL_T_COMMAND="command cat <(fd -t d) <(fd -t d . $HOME)"
 export FZF_CTRL_T_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
   --preview 'bat -n --color=always {}'
+  --cycle
   --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 # CTRL-Y to copy the command into clipboard using pbcopy
 export FZF_CTRL_R_OPTS="
   --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
   --color header:italic
+  --cycle
   --header 'Press CTRL-Y to copy command into clipboard'"
 # Nice idea, pretty buggy
 # fzf - https://github.com/junegunn/fzf
 bindkey '\C-f' fzf-cd-widget
 
+alias fgrep='frg' #This is just kinda harder to type than fgrep lol
 frg() {
   RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
   INITIAL_QUERY="${*:-}"
@@ -304,6 +310,7 @@ frg() {
       --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
       --bind "alt-enter:unbind(change,alt-enter)+change-prompt(2. fzf> )+enable-search+clear-query" \
       --color "hl:-1:underline,hl+:-1:underline:reverse" \
+      --cycle \
       --prompt '1. ripgrep> ' \
       --delimiter : \
       --preview 'bat --color=always {1} --highlight-line {2}' \
@@ -334,6 +341,7 @@ cdi() {
     --exclude "__pycache__" . "${search_dirs[@]}" \
     2>/dev/null | fzf --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
+    --cycle \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
 ) && builtin cd "$dir"
 }
@@ -376,6 +384,7 @@ cd() {
     --exclude "__pycache__" \
     2>/dev/null | fzf --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
+    --cycle \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
 ) && builtin cd "$dir"
   else
@@ -383,11 +392,11 @@ cd() {
     builtin cd "$@"
   fi
 }
-if [[ $MNF_OS = "Darwin" ]]; then eval "$(fzf --zsh)"; fi
+eval "$(fzf --zsh)"
 
 
 # direnv
-eval "$(direnv hook zsh)"
+#eval "$(direnv hook zsh)"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
