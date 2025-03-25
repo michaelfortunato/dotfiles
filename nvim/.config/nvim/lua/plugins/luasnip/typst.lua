@@ -1417,7 +1417,7 @@ cases(
     fmta(
       [[
 canvas({
-plot.plot(size: (5, 5), x-min: 0, {
+plot.plot(size: (5, 5), {
     plot.add(domain: (<>, <>), { x =>> <> })
 })})<>]],
       { i(1, "0"), i(2, "5"), i(3, "calc.pow(x,2)"), i(0) }
