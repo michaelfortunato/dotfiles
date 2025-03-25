@@ -115,8 +115,8 @@ notes_edit() {
   : Edit a note in ${MNF_NOTES_DIR} with ${EDITOR:-vi}
   : Usage: notes_edit [path] [editor-options]
   : Examples:
-  : "  notes_edit foo        - Edit foo in ${EDITOR:-vi}"
-  : "  notes_edit foo -O     - Split view in some editors"
+  : "    notes_edit foo        - Edit foo in ${EDITOR:-vi}"
+  : "    notes_edit foo -O     - Split view in some editors"
   : "Note: Editor options depend on ${EDITOR:-vi}"
   _notes_refresh_cache
   log_debug "Running ${EDITOR:-vi} on ${MNF_NOTES_DIR}/${1-} with args: ${@:2}"
@@ -124,15 +124,33 @@ notes_edit() {
 }
 
 notes_new() {
-  : "Create or edit a new note in ${MNF_NOTES_DIR} with ${EDITOR:-vi}"
-  : "Usage: notes_new [path] [editor-options]"
-  : "Examples:"
-  : "  new bar        - Create/edit bar in ${MNF_NOTES_DIR}"
-  : "  new bar -O     - Split view in some editors"
+  : "${GREEN}Usage:${NOFORMAT} ${CYAN}$(basename "$0") new [OPTIONS] <FILENAME>${NOFORMAT}"
+  :
+  : "${GREEN}Options:${NOFORMAT}"
+  : "\t ${CYAN}--help,-h${NOFORMAT} \t Get help"
+  : "${GREEN}Arguments:${NOFORMAT}"
+  : "\t ${CYAN}filename${NOFORMAT} \t The filename"
   : "Note: Alias for notes_edit, same behavior"
   _notes_refresh_cache
   log_debug "Running ${EDITOR:-vi} on ${MNF_NOTES_DIR}/${1-} with args: ${@:2}"
   ${EDITOR:-vi} "${MNF_NOTES_DIR}/${1-}" "${@:2}"
+}
+
+_extract_docs() {
+  : Given a function f, extract the documentation into a newline deliminted string
+  local fn=$1
+  log_debug "Processing subcommand: $fn"
+  local doc=""
+  local in_doc=0
+  while IFS= read -r line; do
+    if [[ $line =~ ^[[:space:]]*:[[:space:]]?(.*)\;$ ]]; then
+      doc=${doc}$'\n'"${BASH_REMATCH[1]}"
+      in_doc=1
+    elif [[ $in_doc == 1 ]]; then
+      break
+    fi
+  done < <(type "$fn" 2>/dev/null || log_error "Failed to type $fn")
+  echo "$doc"
 }
 
 notes_help() {
@@ -144,25 +162,14 @@ notes_help() {
   _notes_refresh_cache
   if [[ $# -eq 0 ]]; then
     @echo "${BOLD}Notes Subcommands${NOFORMAT}"
-    @echo "Usage: mnf-note [COMMAND]"
     (
       for fn in $(compgen -A function "notes_" | sort); do
-        log_debug "Processing subcommand: $fn"
-        doc=""
-        local in_doc=0
-        while IFS= read -r line; do
-          if [[ $line =~ ^[[:space:]]*:[[:space:]]?(.*)\;$ ]]; then
-            doc="${BASH_REMATCH[1]}"$'\n'${doc}
-            in_doc=1
-          elif [[ $in_doc == 1 ]]; then
-            break
-          fi
-        done < <(type "$fn" 2>/dev/null || log_error "Failed to type $fn")
+        local doc=""
+        doc="$(_extract_docs ${fn})"
         if [[ -z "$doc" ]]; then
           log_warn "No docstring for $fn"
           continue
         fi
-        @echo "${CYAN}${fn#notes_}${NOFORMAT}"
         while IFS= read -r line; do
           eval "@echo "$line""
         done <<<"$doc"
@@ -172,22 +179,11 @@ notes_help() {
     local subcmd="notes_$1"
     if [[ $(type -t "$subcmd") == "function" ]]; then
       local fn="notes_$1"
-      doc=""
-      local line=""
-      while IFS= read -r line; do
-        local in_doc=0
-        if [[ $line =~ ^[[:space:]]*:[[:space:]]?(.*)\;$ ]]; then
-          doc="${BASH_REMATCH[1]}"$'\n'${doc}
-          in_doc=1
-        elif [[ $in_doc == 1 ]]; then
-          break
-        fi
-      done < <(type "$fn" 2>/dev/null || log_error "Failed to type $fn")
+      doc="$(_extract_docs ${fn})"
       if [[ -z "$doc" ]]; then
         log_error "No docstring for $subcmd"
         exit 1
       fi
-      @echo "${BOLD}${CYAN}${subcmd#notes_}${NOFORMAT}"
       while IFS= read -r line; do
         eval "@echo "$line""
       done <<<"$doc"
