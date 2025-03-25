@@ -244,8 +244,8 @@ if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace S' # mnemonics S - Slack
 
 [[on-window-detected]]
-if.app-id = 'com.skype.skype'
-run = 'move-node-to-workspace S' # mnemonics S - Skype
+if.app-id = 'com.microsoft.teams2'
+run = 'move-node-to-workspace S' # mnemonics S - Teams (formely Skype)
 
 [[on-window-detected]]
 if.app-id = 'us.zoom.xos'
