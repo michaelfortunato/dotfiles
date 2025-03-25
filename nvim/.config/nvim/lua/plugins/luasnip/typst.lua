@@ -865,7 +865,22 @@ supplement: <>,
     }),
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
   ),
+  --   TODO: Which is faster? These two? or the dynamic node one?
   --- Enter display mode quickly
+  s(
+    { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
+    fmta(
+      [[
+$
+  <>
+$<>]],
+      {
+        d(1, get_visual),
+        i(0),
+      }
+    ),
+    { condition = line_begin }
+  ),
   s(
     { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
     fmta(
@@ -880,8 +895,30 @@ $<>]],
       },
       { trim_empty = false }
     ),
-    { condition = trigger_does_not_follow_alpha_char }
+    { condition = -line_begin * trigger_does_not_follow_alpha_char }
   ),
+  --  TODO: Which is faster?
+  --   s(
+  --     { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
+  --     fmta(
+  --       [[<>
+  --   <>
+  -- $<>]],
+  --       {
+  --         d(1, function()
+  --           local line = vim.api.nvim_get_current_line()
+  --           if line:sub(1, -(2 + 1)):match("^%s*$") then
+  --             return sn(nil, t({ "$" })) -- Just start of math
+  --           else
+  --             return sn(nil, t({ "", "$" })) -- Newline + start of math
+  --           end
+  --         end, {}),
+  --         d(2, get_visual),
+  --         i(0),
+  --       }
+  --     ),
+  --     { condition = trigger_does_not_follow_alpha_char }
+  --   ),
   --- Enter inline mathmode quickly
   s(
     { trig = "mm", wordtrig = false, snippetType = "autosnippet" },
