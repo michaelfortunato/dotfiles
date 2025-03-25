@@ -866,18 +866,19 @@ supplement: <>,
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- Enter display mode quickly
-  --- FIXME: This fails to insert a preceeding newline if MM is not at the beginning of the line
   s(
     { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
     fmta(
-      [[$
+      [[
+
+$
   <>
-$<>
-    ]],
+$<>]],
       {
         d(1, get_visual),
         i(0),
-      }
+      },
+      { trim_empty = false }
     ),
     { condition = trigger_does_not_follow_alpha_char }
   ),
