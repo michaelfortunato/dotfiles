@@ -157,7 +157,8 @@ local close_system_terminal = vim.MNF.close_system_terminal
 --- Integrated terminal API, should match what is above
 ---
 vim.MNF.new_integrated_terminal = function(cmd)
-  local window = Snacks.terminal.open(cmd, {
+  local window, created = Snacks.terminal.get(cmd, {
+    create = true,
     shell = vim.o.shell,
     win = {
       position = "bottom",
@@ -169,8 +170,8 @@ vim.MNF.new_integrated_terminal = function(cmd)
     start_insert = false,
     auto_close = false,
   })
-  if window ~= nil then
-    return true, window.id
+  if window ~= nil and window.buf ~= nil then
+    return true, window.buf
   else
     return false, "new_intergrated_terminal error I do not know why!"
   end
@@ -178,9 +179,15 @@ end
 local new_integrated_terminal = vim.MNF.new_integrated_terminal
 
 vim.MNF.run_integrated_terminal = function(buf_id, cmd)
-  -- TODO: need to implement, here is a a first go, having issues though
-  -- vim.api.nvim_chan_send(window.buf, table.concat(lines, "\r\n"))
-  -- vim.api.nvim_chan_send(window.buf, "\r\n") -- NOTE: Send a last one in case we are on a single line
+  local channel_id = vim.api.nvim_get_option_value("channel", { buf = buf_id })
+  vim.api.nvim_chan_send(channel_id, cmd .. "\n")
+  return true, nil
+  -- TODO: return a status code and error text if any
+end
+
+vim.MNF.close_integrated_terminal = function(buf_id, cmd)
+  -- TODO: IMPLEMENT ME
+  print("NOT IMPLEMENTED")
 end
 
 --- 2. User APIs, a combination of
@@ -198,6 +205,32 @@ end
 
 vim.MNF.get_global_system_terminal_command = function()
   return vim.MNF.global_system_terminal_command
+end
+
+vim.MNF.set_global_system_terminal_id = function(id)
+  vim.MNF.last_used_global_system_terminal_id = id
+  return id
+end
+
+vim.MNF.get_global_system_terminal_id = function()
+  return vim.MNF.last_used_global_system_terminal_id
+end
+
+vim.MNF.set_global_integrated_terminal_command = function(cmd)
+  vim.MNF.global_integrated_terminal_command = cmd
+end
+
+vim.MNF.get_global_integrated_terminal_command = function()
+  local cmd = vim.fn.expandcmd(vim.o.makeprg)
+  return cmd
+end
+
+vim.MNF.set_global_integrated_terminal_id = function(id)
+  vim.MNF.global_integrated_terminal_id = id
+end
+
+vim.MNF.get_global_integrated_terminal_id = function()
+  return vim.MNF.global_integrated_terminal_id
 end
 
 --- NOTE, we launch a posix like shell around the command here so things like
@@ -255,39 +288,84 @@ local new_global_system_terminal = vim.MNF.new_global_system_terminal
 --- TODO: Ideally we want this manager to be agostic to whether
 --- the underlying terminal is a system one or not.
 
-local function __DEPRECATED_run_in_local_integrated_terminal(cmd, shell)
-  local term, created = Snacks.terminal.get(cmd, {
-    shell = shell or vim.o.shell,
-    win = {
-      position = "bottom",
-      height = 0.3,
-      width = 0.4,
-    },
-    -- interactive = true,
-    auto_insert = false,
-    start_insert = false,
-    auto_close = false,
-  })
-  --- Terminal was previously opened, close it and relaunch.
-  if (created == false) and (term ~= nil) then
-    term:close()
-    local term, created = Snacks.terminal.get(cmd, {
-      shell = shell or vim.o.shell,
-      win = {
+function vim.MNF.does_integrated_terminal_exist(id)
+  local valid_terms = vim.tbl_filter(function(item)
+    return item.buf == id
+  end, Snacks.terminal.list())
+  return #valid_terms > 0
+end
+local does_integrated_terminal_exist = vim.MNF.does_integrated_terminal_exist
+
+--- 2.2.3 buffer global integrated
+
+vim.MNF.run_global_integrated_terminal = function()
+  local cmd = vim.MNF.get_global_integrated_terminal_command()
+  cmd = vim.fn.expandcmd(cmd)
+  if vim.MNF.get_global_integrated_terminal_id() ~= nil then
+    if not vim.MNF.does_integrated_terminal_exist(vim.MNF.get_global_integrated_terminal_id()) then
+      local sc, id = new_integrated_terminal(nil)
+      if not sc then
+        vim.notify(id, vim.log.levels.ERROR)
+        return sc, id
+      end
+      vim.MNF.set_global_integrated_terminal_id(id)
+    else
+      vim.MNF.show_global_integrated_terminal()
+    end
+  else
+    local sc, id = new_integrated_terminal(nil)
+    if not sc then
+      vim.notify(id, vim.log.levels.ERROR)
+      return sc, id
+    end
+    vim.MNF.set_global_integrated_terminal_id(id)
+  end
+  if cmd == nil or cmd == "v:null" then -- We launched the shell, so no need to error
+    -- we need to figure out how to toggle the view here though
+    return true, nil
+  end
+  local run_sc, error = vim.MNF.run_integrated_terminal(vim.MNF.get_global_integrated_terminal_id(), cmd)
+  if not run_sc then
+    vim.notify(error, vim.log.levels.ERROR)
+    return run_sc
+  end
+  return true, nil
+end
+
+vim.MNF.show_global_integrated_terminal = function()
+  if
+    vim.MNF.get_global_integrated_terminal_id() ~= nil
+    and vim.MNF.does_integrated_terminal_exist(vim.MNF.get_global_integrated_terminal_id())
+  then
+    local infos = vim.fn.getbufinfo(vim.MNF.get_global_integrated_terminal_id())
+    if infos[1].hidden == 1 then
+      Snacks.win.new({
+        buf = vim.MNF.get_global_integrated_terminal_id(),
         position = "bottom",
         height = 0.3,
         width = 0.4,
-      },
-      -- interactive = true,
-      auto_insert = false,
-      start_insert = false,
-      auto_close = false,
-    })
-    return term, created
-    --- Terminal was previously opened, close it and relaunch.
+      })
+    else
+    end
   end
-  return term, created
 end
+
+local run_global_integrated_terminal = vim.MNF.run_global_integrated_terminal
+
+vim.MNF.close_global_integrated_terminal = function()
+  if
+    vim.MNF.get_global_integrated_terminal_id() ~= nil
+    and does_integrated_terminal_exist(vim.MNF.get_global_integrated_terminal_id())
+  then
+    vim.notify(vim.MNF.get_global_integrated_terminal_id())
+    vim.api.nvim_buf_delete(vim.MNF.get_global_integrated_terminal_id(), { force = true })
+  else
+    vim.notify(vim.MNF.get_global_integrated_terminal_id())
+    vim.notify(does_integrated_terminal_exist(vim.MNF.get_global_integrated_terminal_id()))
+  end
+  vim.MNF.set_global_integrated_terminal_id(nil)
+end
+local close_global_integrated_terminal = vim.MNF.close_global_integrated_terminal
 
 --- 2.3 Command wrappers of downstream
 
@@ -315,11 +393,25 @@ end, {
 
 vim.api.nvim_create_user_command("RunLocalIntegratedTerminal", function(params)
   local cmd = vim.fn.expandcmd(params.args)
-  __DEPRECATED_run_in_local_integrated_terminal(cmd)
+  -- run_local_integrated_terminal(cmd)
 end, {
   desc = "Run a terminal command asynchronously in your integrated terminal emulator",
   nargs = "*",
   bang = true,
+})
+
+vim.api.nvim_create_user_command("RunGlobalIntegratedTerminal", function(params)
+  run_global_integrated_terminal()
+end, {
+  desc = "Run a terminal command asynchronously in your integrated terminal emulator",
+  nargs = "*",
+  bang = true,
+})
+
+vim.api.nvim_create_user_command("CloseGlobalIntegratedTerminal", function(params)
+  close_global_integrated_terminal()
+end, {
+  desc = "Run `vim.MNF.global_system_terminal_command` asynchronously in your computer's new terminal emulator",
 })
 
 -- Return the visually selected text as an array with an entry for each line

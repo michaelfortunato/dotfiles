@@ -180,7 +180,7 @@ map("v", "<S-Tab>", "<gv")
 
 del({ "n" }, "<C-/>")
 map("n", "<c-\\>", function()
-  Snacks.terminal(nil, { cwd = LazyVim.root() })
+  return vim.MNF.run_global_integrated_terminal()
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 del({ "n" }, "<leader>wm")
