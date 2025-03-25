@@ -112,9 +112,9 @@ notes_bat() {
 }
 
 notes_edit() {
-  : "Edit a note in ${MNF_NOTES_DIR} with ${EDITOR:-vi}"
-  : "Usage: notes_edit [path] [editor-options]"
-  : "Examples:"
+  : Edit a note in ${MNF_NOTES_DIR} with ${EDITOR:-vi}
+  : Usage: notes_edit [path] [editor-options]
+  : Examples:
   : "  notes_edit foo        - Edit foo in ${EDITOR:-vi}"
   : "  notes_edit foo -O     - Split view in some editors"
   : "Note: Editor options depend on ${EDITOR:-vi}"
@@ -127,7 +127,7 @@ notes_new() {
   : "Create or edit a new note in ${MNF_NOTES_DIR} with ${EDITOR:-vi}"
   : "Usage: notes_new [path] [editor-options]"
   : "Examples:"
-  : "  _new bar        - Create/edit bar in ${MNF_NOTES_DIR}"
+  : "  new bar        - Create/edit bar in ${MNF_NOTES_DIR}"
   : "  new bar -O     - Split view in some editors"
   : "Note: Alias for notes_edit, same behavior"
   _notes_refresh_cache
@@ -144,9 +144,7 @@ notes_help() {
   _notes_refresh_cache
   if [[ $# -eq 0 ]]; then
     @echo "${BOLD}Notes Subcommands${NOFORMAT}"
-    @echo "Usage: <subcommand> [path] [args...]"
-    @echo "Run help <subcommand>' for detailed help."
-    # Subshell to avoid set -e killing us
+    @echo "Usage: mnf-note [COMMAND]"
     (
       for fn in $(compgen -A function "notes_" | sort); do
         log_debug "Processing subcommand: $fn"
@@ -165,8 +163,9 @@ notes_help() {
           continue
         fi
         @echo "${CYAN}${fn#notes_}${NOFORMAT}"
-        printf "%s\n" "${doc}"
-        @echo
+        while IFS= read -r line; do
+          eval "@echo "$line""
+        done <<<"$doc"
       done
     )
   else
@@ -189,8 +188,9 @@ notes_help() {
         exit 1
       fi
       @echo "${BOLD}${CYAN}${subcmd#notes_}${NOFORMAT}"
-      #printf "  %s\n" "${doc//$'\n'/$'\n'  }"
-      printf "%s\n" "${doc}"
+      while IFS= read -r line; do
+        eval "@echo "$line""
+      done <<<"$doc"
     else
       log_error "Unknown subcommand: $1"
       notes_help
