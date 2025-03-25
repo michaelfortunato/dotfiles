@@ -251,7 +251,7 @@ return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
   s(
-    { trig = "DOC", snippetType = "autosnippet" },
+    { trig = "_DOC", snippetType = "autosnippet" },
     fmta(
       [[
 #import "@preview/unequivocal-ams:0.1.2": ams-article, theorem, proof, normal-size
@@ -352,203 +352,18 @@ return {
     { trig = "DOC", snippetType = "autosnippet" },
     fmta(
       [[
-#import "@preview/bloated-neurips:0.5.1": botrule, midrule, neurips2024, paragraph, toprule, url, font
-#import "@preview/cetz:0.3.3": canvas, draw, tree
-#import "@preview/subpar:0.2.1"
-#import "@preview/lemmify:0.1.8": *
+#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, theorem, proof, example, subpar
+#import "@preview/cetz:0.3.4": canvas
+#import "@preview/cetz-plot:0.1.1": plot
 
-#let scr(it) = text(
-  features: ("ss01",),
-  box($cal(it)$),
-)
-
-
-#let affls = (
-  uChicago: ("University of Chicago", "Chicago", "USA"),
-)
-
-#let authors = (
-  (
-    name: "Michael Newman Fortunato",
-    affl: "uChicago",
-    email: "michaelfortunato@uchicago.edu",
-    equal: true,
-  ),
-)
-
-#show: neurips2024.with(
-  title: [<>],
-  authors: (authors, affls),
-  keywords: (<>),
-  abstract: [<>],
-  bibliography: bibliography(<>),
-  bibliography-opts: (title: none, full: true), // Only for example paper.
-  appendix: [
-    #include <>
-  ],
-  accepted: true,
-)
-
-#let (
-  theorem,
-  lemma,
-  corollary,
-  remark,
-  proposition,
-  definition,
-  example,
-  proof,
-  rules: theorem_rules,
-) = default-theorems("theorem_group", lang: "en")
-
-#show: theorem_rules
-
-// Patch neurips bloated to get it all right
-#let make_figure_caption(it) = {
-  set align(center)
-  block({
-    set align(left)
-    set text(size: font.normal)
-    it.supplement
-    if it.numbering != none {
-      [ ]
-      context it.counter.display(it.numbering)
-    }
-    it.separator
-    [ ]
-    it.body
-  })
-}
-#let make_figure(caption_above: false, it) = {
-  let body = block(
-    width: 100%,
-    {
-      set align(center)
-      set text(size: font.normal)
-      if caption_above {
-        v(1em, weak: true) // Does not work at the block beginning.
-        it.caption
-      }
-      v(1em, weak: true)
-      it.body
-      v(8pt, weak: true) // Original 1em.
-      if not caption_above {
-        it.caption
-        v(1em, weak: true) // Does not work at the block ending.
-      }
-    },
-  )
-
-  if it.placement == none {
-    return body
-  } else {
-    return place(it.placement, body, float: true, clearance: 2.3em)
-  }
-}
-
-#show figure: set block(breakable: false)
-#show figure.caption.where(kind: table): it =>> make_figure_caption(it)
-#show figure.caption.where(kind: image): it =>> make_figure_caption(it)
-#show figure.where(kind: image): it =>> make_figure(it)
-#show figure.where(kind: table): it =>> make_figure(it, caption_above: true)
-
-// Function to draw a star graph with n outer nodes
-#let draw-star-graph(
-  n,
-  node_label_fn: i =>> text(str(i + 1)),
-  node_color_function: i =>> white,
-) = {
-  canvas({
-    import draw: *
-
-    let radius = 1 // Radius of the circle for outer nodes
-    let center = (0, 0) // Position of the central node
-
-    // Calculate positions of outer nodes
-    let nodes = (center,)
-    for i in range(n) {
-      let angle = 360deg / n * i
-      let x = radius * calc.cos(angle)
-      let y = radius * calc.sin(angle)
-      nodes.push((x, y))
-    }
-
-    // Draw edges from center to all outer nodes
-    for i in range(1, n + 1) {
-      line(nodes.at(0), nodes.at(i), stroke: 1pt)
-    }
-
-    // Draw all nodes
-    for (i, pos) in nodes.enumerate() {
-      circle(pos, radius: 0.3, fill: node_color_function(i), stroke: 1pt)
-      content(pos, node_label_fn(i), anchor: "center")
-    }
-  })
-}
-
-// Function to draw a graph from an adjacency matrix
-#let draw-graph-from-adj-matrix(
-  adj-matrix,
-  positions: none,
-  node_label_fn: i =>> text(str(i + 1)),
-  node_color_function: i =>> white,
-  node-radius: 0.45,
-  stroke: (thickness: 1pt), // Changed to dictionary format
-) = {
-  canvas({
-    import draw: *
-
-    // Number of nodes (assuming the matrix is square)
-    let n = adj-matrix.len()
-    if n == 0 or adj-matrix.at(0).len() != n {
-      panic("Adjacency matrix must be square")
-    }
-
-    // Determine node positions
-    let node-positions = if positions == none {
-      // Default: Circular layout
-      let radius = calc.max(2, calc.sqrt(n)) / 2 // Adjust radius based on number of nodes
-      let center = (0, 0)
-      let positions = ()
-      for i in range(n) {
-        let angle = 360deg / n * i
-        let x = radius * calc.cos(angle)
-        let y = radius * calc.sin(angle)
-        positions.push((x, y))
-      }
-      positions
-    } else {
-      // Use provided positions
-      if positions.len() != n {
-        panic("Number of positions must match number of nodes")
-      }
-      positions
-    }
-
-    // Draw edges based on the adjacency matrix
-    for i in range(n) {
-      for j in range(i + 1, n) {
-        // Only upper triangle for undirected graph
-        if adj-matrix.at(i).at(j) == 1 {
-          line(node-positions.at(i), node-positions.at(j), stroke: 1pt)
-        }
-      }
-    }
-
-    // Draw nodes
-    for (i, pos) in node-positions.enumerate() {
-      circle(pos, radius: node-radius, fill: node_color_function(i), stroke: 1pt)
-      content(pos, node_label_fn(i), anchor: "center")
-    }
-  })
-}
+#show: mnf_ams_article.with(title: <>)
 <>]],
       {
-        i(1),
-        i(2, "main.bib"),
-        i(3, ""),
-        i(4, "Placeholder text for the abstract section."),
-        i(5, "supplemental.bib"),
+        i(1, "Untitled"),
+        -- i(2, "main.bib"),
+        -- i(3, ""),
+        -- i(4, "Placeholder text for the abstract section."),
+        -- i(5, "supplemental.bib"),
         i(0),
       }
     ),
@@ -581,7 +396,7 @@ supplement: <>,
 <>
 )<>
 ]],
-      { i(1), i(2, "[Supplement]"), iv(3), i(0) }
+      { i(1), i(2, "[Figure]"), iv(3), i(0) }
     ),
     { condition = line_begin }
   ),
@@ -595,7 +410,7 @@ supplement: <>,
 <>
 )<>
 ]],
-      { i(1), i(2, "[Supplement]"), iv(3), i(0) }
+      { i(1), i(2, "[Figure]"), iv(3), i(0) }
     ),
     { condition = in_codezone }
   ),
@@ -816,6 +631,8 @@ supplement: <>,
   --- For now going to make this a snippet
   s({ trig = "implies", snippetType = "autosnippet" }, t("==>"), { condition = in_mathzone }),
   s({ trig = "neq", snippetType = "autosnippet" }, t("!="), { condition = in_mathzone }),
+  s({ trig = "leq", snippetType = "autosnippet" }, t("<="), { condition = in_mathzone }),
+  s({ trig = "geq", snippetType = "autosnippet" }, t(">="), { condition = in_mathzone }),
   s({ trig = "isomorphism", snippetType = "autosnippet" }, t("tilde.equiv"), { condition = in_mathzone }),
   -- s({ trig = "-->", snippetType = "autosnippet" }, t(" arrow.r.long"), { condition = in_mathzone }),
   -- s({ trig = ">=", snippetType = "autosnippet" }, t("gt.eq"), { condition = in_mathzone }),
@@ -1593,5 +1410,18 @@ cases(
       { d(1, generate_cases), i(0) }
     ),
     { condition = in_mathzone }
+  ),
+
+  s(
+    { trig = "plotf", name = "Plot Function", desc = "Plot a function using Cetz", snippetType = "autosnippet" },
+    fmta(
+      [[
+canvas({
+plot.plot(size: (5, 5), x-min: 0, {
+    plot.add(domain: (<>, <>), { x =>> <> })
+}))<>]],
+      { i(1, "0"), i(2, "5"), i(3, "calc.pow(x,2)"), i(0) }
+    ),
+    { condition = -in_mathzone }
   ),
 }

@@ -43,7 +43,7 @@ return {
       },
       tinymist = {
         settings = {
-          formatterMode = "typstyle",
+          formatterMode = "typstfmt",
         },
       },
     },
