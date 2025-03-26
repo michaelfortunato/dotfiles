@@ -140,18 +140,21 @@ local trigger_does_not_follow_alpha_char = make_trigger_does_not_follow_char("%a
 --- FIXME: mnf_s is bullshit, and it fucking sucks!
 --- local mnf_s = ls.extend_decorator.apply(s, { wordTrig = false, condition = trigger_does_not_follow_alpha_num_char })
 
+--- TODO: Rename to Math mode
 local MATH_NODES = {
   math = true,
   formula = true,
 }
 
+--- TODO: Rename to Content mode
 local TEXT_NODES = {
   text = true,
+  content = true,
 }
 
+--- TODO: Rename to Code mode
 local CODE_NODES = {
-  text = true,
-  block = true,
+  code = true,
 }
 
 local in_textzone = cond_obj.make_condition(function(check_parent)
@@ -400,6 +403,7 @@ supplement: <>,
     ),
     { condition = line_begin }
   ),
+  -- FIXME: This is not working reproduce by adding figure as an arg to a subgrid
   s(
     { trig = "figure", snippetType = "autosnippet" },
     fmta(
@@ -1459,6 +1463,24 @@ plot.plot(size: (5, 5), {
     plot.add(domain: (<>, <>), { x =>> <> })
 })})<>]],
       { i(1, "0"), i(2, "5"), i(3, "calc.pow(x,2)"), i(0) }
+    ),
+    { condition = -in_mathzone }
+  ),
+
+  s(
+    {
+      trig = "#imagefig",
+      name = "Image Function",
+      desc = "Adds a figure showing an image",
+      snippetType = "autosnippet",
+    },
+    fmta(
+      [[
+#figure(
+  image(<>),
+  caption: [<>]
+)]],
+      { iv(1), i(2) }
     ),
     { condition = -in_mathzone }
   ),
