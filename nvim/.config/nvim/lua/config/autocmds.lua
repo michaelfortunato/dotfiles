@@ -221,7 +221,7 @@ vim.MNF.set_global_integrated_terminal_command = function(cmd)
 end
 
 vim.MNF.get_global_integrated_terminal_command = function()
-  local cmd = vim.fn.expandcmd(vim.o.makeprg)
+  local cmd = vim.fn.expandcmd(vim.MNF.global_integrated_terminal_command)
   return cmd
 end
 
