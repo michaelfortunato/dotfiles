@@ -20,7 +20,7 @@
 [user]
 	name = Michael Fortunato
 	email = michael.n.fortunato@gmail.com
-	signingkey = B3C97C24E201EF1777ABFF0B1B35E71D2AD7D44E
+	signingkey = D7E18BB5FDB3851CB7F7F0EF8B87187D74CC41FC
 [core]
 	pager = less -F -X
 	editor = nvim
