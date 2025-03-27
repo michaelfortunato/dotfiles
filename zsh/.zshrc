@@ -180,6 +180,7 @@ alias cdbin="cd $HOME/bin"
 git_ignore_local() {
   local git_dir
   git_dir="$(git rev-parse --git-dir)" || return -1
+  mkdir -p "${git_dir}/info"  # in case it does not exist, I have seen that.
   if [[ ${#} -gt 0 ]]; then 
     echo ${@} | tee -a "${git_dir}/info/exclude"
   else 
