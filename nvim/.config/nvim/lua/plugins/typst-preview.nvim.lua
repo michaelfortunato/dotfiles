@@ -4,9 +4,9 @@ return {
   opts = {
     -- debug = true,
     dependencies_bin = {
-      ["tinymist"] = vim.fn.stdpath("data") .. "/mason/bin/tinymist",
+      -- ["tinymist"] = vim.fn.stdpath("data") .. "/mason/bin/tinymist",
       -- My fork
-      -- ["tinymist"] = "/Users/michaelfortunato/projects/tinymist/target/debug/tinymist",
+      ["tinymist"] = "/Users/michaelfortunato/projects/tinymist/target/release/tinymist",
     },
   }, -- lazy.nvim will implicitly calls `setup {}`
   keys = { {
