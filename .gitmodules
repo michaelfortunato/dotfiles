@@ -21,3 +21,7 @@
 	path = templates/typst/mnf-typst
 	url = https://github.com/michaelfortunato/mnf-typst.git
   branch = main
+[submodule "scripts/personal/mnf-cli"]
+	path = scripts/personal/mnf-cli
+	url = https://github.com/michaelfortunato/mnf-cli
+	branch = main
