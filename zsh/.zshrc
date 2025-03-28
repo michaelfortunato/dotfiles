@@ -174,7 +174,6 @@ alias yazi="y" #TODO: Do we need to make this smarter?
 alias help='run-help'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
-alias cdbin="cd $HOME/bin"
 
 
 git_ignore_local() {
@@ -230,7 +229,6 @@ cpt() {
     cp "${MNF_TEMPLATE_DIR}/${source_path}" "${dest_path}"
   fi
 }
-
 
 # NOTE: For bash only, but if I ever switch ...
 # HISTTIMEFORMAT="%d/%m/%y %T "  # for e.g. “29/02/99 23:59:59”
