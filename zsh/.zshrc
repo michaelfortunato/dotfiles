@@ -318,6 +318,35 @@ frg() {
       --bind 'enter:become(nvim {1} +{2})'
 
 }
+
+cdj() {
+
+  local search_dirs
+  if [[ $# -eq 0 ]]; then
+    search_dirs=("$PWD" "$HOME")
+  else
+    search_dirs=("$@")  # Use all provided arguments as base directories
+  fi
+  # If no arguments are provided, use fzf to select a directory
+    # Find directories and pipe to fzf, then cd into the selected one
+    local dir
+    dir=$(bfs "${search_dirs[@]}" -color -mindepth 1  \
+     -exclude \( \
+    -name ".git" \
+    -or -name "node_modules" \
+    -or -name "target/debug" \
+    -or -name "target/release" \
+    -or -name "obj" \
+    -or -name "build" \
+    -or -name "dist" \
+    -or -name "__pycache__"  \) -type d \
+    2>/dev/null | fzf --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    --preview 'tree -C {}' \
+    --cycle \
+    --bind 'ctrl-/:change-preview-window(down|hidden|)'
+) && builtin cd "$dir"
+}
+
 cdi() {
 
   local search_dirs
