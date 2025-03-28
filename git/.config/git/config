@@ -27,6 +27,7 @@
 	commentChar = ";"
 [init]
   templateDir = ~/.config/git/git-templates/default
+	defaultBranch = main
 [commit]
 	gpgsign = true
   template = ~/.config/git/git-commit-template
