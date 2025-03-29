@@ -344,7 +344,7 @@ cdj() {
     -or -name "build" \
     -or -name "dist" \
     -or -name "__pycache__"  \) -type d \
-    2>/dev/null | fzf --no-sort --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    2>/dev/null | fzf --scheme=path --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
     --cycle \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
