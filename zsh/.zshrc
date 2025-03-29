@@ -323,7 +323,11 @@ cdj() {
 
   local search_dirs
   if [[ $# -eq 0 ]]; then
-    search_dirs=("$PWD" "$HOME")
+    if [[ "$PWD" != "$HOME" ]]; then
+      search_dirs=("$PWD" "$HOME")
+    else
+      search_dirs=("$HOME")
+    fi
   else
     search_dirs=("$@")  # Use all provided arguments as base directories
   fi
@@ -340,7 +344,7 @@ cdj() {
     -or -name "build" \
     -or -name "dist" \
     -or -name "__pycache__"  \) -type d \
-    2>/dev/null | fzf --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    2>/dev/null | fzf --no-sort --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
     --cycle \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
