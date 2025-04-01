@@ -10,6 +10,17 @@ end
 local ui_input = Snacks.input or vim.ui.input
 local ui_notify = Snacks.notify or print
 
+local function paste()
+  local pasted = require("img-clip").paste_image()
+  if not pasted then
+    vim.cmd("normal! p")
+  end
+end
+
+map("n", "p", paste, { noremap = true, silent = true })
+map("i", "<C-v>", paste, { noremap = true, silent = true })
+map("i", "<M-v>", paste, { noremap = true, silent = true })
+
 -- map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
 -- map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
 
@@ -56,6 +67,10 @@ map({ "n" }, ";2", function()
   ---@diagnostic disable-next-line: missing-fields
   Snacks.scratch.open({ ft = "python" })
 end, { desc = "Open Scratch Python Buffer" })
+map({ "n" }, ";3", function()
+  ---@diagnostic disable-next-line: missing-fields
+  Snacks.scratch.open({ ft = "typst" })
+end, { desc = "Open Scratch Typst Buffer" })
 map({ "n" }, ";<Tab>", function()
   local buf_list = Snacks.scratch.list()
   if #buf_list < 2 then
