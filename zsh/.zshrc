@@ -267,22 +267,35 @@ _fzf_compgen_path() {
 
 # Use fd to generate the list for directory completion
 _fzf_compgen_dir() {
-  fd --type d  --hidden --follow --full-path \
-    --exclude ".git" \
-    --exclude "node_modules" \
-    --exclude "target/debug" \
-    --exclude "target/release" \
-    --exclude "obj" \
-    --exclude "build" \
-    --exclude "dist" \
-    --exclude "__pycache__" \
-    . "$1"
+  bfs . "$1" -color -mindepth 1  \
+     -exclude \( \
+    -name ".git" \
+    -or -name "node_modules" \
+    -or -name "target/debug" \
+    -or -name "target/release" \
+    -or -name "obj" \
+    -or -name "build" \
+    -or -name "dist" \
+    -or -name "__pycache__"  \) -type d \
 }
 #export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
-export FZF_DEFAULT_COMMAND="fd --hidden --full-path --follow --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
+export FZF_DEFAULT_COMMAND=cat <<EOF
+bfs . $HOME -color -mindepth 1  \
+     -exclude \( \
+    -name ".git" \
+    -or -name "node_modules" \
+    -or -name "target/debug" \
+    -or -name "target/release" \
+    -or -name "obj" \
+    -or -name "build" \
+    -or -name "dist" \
+    -or -name "__pycache__"  \)
+EOF
+export FZF_DEFAULT_OPTS="--ansi"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
 export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
+  --ansi
   --cycle
   --preview 'tree -C {}'"
 export FZF_CTRL_T_COMMAND="command cat <(fd -t d) <(fd -t d . $HOME)"
