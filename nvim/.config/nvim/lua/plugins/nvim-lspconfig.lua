@@ -38,13 +38,22 @@ return {
             formatting = {
               command = { "nixfmt" },
             },
+            nixpkgs = {
+              -- For flake.
+              -- This expression will be interpreted as "nixpkgs" toplevel
+              -- Nixd provides package, lib completion/information from it.
+              -- Resource Usage: Entries are lazily evaluated, entire nixpkgs takes 200~300MB for just "names".
+              -- Package documentation, versions, are evaluated by-need.
+              -- Thanks! https://sbulav.github.io/vim/neovim-setting-up-nixd/
+              expr = "import (builtins.getFlake(toString ./.)).inputs.nixpkgs { }",
+            },
           },
         },
       },
       tinymist = {
         settings = {
-          formatterMode = "typstfmt",
-          -- formatterMode = "typstyle",
+          -- formatterMode = "typstfmt",
+          formatterMode = "typstyle",
         },
       },
     },

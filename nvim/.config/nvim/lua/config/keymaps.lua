@@ -18,8 +18,8 @@ local function paste()
 end
 
 map("n", "p", paste, { noremap = true, silent = true })
-map("i", "<C-v>", paste, { noremap = true, silent = true })
-map("i", "<M-v>", paste, { noremap = true, silent = true })
+-- map("i", "<C-v>", paste, { noremap = true, silent = true })
+-- map("i", "<M-v>", paste, { noremap = true, silent = true })
 
 -- map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
 -- map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })

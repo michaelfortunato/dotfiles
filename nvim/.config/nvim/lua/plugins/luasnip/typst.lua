@@ -614,8 +614,8 @@ supplement: <>,
   -- s({ trig = "NN", snippetType = "autosnippet" }, t("\\mathbb{N}"), { condition = in_mathzone }),
   -- s({ trig = "ZZ", snippetType = "autosnippet" }, t("\\mathbb{Z}"), { condition = in_mathzone }),
   -- s({ trig = "SS", snippetType = "autosnippet" }, t("\\mathbb{S}"), { condition = in_mathzone }),
-  s({ trig = "UU", snippetType = "autosnippet" }, t("union"), { condition = in_mathzone }),
-  s({ trig = "II", snippetType = "autosnippet" }, t("inter"), { condition = in_mathzone }),
+  s({ trig = "cup", snippetType = "autosnippet" }, t("union"), { condition = in_mathzone }),
+  s({ trig = "cap", snippetType = "autosnippet" }, t("inter"), { condition = in_mathzone }),
   s({ trig = "notin", snippetType = "autosnippet" }, t("in.not"), { condition = in_mathzone }),
   -- s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = in_mathzone }),
   -- NOTE: \to is not supprted in typst
@@ -643,6 +643,7 @@ supplement: <>,
   -- s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = in_mathzone }),
   s({ trig = "~~", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
   s({ trig = "sim", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
+  s({ trig = "to", snippetType = "autosnippet" }, t("->"), { condition = in_mathzone }),
   --- TODO: See if I actually use these
   s({ trig = "<|", snippetType = "autosnippet" }, t("lt.tri"), { condition = in_mathzone }),
   s({ trig = "<j", snippetType = "autosnippet" }, t("lt.tri.eq"), { condition = in_mathzone }),
@@ -654,6 +655,14 @@ supplement: <>,
   s({ trig = "||", snippetType = "autosnippet" }, fmta("norm(<>)<>", { i(1), i(0) }), { condition = in_mathzone }),
   --- FIXME: This one is tricky, I think this works though smoothly so long as I put the space back `\mid `
   s({ trig = "| ", snippetType = "autosnippet" }, t("bar.v "), { condition = in_mathzone }),
+  -- Interesting...
+  s(
+    { trig = "|([^%s][^|]*)|", regTrig = true, snippetType = "autosnippet" },
+    fmta("abs(<>)<>", { f(function(_, snip)
+      return snip.captures[1]
+    end), i(0) }),
+    { condition = in_mathzone }
+  ),
   -- --- Let "@" namespace operators
   s({ trig = "@g", snippetType = "autosnippet" }, t("nabla"), { condition = in_mathzone }),
   s({ trig = "@p", snippetType = "autosnippet" }, t("partial"), { condition = in_mathzone }),
@@ -748,6 +757,14 @@ supplement: <>,
     }),
     { condition = trigger_does_not_follow_alpha_char * (in_mathzone + in_codezone) }
   ),
+  s(
+    { trig = "`", wordTrig = false, snippetType = "autosnippet" },
+    fmta("`<>`<>", {
+      i(1),
+      i(0),
+    }),
+    { condition = -in_mathzone }
+  ),
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("cdot.op"),
   }, { condition = in_mathzone }),
@@ -757,11 +774,14 @@ supplement: <>,
   }, { condition = in_mathzone }),
   -- CDOTS, i.e. \cdots
   -- DOT PRODUCT, i.e. \cdot
-  s({ trig = "dot", snippetType = "autosnippet" }, {
-    t("dot.op"),
-  }, { condition = in_mathzone }),
+  -- s({ trig = "dot", snippetType = "autosnippet" }, {
+  --   t("dot.op"),
+  -- }, { condition = in_mathzone }),
   s({ trig = "...", snippetType = "autosnippet" }, {
     t("..."),
+  }, { condition = in_mathzone }),
+  s({ trig = "cdots", snippetType = "autosnippet" }, {
+    t("dots.h.c"),
   }, { condition = in_mathzone }),
   s({ trig = " .. ", snippetType = "autosnippet" }, {
     t(" dot.op "),
