@@ -121,6 +121,13 @@ return {
     --
     -- See the fuzzy documentation for more information
     fuzzy = { implementation = "prefer_rust_with_warning" },
+
+    cmdline = {
+      completion = {
+        -- Displays a preview of the selected item on the current line
+        ghost_text = { enabled = false },
+      },
+    },
   },
   opts_extend = { "sources.default" },
   keys = {
