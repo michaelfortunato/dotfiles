@@ -11,4 +11,6 @@ return {
     "MeanderingProgrammer/render-markdown.nvim",
     enabled = false,
   },
+  { "akinsho/bufferline.nvim", enabled = false },
+  { "hrsh7th/nvim-cmp", enabled = false },
 }
