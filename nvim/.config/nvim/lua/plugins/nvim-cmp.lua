@@ -31,9 +31,10 @@ return {
     -- C-k: Toggle signature help (if signature.enabled = true)
     --
     -- See :h blink-cmp-config-keymap for defining your own keymap
+    -- If the command/function returns false or nil, the next command/function will be run.
     keymap = {
       preset = "default",
-      ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
+      ["<C-space>"] = { "show", "hide", "show_documentation", "hide_documentation" },
       ["<C-e>"] = { "hide" },
       ["<C-y>"] = { "select_and_accept" },
 
@@ -73,8 +74,33 @@ return {
       ["<C-b>"] = { "scroll_documentation_up", "fallback" },
       ["<C-f>"] = { "scroll_documentation_down", "fallback" },
 
-      ["<Tab>"] = { "snippet_forward", "fallback" },
-      ["<S-Tab>"] = { "snippet_backward", "fallback" },
+      -- TODO: Until snippet_forward and snippet_backward is understood by me, do not use it.
+      ["<Tab>"] = {
+        function()
+          local luasnip = require("luasnip")
+          if luasnip.locally_jumpable(1) then
+            require("blink.cmp").snippet_forward()
+            return true
+          else
+            return false
+          end
+        end,
+        "fallback",
+      },
+      -- ["<Tab>"] = { "snippet_forward", "fallback" },
+      ["<S-Tab>"] = {
+        function()
+          local luasnip = require("luasnip")
+          if luasnip.locally_jumpable(-1) then
+            require("blink.cmp").snippet_backward()
+            return true
+          else
+            return false
+          end
+        end,
+        "fallback",
+      },
+      -- ["<S-Tab>"] = { "snippet_backward","fallback" },
 
       ["<C-k>"] = { "show_signature", "hide_signature", "fallback" },
     },
@@ -97,6 +123,8 @@ return {
         show_with_menu = false,
       },
       --- TODO: Can autoshow be by filie type
+      --- TODO: Do not show ghost text for buffer completion. Remove buffer
+      --- completion as a source.
       menu = {
         auto_show = function(context, items)
           return vim.g.mnf_auto_show_comp_menu

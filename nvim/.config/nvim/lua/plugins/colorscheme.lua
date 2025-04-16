@@ -25,10 +25,14 @@ return {
   --   end,
   -- }
   {
+    "lewis6991/gitsigns.nvim",
+    enabled = false,
+  },
+  {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "tokyonight-night",
-      --- colorscheme = "default",
+      -- colorscheme = "tokyonight-night",
+      colorscheme = "default",
     },
   },
 }

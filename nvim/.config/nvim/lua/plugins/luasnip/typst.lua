@@ -643,7 +643,7 @@ supplement: <>,
   -- s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = in_mathzone }),
   s({ trig = "~~", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
   s({ trig = "sim", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
-  s({ trig = "to", snippetType = "autosnippet" }, t("->"), { condition = in_mathzone }),
+  s({ trig = "to ", snippetType = "autosnippet" }, t("-> "), { condition = in_mathzone }),
   --- TODO: See if I actually use these
   s({ trig = "<|", snippetType = "autosnippet" }, t("lt.tri"), { condition = in_mathzone }),
   s({ trig = "<j", snippetType = "autosnippet" }, t("lt.tri.eq"), { condition = in_mathzone }),
@@ -731,7 +731,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = in_mathzone + in_codezone }
+    { condition = -in_textzone * (in_mathzone + in_codezone) }
   ),
   s(
     { trig = "{", snippetType = "autosnippet" },
@@ -878,17 +878,6 @@ supplement: <>,
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- BAR
-  s(
-    { trig = "bar", wordTrig = false, snippetType = "autosnippet" },
-    fmta([[<>\bar{<>}<>]], {
-      f(function(_, snip)
-        return snip.captures[1]
-      end),
-      i(1),
-      i(0),
-    }),
-    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
   --   TODO: Which is faster? These two? or the dynamic node one?
   --- Enter display mode quickly
   s(
