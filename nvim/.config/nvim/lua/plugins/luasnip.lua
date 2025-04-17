@@ -10,6 +10,8 @@ return {
       opts.delete_check_events = "TextChanged,InsertLeave"
       opts.update_events = "TextChanged,TextChangedI"
       opts.enable_autosnippets = true
+      --- NOTE: This does not with luasnip 2.3, so if you use
+      --- that use opts.store_selection_keys
       opts.cut_selection_keys = "<BS>"
       return opts
     end,

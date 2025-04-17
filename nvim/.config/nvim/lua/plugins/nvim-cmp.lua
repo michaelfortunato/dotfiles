@@ -3,7 +3,9 @@ vim.g.mnf_auto_show_ghost_text = false
 return {
   "saghen/blink.cmp",
   -- optional: provides snippets for the snippet source
-  dependencies = { "L3MON4D3/LuaSnip", version = "v2.*" },
+  -- WARN: I am using latest but the docs say to use
+  -- dependencies = { "L3MON4D3/LuaSnip", version = "2.*" },
+  dependencies = { "L3MON4D3/LuaSnip" },
 
   -- use a release tag to download pre-built binaries
   version = "1.*",
