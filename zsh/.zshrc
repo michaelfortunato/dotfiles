@@ -112,6 +112,7 @@ export EDITOR=nvim
 # Get the colors in the opened man page itself
 if command -v bat &>/dev/null; then
     export MANPAGER="sh -c 'col -bx | bat -l man -p --paging=always'"
+    [[ $MNF_OS == "Darwin" ]] || export MANROFFOPT="-c"
 fi
 ## XDG Specs
 ### defines the base directory relative to which user-specific data files should be stored. If $XDG_DATA_HOME is either not set or empty, a default equal to $HOME/.local/share should be used.
