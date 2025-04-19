@@ -370,6 +370,7 @@ local close_global_integrated_terminal = vim.MNF.close_global_integrated_termina
 --- 2.3 Command wrappers of downstream
 
 vim.api.nvim_create_user_command("RunGlobalSystemTerminal", function(params)
+  close_global_system_terminal()
   run_global_system_terminal()
 end, {
   desc = "Run `vim.MNF.global_system_terminal_command` asynchronously in your computer's new or existing terminal emulator",

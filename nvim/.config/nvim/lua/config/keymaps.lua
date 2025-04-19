@@ -44,11 +44,6 @@ del("n", "<leader><tab>d", { desc = "Close Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
 del("n", "<leader><tab>[", { desc = "Previous Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
-del("n", "<leader>ql")
-del("n", "<leader>qd")
-del("n", "<leader>qq")
-del("n", "<leader>qs")
-del("n", "<leader>qS")
 
 map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Other Buffer" })
 
@@ -94,12 +89,30 @@ local wk = require("which-key")
 wk.add({
   { "<leader>m", group = "personal" }, -- group
 })
-map(
-  { "n", "v" },
-  "<leader>mp",
-  "<Cmd>edit " .. LazyVim.root() .. "/.lazy.lua" .. "<CR>",
-  { desc = "Open .lazy.lua project local config" }
-)
+
+local exrc_helper = require("config.exrc-helper")
+local template = exrc_helper.template
+map({ "n", "v" }, "<leader>mp", function()
+  local filepath = LazyVim.root() .. "/.lazy.lua"
+  -- Check if file already exists
+  if vim.loop.fs_stat(filepath) then
+    -- vim.notify(".lazy.lua already exists, skipping creation.", vim.log.levels.TRACE)
+    return "<Cmd>edit " .. filepath .. "<CR>"
+  end
+  local fd = io.open(filepath, "w")
+  if not fd then
+    vim.notify("Failed to create .lazy.lua", vim.log.levels.ERROR)
+    return
+  end
+  fd:write(template)
+  fd:close()
+  return "<Cmd>edit " .. filepath .. "<CR>"
+end, {
+  expr = true, -- treat the Lua return as a key‑sequence
+  noremap = true,
+  silent = true,
+  desc = "Open .lazy.lua project local config",
+})
 map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run Make" })
 
 map("n", "<leader>mc", function()
@@ -124,12 +137,17 @@ map("n", ".c", function()
 end, { desc = "Set makeprg" })
 
 -- quickfix list
-map("n", "<leader>q", function()
-  local success, err = pcall(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and vim.cmd.cclose or vim.cmd.copen)
-  if not success and err then
-    vim.notify(err, vim.log.levels.ERROR)
-  end
-end, { desc = "Quickfix List" })
+-- del("n", "<leader>ql")
+-- del("n", "<leader>qd")
+-- del("n", "<leader>qq")
+-- del("n", "<leader>qs")
+-- del("n", "<leader>qS")
+-- map("n", "<leader>q", function()
+--   local success, err = pcall(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and vim.cmd.cclose or vim.cmd.copen)
+--   if not success and err then
+--     vim.notify(err, vim.log.levels.ERROR)
+--   end
+-- end, { desc = "Quickfix List" })
 
 local function close_quickfix_if_open()
   for _, win in ipairs(vim.fn.getwininfo()) do
@@ -198,7 +216,6 @@ map("n", "<c-\\>", function()
   return vim.MNF.run_global_integrated_terminal()
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
-del({ "n" }, "<leader>wm")
 
 wk.add({
   { "<leader>t", group = "Task" }, -- group
@@ -225,10 +242,38 @@ vim.keymap.set("n", "<leader>trc", function()
     return
   end)
 end, { desc = "Set vim.MNF.global_system_terminal_command" })
-map("n", "<leader>ty", "<Cmd>RunGlobalIntegratedTerminal<CR>", { desc = "Run :Run" })
-vim.keymap.set("n", "<leader>tyc", function()
+map("n", "<leader>tir", "<Cmd>RunGlobalIntegratedTerminal<CR>", { desc = "Run :Run" })
+vim.keymap.set(
+  "n",
+  "<leader>tic",
+  function()
+    return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
+      if input == nil or input == "" then
+        print(vim.MNF.get_global_integrated_terminal_command())
+      else
+        vim.MNF.set_global_integrated_terminal_command(input)
+      end
+      return
+    end)
+  end,
   ---
-end, { desc = "Set vim.MNF.global_system_terminal_command" })
+  { desc = "Set vim.MNF.global_integrated_terminal_command" }
+)
+
+map("n", "<leader>sp", function()
+  Snacks.picker.grep({ rtp = true })
+end, { desc = "Grep RTP (3rd-Party Plugin) Directory" })
+
+-- map("n", "<C-/>", function()
+--- LazyVim.ui.maximize():map("<leader>wm")
+--   Snacks.terminal(nil, { cwd = LazyVim.root() })
+-- end, { desc = "Terminal (Root Dir)" })
+-- map("t", "<C-/>", "<cmd>close<cr>", { desc = "Hide Terminal" })
+-- map("n", "<C-S-Space>", function()
+--   print(Snacks.win():toggle())
+--   vim.notify("I am gone!")
+-- end, { desc = "Ok" })
+-- -- del({ "n" }, "<leader>wm")
 
 if vim.g.neovide then
   vim.keymap.set("n", "<D-s>", ":w<CR>") -- Save

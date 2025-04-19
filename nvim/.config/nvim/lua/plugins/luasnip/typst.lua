@@ -253,110 +253,110 @@ end
 return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
-  s(
-    { trig = "_DOC", snippetType = "autosnippet" },
-    fmta(
-      [[
-#import "@preview/unequivocal-ams:0.1.2": ams-article, theorem, proof, normal-size
-#import "@preview/equate:0.3.0": equate
-// #import "@preview/bloated-neurips:0.5.1": botrule, midrule, neurips2024, paragraph, toprule, url, font
-#import "@preview/cetz:0.3.3": canvas, draw, tree
-#import "@preview/subpar:0.2.1"
-#import "@preview/lemmify:0.1.8": *
-// #import "@preview/touying:0.6.0": *
-// #import themes.simple: *
-// #show: simple-theme.with(aspect-ratio: "16-9")
-#let remark(body, numbered: true) = figure(
-  body,
-  kind: "remark",
-  supplement: [Theorem],
-  numbering: if numbered { n =>> counter(heading).display() + [#n] }
-)
-#let lemma(body, numbered: true) = figure(
-  body,
-  kind: "lemma",
-  supplement: [Theorem],
-  numbering: if numbered { n =>> counter(heading).display() + [#n] }
-)
-#let proposition(body, numbered: true) = figure(
-  body,
-  kind: "proposition",
-  supplement: [Theorem],
-  numbering: if numbered { n =>> counter(heading).display() + [#n] }
-)
-#show: ams-article.with(
-  title: [<>],
-  authors: (
-    (
-      name: "<>",
-      // department: [Department of Mathematics],
-      // organization: [University of Chicago],
-      // location: [Chicago, IL 60605],
-      email: "<>",
-      url: "<>"
-    ),
-  ),
-  // abstract: lorem(100),
-  // bibliography: bibliography("main.bib"),
-)
-// Math equation numbering and referencing.
-#set math.equation(numbering: "(1)")
-#show ref: it =>> {
-  let eq = math.equation
-  let el = it.element
-  if el != none and el.func() == eq {
-    let numb = numbering(
-      "1",
-      ..counter(eq).at(el.location())
-    )
-    let color = rgb(0%, 8%, 45%)  // Originally `mydarkblue`. :D
-    let content = link(el.location(), text(fill: color, numb))
-    [(#content)]
-  } else {
-    return it
-  }
-}
-
-#show heading: it =>> {
-  // Create the heading numbering.
-  let number = if it.numbering != none {
-    counter(heading).display(it.numbering)
-    h(7pt, weak: true)
-  }
-
-  // Level 1 headings are centered and smallcaps.
-  // The other ones are run-in.
-  // set text(size: normal-size, weight: 400)
-  set par(first-line-indent: 0em)
-  set text(size: normal-size, weight: 400)
-  set align(left)
-  if it.level == 1 {
-    v(15pt, weak: true)
-    counter(figure.where(kind: "theorem")).update(0)
-  } else {
-    v(11pt, weak: true)
-  }
-  number
-  strong(it.body)
-  h(7pt, weak: true)
-}
-<>]],
-      {
-        i(1, "Untitled"),
-        i(2, "Michael Newman Fortunato"),
-        i(3, "michael.n.fortunato@gmail.com"),
-        i(4, "www.mnf.dev"),
-        i(0),
-      }
-    ),
-    { condition = line_begin } --TODO: Condition should be begining of file!
-  ),
+  --   s(
+  --     { trig = "_DOC", snippetType = "autosnippet" },
+  --     fmta(
+  --       [[
+  -- #import "@preview/unequivocal-ams:0.1.2": ams-article, theorem, proof, normal-size
+  -- #import "@preview/equate:0.3.0": equate
+  -- // #import "@preview/bloated-neurips:0.5.1": botrule, midrule, neurips2024, paragraph, toprule, url, font
+  -- #import "@preview/cetz:0.3.3": canvas, draw, tree
+  -- #import "@preview/subpar:0.2.1"
+  -- #import "@preview/lemmify:0.1.8": *
+  -- // #import "@preview/touying:0.6.0": *
+  -- // #import themes.simple: *
+  -- // #show: simple-theme.with(aspect-ratio: "16-9")
+  -- #let remark(body, numbered: true) = figure(
+  --   body,
+  --   kind: "remark",
+  --   supplement: [Theorem],
+  --   numbering: if numbered { n =>> counter(heading).display() + [#n] }
+  -- )
+  -- #let lemma(body, numbered: true) = figure(
+  --   body,
+  --   kind: "lemma",
+  --   supplement: [Theorem],
+  --   numbering: if numbered { n =>> counter(heading).display() + [#n] }
+  -- )
+  -- #let proposition(body, numbered: true) = figure(
+  --   body,
+  --   kind: "proposition",
+  --   supplement: [Theorem],
+  --   numbering: if numbered { n =>> counter(heading).display() + [#n] }
+  -- )
+  -- #show: ams-article.with(
+  --   title: [<>],
+  --   authors: (
+  --     (
+  --       name: "<>",
+  --       // department: [Department of Mathematics],
+  --       // organization: [University of Chicago],
+  --       // location: [Chicago, IL 60605],
+  --       email: "<>",
+  --       url: "<>"
+  --     ),
+  --   ),
+  --   // abstract: lorem(100),
+  --   // bibliography: bibliography("main.bib"),
+  -- )
+  -- // Math equation numbering and referencing.
+  -- #set math.equation(numbering: "(1)")
+  -- #show ref: it =>> {
+  --   let eq = math.equation
+  --   let el = it.element
+  --   if el != none and el.func() == eq {
+  --     let numb = numbering(
+  --       "1",
+  --       ..counter(eq).at(el.location())
+  --     )
+  --     let color = rgb(0%, 8%, 45%)  // Originally `mydarkblue`. :D
+  --     let content = link(el.location(), text(fill: color, numb))
+  --     [(#content)]
+  --   } else {
+  --     return it
+  --   }
+  -- }
+  --
+  -- #show heading: it =>> {
+  --   // Create the heading numbering.
+  --   let number = if it.numbering != none {
+  --     counter(heading).display(it.numbering)
+  --     h(7pt, weak: true)
+  --   }
+  --
+  --   // Level 1 headings are centered and smallcaps.
+  --   // The other ones are run-in.
+  --   // set text(size: normal-size, weight: 400)
+  --   set par(first-line-indent: 0em)
+  --   set text(size: normal-size, weight: 400)
+  --   set align(left)
+  --   if it.level == 1 {
+  --     v(15pt, weak: true)
+  --     counter(figure.where(kind: "theorem")).update(0)
+  --   } else {
+  --     v(11pt, weak: true)
+  --   }
+  --   number
+  --   strong(it.body)
+  --   h(7pt, weak: true)
+  -- }
+  -- <>]],
+  --       {
+  --         i(1, "Untitled"),
+  --         i(2, "Michael Newman Fortunato"),
+  --         i(3, "michael.n.fortunato@gmail.com"),
+  --         i(4, "www.mnf.dev"),
+  --         i(0),
+  --       }
+  --     ),
+  --     { condition = line_begin } --TODO: Condition should be begining of file!
+  --   ),
   s(
     { trig = "DOC", snippetType = "autosnippet" },
     fmta(
       [[
-#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, theorem, proof, example, subpar
-#import "@preview/cetz:0.3.4": canvas
+#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, lemma, proof, example, subpar
+#import "@preview/cetz:0.3.4": canvas, draw
 #import "@preview/cetz-plot:0.1.1": plot
 
 #show: mnf_ams_article.with(title: <>)
@@ -430,7 +430,13 @@ supplement: <>,
   --   { condition = in_mathzone }
   -- ),
   s(
-    { trig = "([%w%)%]%}|])jj", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    {
+      trig = "([%w%)%]%}|])jj",
+      desc = "Subscript(no ambiguity)",
+      wordTrig = false,
+      regTrig = true,
+      snippetType = "autosnippet",
+    },
     fmta("<>_(<>)", {
       f(function(_, snip)
         return snip.captures[1]
@@ -453,7 +459,13 @@ supplement: <>,
   --   { condition = in_mathzone }
   -- ),
   s(
-    { trig = "([%w%)%]%}|])j([ijknmt])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    {
+      trig = "([%w%)%]%}|])j([ijknmtvd])",
+      wordTrig = false,
+      desc = "subscript",
+      regTrig = true,
+      snippetType = "autosnippet",
+    },
     fmta("<>_(<>)<>", {
       f(function(_, snip)
         return snip.captures[1]
@@ -556,7 +568,7 @@ supplement: <>,
   --   { condition = in_mathzone }
   -- ),
   s(
-    { trig = "([%w%)%]%}|])k([ijknm])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([%w%)%]%}|])k([ijknmtvd])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^(<>)<>", {
       f(function(_, snip)
         return snip.captures[1]
@@ -617,6 +629,14 @@ supplement: <>,
   s({ trig = "cup", snippetType = "autosnippet" }, t("union"), { condition = in_mathzone }),
   s({ trig = "cap", snippetType = "autosnippet" }, t("inter"), { condition = in_mathzone }),
   s({ trig = "notin", snippetType = "autosnippet" }, t("in.not"), { condition = in_mathzone }),
+  s({ trig = "nil", snippetType = "autosnippet" }, t("emptyset"), { condition = in_mathzone }),
+  s({ trig = "null", snippetType = "autosnippet" }, t("emptyset"), { condition = in_mathzone }),
+  s({ trig = "setminus", snippetType = "autosnippet" }, t("backslash"), { condition = in_mathzone }),
+  s({ trig = "bigcup", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
+  s({ trig = "bigcap", snippetType = "autosnippet" }, t("union.big"), { condition = in_mathzone }),
+  s({ trig = "langle", snippetType = "autosnippet" }, t("angle.l"), { condition = in_mathzone }),
+  s({ trig = "rangle", snippetType = "autosnippet" }, t("angle.r"), { condition = in_mathzone }),
+  s({ trig = "subseteq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
   -- s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = in_mathzone }),
   -- NOTE: \to is not supprted in typst
   -- NOTE: Everything else is shorthand supported!
@@ -725,8 +745,9 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
+  -- TODO: Really hink about if you want these vvv
   s(
-    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
+    { trig = "(", wordTrig = false, desc = "Autopairs", snippetType = "autosnippet" },
     fmta("(<>)<>", {
       iv(1),
       i(0),
@@ -734,7 +755,7 @@ supplement: <>,
     { condition = -in_textzone * (in_mathzone + in_codezone) }
   ),
   s(
-    { trig = "{", snippetType = "autosnippet" },
+    { trig = "{", desc = "Autopairs", snippetType = "autosnippet" },
     fmta("{<>}<>", {
       iv(1),
       i(0),
@@ -742,13 +763,14 @@ supplement: <>,
     { condition = in_mathzone + in_codezone }
   ),
   s(
-    { trig = "[", wordTrig = false, snippetType = "autosnippet" },
+    { trig = "[", wordTrig = false, desc = "Autopairs", snippetType = "autosnippet" },
     fmta("[<>]<>", {
       iv(1),
       i(0),
     }),
     { condition = in_mathzone + in_codezone }
   ),
+  -- TODO: Really hink about if you want these ^^^
   s(
     { trig = [["]], wordTrig = false, snippetType = "autosnippet" },
     fmta([["<>"<>]], {
@@ -1125,106 +1147,106 @@ $<>]],
     { condition = trigger_does_not_follow_alpha_char * in_textzone }
   ),
   --- GREEK BEGIN
-  s({ trig = ";a", snippetType = "autosnippet" }, {
+  s({ trig = ";a", wordTrig = false, snippetType = "autosnippet" }, {
     t("alpha"),
   }),
-  s({ trig = ";b", snippetType = "autosnippet" }, {
+  s({ trig = ";b", wordTrig = false, snippetType = "autosnippet" }, {
     t("beta"),
   }),
-  s({ trig = ";g", snippetType = "autosnippet" }, {
+  s({ trig = ";g", wordTrig = false, snippetType = "autosnippet" }, {
     t("gamma"),
   }),
-  s({ trig = ";G", snippetType = "autosnippet" }, {
+  s({ trig = ";G", wordTrig = false, snippetType = "autosnippet" }, {
     t("Gamma"),
   }),
-  s({ trig = ";d", snippetType = "autosnippet" }, {
+  s({ trig = ";d", wordTrig = false, snippetType = "autosnippet" }, {
     t("delta"),
   }),
-  s({ trig = ";D", snippetType = "autosnippet" }, {
+  s({ trig = ";D", wordTrig = false, snippetType = "autosnippet" }, {
     t("Delta"),
   }),
-  s({ trig = ";e", snippetType = "autosnippet" }, {
+  s({ trig = ";e", wordTrig = false, snippetType = "autosnippet" }, {
     t("epsilon"),
   }),
-  s({ trig = ";ve", snippetType = "autosnippet" }, {
+  s({ trig = ";ve", wordTrig = false, snippetType = "autosnippet" }, {
     t("varepsilon"),
   }),
-  s({ trig = ";z", snippetType = "autosnippet" }, {
+  s({ trig = ";z", wordTrig = false, snippetType = "autosnippet" }, {
     t("zeta"),
   }),
-  s({ trig = ";h", snippetType = "autosnippet" }, {
+  s({ trig = ";h", wordTrig = false, snippetType = "autosnippet" }, {
     t("eta"),
   }),
-  s({ trig = ";o", snippetType = "autosnippet" }, {
+  s({ trig = ";o", wordTrig = false, snippetType = "autosnippet" }, {
     t("theta"),
   }),
-  s({ trig = ";vo", snippetType = "autosnippet" }, {
+  s({ trig = ";vo", wordTrig = false, snippetType = "autosnippet" }, {
     t("vartheta"),
   }),
-  s({ trig = ";O", snippetType = "autosnippet" }, {
+  s({ trig = ";O", wordTrig = false, snippetType = "autosnippet" }, {
     t("Theta"),
   }),
-  s({ trig = ";k", snippetType = "autosnippet" }, {
+  s({ trig = ";k", wordTrig = false, snippetType = "autosnippet" }, {
     t("kappa"),
   }),
-  s({ trig = ";l", snippetType = "autosnippet" }, {
+  s({ trig = ";l", wordTrig = false, snippetType = "autosnippet" }, {
     t("lambda"),
   }),
-  s({ trig = ";L", snippetType = "autosnippet" }, {
+  s({ trig = ";L", wordTrig = false, snippetType = "autosnippet" }, {
     t("Lambda"),
   }),
-  s({ trig = ";m", snippetType = "autosnippet" }, {
+  s({ trig = ";m", wordTrig = false, snippetType = "autosnippet" }, {
     t("mu"),
   }),
-  s({ trig = ";n", snippetType = "autosnippet" }, {
+  s({ trig = ";n", wordTrig = false, snippetType = "autosnippet" }, {
     t("nu"),
   }),
-  s({ trig = ";x", snippetType = "autosnippet" }, {
+  s({ trig = ";x", wordTrig = false, snippetType = "autosnippet" }, {
     t("xi"),
   }),
-  s({ trig = ";X", snippetType = "autosnippet" }, {
+  s({ trig = ";X", wordTrig = false, snippetType = "autosnippet" }, {
     t("Xi"),
   }),
-  s({ trig = ";i", snippetType = "autosnippet" }, {
+  s({ trig = ";i", wordTrig = false, snippetType = "autosnippet" }, {
     t("pi"),
   }),
-  s({ trig = ";I", snippetType = "autosnippet" }, {
+  s({ trig = ";I", wordTrig = false, snippetType = "autosnippet" }, {
     t("Pi"),
   }),
-  s({ trig = ";r", snippetType = "autosnippet" }, {
+  s({ trig = ";r", wordTrig = false, snippetType = "autosnippet" }, {
     t("rho"),
   }),
-  s({ trig = ";s", snippetType = "autosnippet" }, {
+  s({ trig = ";s", wordTrig = false, snippetType = "autosnippet" }, {
     t("sigma"),
   }),
-  s({ trig = ";S", snippetType = "autosnippet" }, {
+  s({ trig = ";S", wordTrig = false, snippetType = "autosnippet" }, {
     t("Sigma"),
   }),
-  s({ trig = ";t", snippetType = "autosnippet" }, {
+  s({ trig = ";t", wordTrig = false, snippetType = "autosnippet" }, {
     t("tau"),
   }),
-  s({ trig = ";f", snippetType = "autosnippet" }, {
+  s({ trig = ";f", wordTrig = false, snippetType = "autosnippet" }, {
     t("phi"),
   }),
-  s({ trig = ";vf", snippetType = "autosnippet" }, {
+  s({ trig = ";vf", wordTrig = false, snippetType = "autosnippet" }, {
     t("varphi"),
   }),
-  s({ trig = ";F", snippetType = "autosnippet" }, {
+  s({ trig = ";F", wordTrig = false, snippetType = "autosnippet" }, {
     t("Phi"),
   }),
-  s({ trig = ";c", snippetType = "autosnippet" }, {
+  s({ trig = ";c", wordTrig = false, snippetType = "autosnippet" }, {
     t("chi"),
   }),
-  s({ trig = ";p", snippetType = "autosnippet" }, {
+  s({ trig = ";p", wordTrig = false, snippetType = "autosnippet" }, {
     t("psi"),
   }),
-  s({ trig = ";P", snippetType = "autosnippet" }, {
+  s({ trig = ";P", wordTrig = false, snippetType = "autosnippet" }, {
     t("Psi"),
   }),
-  s({ trig = ";w", snippetType = "autosnippet" }, {
+  s({ trig = ";w", wordTrig = false, snippetType = "autosnippet" }, {
     t("omega"),
   }),
-  s({ trig = ";W", snippetType = "autosnippet" }, {
+  s({ trig = ";W", wordTrig = false, snippetType = "autosnippet" }, {
     t("Omega"),
   }),
   --   s(
@@ -1380,6 +1402,22 @@ $<>]],
     fmta(
       [[
 #example(name: [<>])[
+<>
+]<>
+      ]],
+      {
+        i(1),
+        iv(2),
+        i(0),
+      }
+    ),
+    { condition = line_begin }
+  ),
+  s(
+    { trig = "#[pP][rR][oO][oO][fF]", regTrig = true, snippetType = "autosnippet" },
+    fmta(
+      [[
+#proof(name: [<>])[
 <>
 ]<>
       ]],

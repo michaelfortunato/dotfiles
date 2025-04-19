@@ -78,13 +78,9 @@
 --- FIXME: Delete this silliness
 local PRIORITY = 10000
 
-local get_visual = function(args, parent)
-  if #parent.snippet.env.LS_SELECT_RAW > 0 then
-    return sn(nil, i(1, parent.snippet.env.LS_SELECT_RAW))
-  else -- If LS_SELECT_RAW is empty, return a blank insert node
-    return sn(nil, i(1))
-  end
-end
+-- From any snippet file, source `get_visual` from global helper functions file
+local helpers = require("plugins.luasnip._utils")
+local get_visual = helpers.get_visual
 
 local line_begin = require("luasnip.extras.expand_conditions").line_begin
 -- NOTE: Not in use local line_end = require("luasnip.extras.expand_conditions").line_end
@@ -202,6 +198,10 @@ end)
 
 --- in_comment is one shot
 local in_comment = cond_obj.make_condition(function(check_parent)
+  -- FIXME: Interesting error here, at the end of the line tressiter
+  -- says it is in a block node
+  -- if node.type == block and node.prev sibling is line and node is at the
+  -- end of the line return true
   local node = vim.treesitter.get_node({ ignore_injections = false })
   return node and COMMENT_NODES[node:type()]
 end)
@@ -210,7 +210,8 @@ local iv = function(i, ...)
   return d(i, get_visual, ...)
 end
 
-return {
+pairs = {
+  -- TODO: Really hink about if you want these vvv
   s(
     { trig = "(", wordTrig = false, snippetType = "autosnippet" },
     fmta("(<>)<>", {
@@ -235,6 +236,10 @@ return {
     }),
     { condition = -in_string - in_comment }
   ),
+  -- TODO: Really hink about if you want these ^^^
+}
+
+return {
   s(
     { trig = "/*", wordTrig = false, snippetType = "autosnippet" },
     fmta("/*<>*/<>", {
@@ -276,19 +281,29 @@ if <> {
     ),
     { condition = -in_string - in_comment }
   ),
-  s({ trig = "error", snippetType = "autosnippet" }, {
+  s(
+    { trig = "error", snippetType = "autosnippet" },
     fmta([[error!(<>)<>]], { iv(1), i(0) }),
-  }, { condition = -in_string - in_comment }),
-  s({ trig = "warn", snippetType = "autosnippet" }, {
+    { condition = -in_string - in_comment }
+  ),
+  s(
+    { trig = "warn", snippetType = "autosnippet" },
     fmta([[warn!(<>)<>]], { iv(1), i(0) }),
-  }, { condition = -in_string - in_comment }),
-  s({ trig = "info", snippetType = "autosnippet" }, {
+    { condition = -in_string - in_comment }
+  ),
+  s(
+    { trig = "info", snippetType = "autosnippet" },
     fmta([[info!(<>)<>]], { iv(1), i(0) }),
-  }, { condition = -in_string - in_comment }),
-  s({ trig = "debug", snippetType = "autosnippet" }, {
+    { condition = -in_string - in_comment }
+  ),
+  s(
+    { trig = "debug", snippetType = "autosnippet" },
     fmta([[debug!(<>)<>]], { iv(1), i(0) }),
-  }, { condition = -in_string - in_comment }),
-  s({ trig = "trace", snippetType = "autosnippet" }, {
+    { condition = -in_string - in_comment }
+  ),
+  s(
+    { trig = "trace", snippetType = "autosnippet" },
     fmta([[error!(<>)<>]], { iv(1), i(0) }),
-  }, { condition = -in_string - in_comment }),
+    { condition = -in_string - in_comment }
+  ),
 }

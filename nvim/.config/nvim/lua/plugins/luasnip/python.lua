@@ -198,7 +198,7 @@ return {
     })
   ),
   s(
-    { trig = "if", snippetType = "autosnippet" },
+    { trig = "if ", snippetType = "autosnippet" },
     fmta(
       [[
 if <>:
@@ -206,7 +206,7 @@ if <>:
 <>]],
       { i(1), i(2), i(0) }
     ),
-    {}
+    { condition = -in_string - in_comment }
   ),
   s(
     { trig = "(", wordTrig = false, snippetType = "autosnippet" },

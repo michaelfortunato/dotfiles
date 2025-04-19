@@ -75,10 +75,30 @@ return {
 
       ["<C-b>"] = { "scroll_documentation_up", "fallback" },
       ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+      -- imap <silent><expr> jk luasnip#jumpable(1) ? '<Plug>luasnip-jump-next' : 'jk'
+      -- smap <silent><expr> jk luasnip#jumpable(1) ? '<Plug>luasnip-jump-next' : 'jk'
+
+      ["<C-i>"] = {
+        function()
+          if "i" == vim.fn.mode() then
+            -- paranoid so only do this in insert mode, might not be necessary
+            return require("blink.cmp").snippet_forward()
+          end
+        end,
+        "fallback",
+      },
 
       -- TODO: Until snippet_forward and snippet_backward is understood by me, do not use it.
       ["<Tab>"] = {
         function()
+          local pos = vim.fn.getpos(".")
+          local line = vim.fn.getline(".")
+          -- If at the beginning of the line, you usually just want to insert
+          -- a tab
+          if pos[2] == 0 or string.sub(line, 0, line[2]):match("^%s+$") then
+            return false
+          end
+
           local luasnip = require("luasnip")
           if luasnip.locally_jumpable(1) then
             require("blink.cmp").snippet_forward()

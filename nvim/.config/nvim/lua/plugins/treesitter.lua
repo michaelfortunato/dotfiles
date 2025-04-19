@@ -4,6 +4,9 @@ return {
     ---@module "nvim-treesitter/nvim-treesitter"
     "nvim-treesitter/nvim-treesitter",
     opts = {
+      indent = {
+        enable = true,
+      },
       textobjects = {
         move = {
           goto_next_start = {
