@@ -246,6 +246,19 @@ Yeah I built a new keyboard and am pretty excited about it.
 - Neo65
 - Durock Screw In stabs with 205g0 and dialectic grease.
 
+## A Note on the machine specific folders
+
+Using `Tactitus` and `Melville` folders are not recommended for future me
+as my stowing them will force stow to using individual symlinks per file
+rather than directory wide. In other words
+
+```sh
+# before, was directory wide symlink
+~/.config/git -> ~/dotfiles/git
+# now became an individual symlink for each file (showing just one here)
+~/.config/git/config -> ~/dotfiles/git/.config/git/config
+```
+
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
 [3]: https://www.lazyvim.org
