@@ -259,6 +259,13 @@ rather than directory wide. In other words
 ~/.config/git/config -> ~/dotfiles/git/.config/git/config
 ```
 
+Doing this is fine for git but for neovim you should NEVER
+have
+
+```sh
+~/dotfiles/Tactitus/.config/nvim
+```
+
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
 [3]: https://www.lazyvim.org

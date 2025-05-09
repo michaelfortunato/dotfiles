@@ -3,6 +3,7 @@
 install() {
   #install_via_stow
   dev_install
+  "WARN: Make sure you git stow your specific machine folder but never add nvim to it"
 }
 
 install_via_stow() {
