@@ -6,6 +6,7 @@ return {
     opts = function(_, opts)
       require("luasnip.loaders.from_lua").lazy_load({ paths = { SNIPPET_PATH } })
       opts.history = true
+      -- ref https://stackoverflow.com/questions/70366949/how-to-change-tab-behaviour-in-neovim-as-specified-luasniplsp-popup
       opts.region_check_events = "InsertEnter"
       opts.delete_check_events = "TextChanged,InsertLeave"
       opts.update_events = "TextChanged,TextChangedI"
