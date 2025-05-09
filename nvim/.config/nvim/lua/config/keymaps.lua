@@ -265,15 +265,13 @@ map("n", "<leader>sp", function()
 end, { desc = "Grep RTP (3rd-Party Plugin) Directory" })
 
 -- map("n", "<C-/>", function()
---- LazyVim.ui.maximize():map("<leader>wm")
 --   Snacks.terminal(nil, { cwd = LazyVim.root() })
 -- end, { desc = "Terminal (Root Dir)" })
 -- map("t", "<C-/>", "<cmd>close<cr>", { desc = "Hide Terminal" })
--- map("n", "<C-S-Space>", function()
---   print(Snacks.win():toggle())
---   vim.notify("I am gone!")
--- end, { desc = "Ok" })
--- -- del({ "n" }, "<leader>wm")
+-- --TODO: I cannot get Folke's maximze to work without going through here
+-- LazyVim.ui.maximize():map("<C-S-Space>")
+-- map({ "n", "t", "v" }, "<C-S-l>", "<C-w>R", { desc = "Toggle Maximize Window" })
+-- map({ "n", "t", "v" }, "<C-S-h>", "<C-w>r", { desc = "Toggle Maximize Window" })
 
 if vim.g.neovide then
   vim.keymap.set("n", "<D-s>", ":w<CR>") -- Save
