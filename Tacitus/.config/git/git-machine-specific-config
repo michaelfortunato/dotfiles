@@ -1,0 +1,3 @@
+[user]
+  # For the signing key, one per machine no need to include user name
+  signingkey = D7E18BB5FDB3851CB7F7F0EF8B87187D74CC41FC

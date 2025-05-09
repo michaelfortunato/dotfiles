@@ -20,7 +20,9 @@
 [user]
 	name = Michael Fortunato
 	email = michael.n.fortunato@gmail.com
-	signingkey = D7E18BB5FDB3851CB7F7F0EF8B87187D74CC41FC
+[include]
+  # For the signing key, one per machine
+  path = git-machine-specific-config
 [core]
 	pager = less -F -X
 	editor = nvim
