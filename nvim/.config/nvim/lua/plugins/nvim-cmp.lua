@@ -1,3 +1,5 @@
+-- NOTE: Neovim maps tab by default maybe this does nothign idk
+vim.keymap.del({ "i", "s" }, "<Tab>")
 vim.g.mnf_auto_show_comp_menu = false
 vim.g.mnf_auto_show_ghost_text = false
 return {
@@ -75,20 +77,47 @@ return {
 
       ["<C-b>"] = { "scroll_documentation_up", "fallback" },
       ["<C-f>"] = { "scroll_documentation_down", "fallback" },
+      -- FIXME: Not working
+      ["<C-u>"] = {
+        function(cmp)
+          return cmp.scroll_documentation_up(8)
+        end,
+        "fallback",
+      },
+      ["<C-d>"] = {
+        function(cmp)
+          return cmp.scroll_documentation_down(8)
+        end,
+        "fallback",
+      },
       -- imap <silent><expr> jk luasnip#jumpable(1) ? '<Plug>luasnip-jump-next' : 'jk'
       -- smap <silent><expr> jk luasnip#jumpable(1) ? '<Plug>luasnip-jump-next' : 'jk'
-
       ["<C-i>"] = {
         function()
           if "i" == vim.fn.mode() then
             -- paranoid so only do this in insert mode, might not be necessary
             return require("blink.cmp").snippet_forward()
           end
+          return false
         end,
         "fallback",
       },
+      -- TODO: jk
+      -- ["jk"] = {
+      --   function()
+      --     local luasnip = require("luasnip")
+      --     if luasnip.locally_jumpable(1) then
+      --       require("blink.cmp").snippet_forward()
+      --       return true
+      --     else
+      --       return false
+      --     end
+      --   end,
+      --   "fallback",
+      -- },
 
       -- TODO: Until snippet_forward and snippet_backward is understood by me, do not use it.
+      -- NOTE: Neovim maps tab by default
       ["<Tab>"] = {
         function()
           local pos = vim.fn.getpos(".")
@@ -153,6 +182,8 @@ return {
         end,
       },
       documentation = { auto_show = false },
+      -- -- Maybe
+      -- accept = { auto_brackets = { enabled = true } },
     },
     snippets = { preset = "luasnip" },
 
@@ -182,7 +213,7 @@ return {
   opts_extend = { "sources.default" },
   keys = {
     {
-      "<leader>uaa",
+      "<leader>ma",
       function()
         -- This is totally fucking stupid but not broken. Fuck this.
         vim.g.mnf_auto_show_comp_menu = not vim.g.mnf_auto_show_comp_menu
@@ -191,7 +222,7 @@ return {
       desc = "Toggle auto show completion menu. UI Will go crazy if enabled. Off by default. This is a bit of sledge hammer",
     },
     {
-      "<leader>uag",
+      "<leader>mh",
       function()
         -- This is totally fucking stupid but not broken. Fuck this.
         vim.g.mnf_auto_show_ghost_text = not vim.g.mnf_auto_show_ghost_text
