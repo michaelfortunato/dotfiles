@@ -136,6 +136,11 @@ export BIBINPUTS=$MNF_BIB_DIR
 ############# PATH ############
 # NOTE: Only set path here!
 export PATH=$PATH:$MNF_BIN_DIR
+if [[ $MNF_OS != "Darwin" ]]; then
+  export PATH=/usr/local/cuda-12.8/bin${PATH:+:${PATH}}
+  export LD_LIBRARY_PATH=/usr/local/cuda-12.8/lib64\
+    ${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+fi
 ###############################
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
