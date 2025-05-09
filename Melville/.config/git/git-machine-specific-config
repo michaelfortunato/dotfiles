@@ -1,2 +1,5 @@
 [user]
   signingkey = E28EF53415B3BFA641DA432548C26B50D2403CDA
+[url "git@github.com:"]
+  # on melville use ssh everywhere
+  insteadOf = https://github.com/
