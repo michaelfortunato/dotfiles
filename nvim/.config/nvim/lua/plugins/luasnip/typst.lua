@@ -355,7 +355,7 @@ return {
     { trig = "DOC", snippetType = "autosnippet" },
     fmta(
       [[
-#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, lemma, proof, example, subpar
+#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, lemma, proof, example, subpar, scr
 #import "@preview/cetz:0.3.4": canvas, draw
 #import "@preview/cetz-plot:0.1.1": plot
 
@@ -402,21 +402,6 @@ supplement: <>,
       { i(1), i(2, "[Figure]"), iv(3), i(0) }
     ),
     { condition = line_begin }
-  ),
-  -- FIXME: This is not working reproduce by adding figure as an arg to a subgrid
-  s(
-    { trig = "figure", snippetType = "autosnippet" },
-    fmta(
-      [[
-figure(
-caption: [<>],
-supplement: <>,
-<>
-)<>
-]],
-      { i(1), i(2, "[Figure]"), iv(3), i(0) }
-    ),
-    { condition = in_codezone }
   ),
   -- SUBSCRIPT
   -- s(
@@ -505,6 +490,22 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
+  s(
+    {
+      trig = "([%w%)%]%}|])J",
+      desc = "Subscript(no ambiguity)",
+      wordTrig = false,
+      regTrig = true,
+      snippetType = "autosnippet",
+    },
+    fmta("<>_(<>)", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+    }),
+    { condition = in_mathzone }
+  ),
   -- -- SUPERSCRIPT
   -- s(
   --   { trig = "([%w%)%]%}%|])aa", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
@@ -580,6 +581,16 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
+  s(
+    { trig = "([%w%)%]%}|])K", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta("<>^(<>)", {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      d(1, get_visual),
+    }),
+    { condition = in_mathzone }
+  ),
   -- INVERSE
   s(
     { trig = "([%w%)%]%}])inv", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
@@ -632,8 +643,8 @@ supplement: <>,
   s({ trig = "nil", snippetType = "autosnippet" }, t("emptyset"), { condition = in_mathzone }),
   s({ trig = "null", snippetType = "autosnippet" }, t("emptyset"), { condition = in_mathzone }),
   s({ trig = "setminus", snippetType = "autosnippet" }, t("backslash"), { condition = in_mathzone }),
-  s({ trig = "bigcup", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
-  s({ trig = "bigcap", snippetType = "autosnippet" }, t("union.big"), { condition = in_mathzone }),
+  s({ trig = "bigcup", snippetType = "autosnippet" }, t("union.big"), { condition = in_mathzone }),
+  s({ trig = "bigcap", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
   s({ trig = "langle", snippetType = "autosnippet" }, t("angle.l"), { condition = in_mathzone }),
   s({ trig = "rangle", snippetType = "autosnippet" }, t("angle.r"), { condition = in_mathzone }),
   s({ trig = "subseteq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
@@ -792,6 +803,9 @@ supplement: <>,
   }, { condition = in_mathzone }),
   -- \times
   s({ trig = "xx", snippetType = "autosnippet" }, {
+    t("times"),
+  }, { condition = in_mathzone }),
+  s({ trig = "by", snippetType = "autosnippet" }, {
     t("times"),
   }, { condition = in_mathzone }),
   -- CDOTS, i.e. \cdots
@@ -999,6 +1013,24 @@ $<>]],
     }),
     { condition = in_mathzone }
   ),
+  s(
+    { trig = "mf", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[frak(<>)<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "(%a)mf", regTrig = true, wordTrig = false, snippetType = "autosnippet" },
+    fmta([[frak(<>)<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = in_mathzone }
+  ),
   -- FRACTION
   s(
     { trig = "ff", wordTrig = false, snippetType = "autosnippet" },
@@ -1018,6 +1050,14 @@ $<>]],
       i(0),
     }),
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
+  ),
+  s(
+    { trig = "mc", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[cal(<>)<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = in_mathzone }
   ),
   s(
     { trig = "mcal", wordTrig = false, snippetType = "autosnippet" },
@@ -1282,22 +1322,6 @@ $<>]],
     ),
     { condition = line_begin }
   ),
-  s(
-    { trig = "beg", regTrig = true, snippetType = "autosnippet" },
-    fmta(
-      [[
-        #<>[
-<>
-]<>
-      ]],
-      {
-        i(1),
-        d(2, get_visual),
-        i(0),
-      }
-    ),
-    { condition = line_begin }
-  ),
   --- begin theorem
   s(
     { trig = "bte", regTrig = true, snippetType = "autosnippet" },
@@ -1529,6 +1553,6 @@ plot.plot(size: (5, 5), {
 )]],
       { iv(1), i(2) }
     ),
-    { condition = -in_mathzone }
+    { condition = -in_textzone }
   ),
 }
