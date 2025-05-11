@@ -1,5 +1,5 @@
 -- NOTE: Neovim maps tab by default maybe this does nothign idk
-vim.keymap.del({ "i", "s" }, "<Tab>")
+-- pcall(vim.keymap.del({ "i", "s" }, "<Tab>"))
 vim.g.mnf_auto_show_comp_menu = false
 vim.g.mnf_auto_show_ghost_text = false
 return {

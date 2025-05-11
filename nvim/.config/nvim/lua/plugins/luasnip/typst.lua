@@ -134,11 +134,20 @@ local function make_trigger_does_not_follow_char(pattern)
   return cond_obj.make_condition(condition)
 end
 
+local function make_trigger_preceeds_pattern(pattern)
+  local condition = function(line_to_cursor, matched_trigger)
+    local pos = vim.fn.getpos(".")
+    local line = vim.fn.getline(".")
+    -- If at the beginning of the line, you usually just want to insert
+    local rem_line = string.sub(line, pos[3], #line)
+    return (rem_line:match(pattern) ~= nil)
+  end
+  return cond_obj.make_condition(condition)
+end
+
 local ls = require("luasnip")
-local trigger_does_not_follow_alpha_num_char = make_trigger_does_not_follow_char("%w")
 local trigger_does_not_follow_alpha_char = make_trigger_does_not_follow_char("%a")
---- FIXME: mnf_s is bullshit, and it fucking sucks!
---- local mnf_s = ls.extend_decorator.apply(s, { wordTrig = false, condition = trigger_does_not_follow_alpha_num_char })
+local trigger_does_not_preceed_alpha_char = -make_trigger_preceeds_pattern("^%w")
 
 --- TODO: Rename to Math mode
 local MATH_NODES = {
@@ -150,6 +159,7 @@ local MATH_NODES = {
 local TEXT_NODES = {
   text = true,
   content = true,
+  string = true,
 }
 
 --- TODO: Rename to Code mode
@@ -647,7 +657,12 @@ supplement: <>,
   s({ trig = "bigcap", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
   s({ trig = "langle", snippetType = "autosnippet" }, t("angle.l"), { condition = in_mathzone }),
   s({ trig = "rangle", snippetType = "autosnippet" }, t("angle.r"), { condition = in_mathzone }),
+  -- TODO: can I prioritize lciel and rceil to keep old behavior?
+  s({ trig = "lceil", snippetType = "autosnippet" }, t("ceil.l"), { condition = in_mathzone }),
+  s({ trig = "rceil", snippetType = "autosnippet" }, t("ceil.r"), { condition = in_mathzone }),
+  s({ trig = "floor", snippetType = "autosnippet" }, t("floor.l"), { condition = in_mathzone }),
   s({ trig = "subseteq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
+  s({ trig = "sseq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
   -- s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = in_mathzone }),
   -- NOTE: \to is not supprted in typst
   -- NOTE: Everything else is shorthand supported!
@@ -662,7 +677,6 @@ supplement: <>,
     hidden = true,
     snippetType = "autosnippet",
   }, t("="), { condition = in_mathzone }),
-  s({ trig = "implies", snippetType = "autosnippet" }, t("==>"), { condition = in_mathzone }),
   --- For now going to make this a snippet
   s({ trig = "implies", snippetType = "autosnippet" }, t("==>"), { condition = in_mathzone }),
   s({ trig = "neq", snippetType = "autosnippet" }, t("!="), { condition = in_mathzone }),
@@ -763,7 +777,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = -in_textzone * (in_mathzone + in_codezone) }
+    { condition = -in_textzone * trigger_does_not_preceed_alpha_char * (in_mathzone + in_codezone) }
   ),
   s(
     { trig = "{", desc = "Autopairs", snippetType = "autosnippet" },
@@ -771,7 +785,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = in_mathzone + in_codezone }
+    { condition = (in_mathzone + in_codezone) * trigger_does_not_preceed_alpha_char }
   ),
   s(
     { trig = "[", wordTrig = false, desc = "Autopairs", snippetType = "autosnippet" },
@@ -779,7 +793,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = in_mathzone + in_codezone }
+    { condition = (in_mathzone + in_codezone) * trigger_does_not_preceed_alpha_char }
   ),
   -- TODO: Really hink about if you want these ^^^
   s(
