@@ -41,7 +41,7 @@ return {
         desc = "which_key_ignore",
       })
       table.insert(keys, {
-        "<C-" .. i .. ">",
+        "<A-" .. i .. ">",
         function()
           local items = require("harpoon"):list()
           if i > items:length() then
