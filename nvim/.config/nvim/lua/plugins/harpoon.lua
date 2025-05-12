@@ -54,7 +54,7 @@ return {
               items:replace_at(i)
             end
           end
-          vim.notify("Harpoon: Pinned buffer to slot" .. i, vim.log.levels.INFO)
+          vim.notify("Harpoon: Pinned buffer to slot " .. i, vim.log.levels.INFO)
         end,
         -- NOTE: Special value tells which-key not to show this guy
         desc = "which_key_ignore",
