@@ -1,7 +1,9 @@
 -- Keymaps are automatically loaded on the VeryLazy event
 -- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
 -- Add any additional keymaps here
-local map = vim.keymap.set
+local map = function(...)
+  return pcall(vim.keymap.set, ...)
+end
 --local del = vim.keymap.del
 --NOTE: makes me safe
 local del = function(...)
@@ -17,6 +19,7 @@ local function paste()
   end
 end
 
+--- FIXME: Eh not great
 map("n", "p", paste, { noremap = true, silent = true })
 -- map("i", "<C-v>", paste, { noremap = true, silent = true })
 -- map("i", "<M-v>", paste, { noremap = true, silent = true })
@@ -208,8 +211,9 @@ end, { desc = "Set vim.MNF.global_system_terminal_command" })
 -- end, { desc = "Toggle Terminal (Cwd)" })
 --
 -- core adds here, you should try to stick with > but still
-map("v", "<Tab>", ">gv")
-map("v", "<S-Tab>", "<gv")
+-- apprently x makes it so that <Tab> does not done is select mode
+map("x", "<Tab>", ">gv", { silent = true })
+map("x", "<S-Tab>", "<gv", { silent = true })
 
 del({ "n" }, "<C-/>")
 map("n", "<c-\\>", function()
