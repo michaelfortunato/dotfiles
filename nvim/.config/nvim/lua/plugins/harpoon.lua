@@ -36,7 +36,6 @@ return {
         function()
           require("harpoon"):list():select(i)
         end,
-        -- desc = "Harpoon to File " .. i,
         -- NOTE: Special value tells which-key not to show this guy
         desc = "which_key_ignore",
       })
@@ -55,8 +54,8 @@ return {
               items:replace_at(i)
             end
           end
+          vim.notify("Harpoon: Pinned buffer to slot" .. i, vim.log.levels.INFO)
         end,
-        -- desc = "Harpoon to File " .. i,
         -- NOTE: Special value tells which-key not to show this guy
         desc = "which_key_ignore",
       })
