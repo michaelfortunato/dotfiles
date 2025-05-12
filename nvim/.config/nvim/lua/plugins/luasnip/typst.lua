@@ -772,7 +772,7 @@ supplement: <>,
   ),
   -- TODO: Really hink about if you want these vvv
   s(
-    { trig = "(", wordTrig = false, desc = "Autopairs", snippetType = "autosnippet" },
+    { trig = "(", wordTrig = false, desc = "Autopairs", hidden = true, snippetType = "autosnippet" },
     fmta("(<>)<>", {
       iv(1),
       i(0),
@@ -780,7 +780,7 @@ supplement: <>,
     { condition = -in_textzone * trigger_does_not_preceed_alpha_char * (in_mathzone + in_codezone) }
   ),
   s(
-    { trig = "{", desc = "Autopairs", snippetType = "autosnippet" },
+    { trig = "{", desc = "Autopairs", hidden = true, snippetType = "autosnippet" },
     fmta("{<>}<>", {
       iv(1),
       i(0),
@@ -788,7 +788,7 @@ supplement: <>,
     { condition = (in_mathzone + in_codezone) * trigger_does_not_preceed_alpha_char }
   ),
   s(
-    { trig = "[", wordTrig = false, desc = "Autopairs", snippetType = "autosnippet" },
+    { trig = "[", wordTrig = false, hidden = true, desc = "Autopairs", snippetType = "autosnippet" },
     fmta("[<>]<>", {
       iv(1),
       i(0),
