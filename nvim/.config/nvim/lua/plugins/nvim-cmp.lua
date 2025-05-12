@@ -15,7 +15,6 @@ return {
   -- build = 'cargo build --release',
   -- If you use nix, you can build from source using latest nightly rust with:
   -- build = 'nix run .#build-plugin',
-
   ---@module 'blink.cmp'
   ---@type blink.cmp.Config
   opts = {
@@ -78,30 +77,33 @@ return {
       ["<C-b>"] = { "scroll_documentation_up", "fallback" },
       ["<C-f>"] = { "scroll_documentation_down", "fallback" },
       -- FIXME: Not working
+      -- These are only being mapped to insert mode, not normal mode
       ["<C-u>"] = {
         function(cmp)
+          -- return true
           return cmp.scroll_documentation_up(8)
         end,
         "fallback",
       },
       ["<C-d>"] = {
         function(cmp)
+          -- return true
           return cmp.scroll_documentation_down(8)
         end,
         "fallback",
       },
       -- imap <silent><expr> jk luasnip#jumpable(1) ? '<Plug>luasnip-jump-next' : 'jk'
       -- smap <silent><expr> jk luasnip#jumpable(1) ? '<Plug>luasnip-jump-next' : 'jk'
-      ["<C-i>"] = {
-        function()
-          if "i" == vim.fn.mode() then
-            -- paranoid so only do this in insert mode, might not be necessary
-            return require("blink.cmp").snippet_forward()
-          end
-          return false
-        end,
-        "fallback",
-      },
+      -- ["<C-i>"] = {
+      --   function()
+      --     if "i" == vim.fn.mode() then
+      --       -- paranoid so only do this in insert mode, might not be necessary
+      --       return require("blink.cmp").snippet_forward()
+      --     end
+      --     return false
+      --   end,
+      --   "fallback",
+      -- },
       -- TODO: jk
       -- ["jk"] = {
       --   function()
@@ -119,18 +121,28 @@ return {
       -- TODO: Until snippet_forward and snippet_backward is understood by me, do not use it.
       -- NOTE: Neovim maps tab by default
       ["<Tab>"] = {
-        function()
+        function(cmp)
           local pos = vim.fn.getpos(".")
           local line = vim.fn.getline(".")
+
+          --- Just not working
+          --- It seems like blink cmp keeps overriding this keymap?
+          local crazy = function()
+            if "i" == vim.fn.mode() or "s" == vim.fn.mode() then
+              vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "i", false)
+            end
+            return true
+          end
+
           -- If at the beginning of the line, you usually just want to insert
           -- a tab
-          if pos[2] == 0 or string.sub(line, 0, line[2]):match("^%s+$") then
+          if pos[3] == 0 or string.sub(line, 0, pos[3]):match("^%s+$") then
             return false
           end
 
           local luasnip = require("luasnip")
           if luasnip.locally_jumpable(1) then
-            require("blink.cmp").snippet_forward()
+            cmp.snippet_forward()
             return true
           else
             return false
