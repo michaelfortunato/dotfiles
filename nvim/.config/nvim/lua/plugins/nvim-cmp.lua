@@ -136,6 +136,7 @@ return {
 
           -- If at the beginning of the line, you usually just want to insert
           -- a tab
+          -- FIXME: this `<space>|asdf` will jump after tab and shoudn't
           if pos[3] == 0 or string.sub(line, 0, pos[3]):match("^%s+$") then
             return false
           end

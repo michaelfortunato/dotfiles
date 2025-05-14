@@ -161,7 +161,8 @@ vim.MNF.new_integrated_terminal = function(cmd)
     create = true,
     shell = vim.o.shell,
     win = {
-      position = "bottom",
+      -- position = "bottom",
+      position = "float",
       height = 0.3,
       width = 0.4,
     },

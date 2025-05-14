@@ -216,7 +216,7 @@ map("x", "<Tab>", ">gv", { silent = true })
 map("x", "<S-Tab>", "<gv", { silent = true })
 
 del({ "n" }, "<C-/>")
-map("n", "<c-\\>", function()
+map("n", "<C-\\>", function()
   return vim.MNF.run_global_integrated_terminal()
 end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })

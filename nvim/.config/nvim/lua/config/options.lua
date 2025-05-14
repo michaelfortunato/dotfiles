@@ -11,7 +11,27 @@ vim.opt.relativenumber = false
 vim.g.snacks_animate = false
 
 --- "+y$
-vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
+--- vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
+if vim.env.SSH_TTY then
+  -- Check if we are on one of my own servers?
+  -- We're in SSH - use OSC52 for clipboard
+  -- NOTE: You need both
+  vim.opt.clipboard = "unnamedplus"
+  vim.g.clipboard = {
+    name = "OSC 52",
+    copy = {
+      ["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+    },
+    paste = {
+      ["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+      ["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+    },
+  }
+else
+  -- Local - use system clipboard
+  vim.opt.clipboard = "unnamedplus"
+end
 vim.o.exrc = true
 
 -- LazyVim root dir detection
