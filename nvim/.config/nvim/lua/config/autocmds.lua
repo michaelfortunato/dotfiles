@@ -54,6 +54,7 @@ end, {
 vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
   callback = function()
     vim.cmd("startinsert")
+    vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { buffer = true, desc = "Exit terminal mode" })
   end,
   pattern = { "term://*" },
   group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
