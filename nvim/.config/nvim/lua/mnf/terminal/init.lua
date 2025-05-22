@@ -391,11 +391,11 @@ function M.setup_keymaps()
   end, { desc = "Set/view global integrated terminal command" })
 
   -- Main toggle
-  vim.keymap.set("n", "<C-\\>", function()
-    M.run_global_integrated_terminal()
-  end, { desc = "Toggle integrated terminal" })
+  -- vim.keymap.set("n", "<C-\\>", function()
+  --   M.run_global_integrated_terminal()
+  -- end, { desc = "Toggle integrated terminal" })
 
-  vim.keymap.set("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide terminal" })
+  -- vim.keymap.set("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide terminal" })
 end
 
 function M.setup_autocmds()

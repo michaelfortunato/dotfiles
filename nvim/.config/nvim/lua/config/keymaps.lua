@@ -213,6 +213,16 @@ vim.keymap.set("t", "<C-j>", require("smart-splits").move_cursor_down)
 vim.keymap.set("t", "<C-k>", require("smart-splits").move_cursor_up)
 vim.keymap.set("t", "<C-l>", require("smart-splits").move_cursor_right)
 
+vim.keymap.set({ "n", "t" }, "<C-\\>", function()
+  Snacks.terminal.toggle(nil, {
+    win = {
+      position = "float",
+      height = 0.8,
+      width = 0.8,
+    },
+  })
+end, { desc = "Toggle floating terminal" })
+
 -- map("n", "<C-/>", function()
 --   Snacks.terminal(nil, { cwd = LazyVim.root() })
 -- end, { desc = "Terminal (Root Dir)" })
