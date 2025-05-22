@@ -169,36 +169,7 @@ vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 --- TODO: Sometimes the UI doesn't return
 
 -- Big if true
-map("n", ";;", "<Cmd>RunGlobalSystemTerminal<CR>", { desc = "Run command in globally dedicated system terminal split" })
-map("n", ";c", function()
-  return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
-    if input == nil or input == "" then
-      print(vim.MNF.get_global_system_terminal_command())
-    else
-      vim.MNF.set_global_system_terminal_command(input)
-    end
-    return
-  end)
-end, { desc = "Set vim.MNF.global_system_terminal_command" })
-
-map(
-  "n",
-  ",,",
-  "<Cmd>RunGlobalIntegratedTerminal<CR>",
-  { desc = "TODO: Run command in globally dedicated system terminal split" }
-)
-
-map("n", ",c", function()
-  return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
-    if input == nil or input == "" then
-      print(vim.MNF.get_global_system_terminal_command())
-    else
-      vim.MNF.set_global_system_terminal_command(input)
-    end
-    return
-  end)
-end, { desc = "Set vim.MNF.global_system_terminal_command" })
-
+-- map("n", ";;", "<Cmd>RunGlobalSystemTerminal<CR>", { desc = "Run command in globally dedicated system terminal split" })
 -- -- floating terminal add ctrl-\
 -- -- NOTE: This keymap is overridden by kitty
 -- -- As well as <C-/>, <C-;>
@@ -216,9 +187,6 @@ map("x", "<Tab>", ">gv", { silent = true })
 map("x", "<S-Tab>", "<gv", { silent = true })
 
 del({ "n" }, "<C-/>")
-map("n", "<C-\\>", function()
-  return vim.MNF.run_global_integrated_terminal()
-end, { desc = "Terminal (Root Dir)" })
 map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
 
 wk.add({
@@ -235,34 +203,6 @@ vim.keymap.set("n", "<leader>tmc", function()
     end
   end)
 end, { desc = "Set makeprg" })
-map("n", "<leader>tr", "<Cmd>RunGlobalSystemTerminal<CR>", { desc = "Run :Run" })
-vim.keymap.set("n", "<leader>trc", function()
-  return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
-    if input == nil or input == "" then
-      print(vim.MNF.get_global_system_terminal_command())
-    else
-      vim.MNF.set_global_system_terminal_command(input)
-    end
-    return
-  end)
-end, { desc = "Set vim.MNF.global_system_terminal_command" })
-map("n", "<leader>tir", "<Cmd>RunGlobalIntegratedTerminal<CR>", { desc = "Run :Run" })
-vim.keymap.set(
-  "n",
-  "<leader>tic",
-  function()
-    return ui_input({ prompt = "Set vim.MNF.global_system_terminal_command" }, function(input)
-      if input == nil or input == "" then
-        print(vim.MNF.get_global_integrated_terminal_command())
-      else
-        vim.MNF.set_global_integrated_terminal_command(input)
-      end
-      return
-    end)
-  end,
-  ---
-  { desc = "Set vim.MNF.global_integrated_terminal_command" }
-)
 
 map("n", "<leader>sp", function()
   Snacks.picker.grep({ rtp = true })
