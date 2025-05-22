@@ -138,7 +138,7 @@ export BIBINPUTS=$MNF_BIB_DIR
 export PATH=$PATH:$MNF_BIN_DIR
 if [[ $MNF_OS != "Darwin" ]]; then
   export PATH=/usr/local/cuda-12.8/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH="/usr/local/cuda-12.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+  export LD_LIBRARY_PATH="/usr/local/cuda-12.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 fi
 ###############################
 
