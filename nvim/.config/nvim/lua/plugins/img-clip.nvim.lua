@@ -13,7 +13,7 @@ return {
     -- or leave it empty to use the default settings
     filetypes = {
       typst = {
-        template = [[image("$FILE_PATH", width: 80%)]], ---@type string | fun(context: table): string
+        template = [[image("assets/$FILE_NAME", width: 80%)]], ---@type string | fun(context: table): string
       },
     },
   },
