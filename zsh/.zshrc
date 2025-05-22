@@ -205,16 +205,7 @@ function y() {
 
 lst() {
   #FIXME: `lst -a` does not work
-  file=""
-  rest=("")
-  args=("$@")
-  if [[ ${#} -gt 0 ]] then;
-    file="${args[@]: -1:1}"
-    rest="${args[@]:0:(($# -1))}"
-    ls ${rest[@]} ${MNF_TEMPLATE_DIR}/${file}
-  else
-    ls ${MNF_TEMPLATE_DIR}
-  fi
+  (cd "$MNF_TEMPLATE_DIR" && ls "$@")
 }
 
 cpt() {
