@@ -36,8 +36,23 @@ return {
     },
   },
   {
+    "declancm/maximize.nvim",
+    config = true,
+    keys = {
+      {
+
+        -- change a keymap
+        mode = { "n" },
+        "<leader>wm",
+        "<cmd>Maximize<cr>",
+        desc = "Toggle Maximize",
+      },
+    },
+  },
+  {
     "nvim-lualine/lualine.nvim",
-    dependencies = { "LazyVim/LazyVim" },
+    -- TODO: Add maximize status to the lualine
+    dependencies = { "LazyVim/LazyVim", "declann/maximize.nvim" },
     event = "VeryLazy",
     opts = function(_, opts)
       -- Get current colorscheme
