@@ -79,6 +79,7 @@ return {
       },
       formatters = {
         typstyle = {
+          --- Note that for 0.13.7 --line-width will replace --column
           prepend_args = { "--wrap-text", "--column", "79" },
         },
       },
