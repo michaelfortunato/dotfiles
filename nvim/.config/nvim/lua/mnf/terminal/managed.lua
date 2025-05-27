@@ -184,7 +184,7 @@ function M.toggle_layout()
     vim.api.nvim_win_close(M.terminal_state.win, false)
   end
   -- Open new one
-  M.terminal_state.create_window(buf, "Terminal " .. M.terminal_state.current .. " ")
+  M.terminal_state.win = M.terminal_state.create_window(buf, "Terminal " .. M.terminal_state.current .. " ")
   vim.cmd("startinsert")
 end
 
