@@ -161,6 +161,7 @@ function M.toggle_terminal(id)
 end
 
 -- Toggle layout with smooth transition
+-- TODO: Make this cycle layout instead
 function M.toggle_layout()
   if M.terminal_state.layout == "floating" then
     M.terminal_state.layout = "split"
@@ -188,21 +189,56 @@ function M.toggle_layout()
   vim.cmd("startinsert")
 end
 
+-- Helper function for visual selection
+local function get_visual_selection_text()
+  local _, srow, scol = unpack(vim.fn.getpos("v"))
+  local _, erow, ecol = unpack(vim.fn.getpos("."))
+
+  if vim.fn.mode() == "V" then
+    if srow > erow then
+      return vim.api.nvim_buf_get_lines(0, erow - 1, srow, true)
+    else
+      return vim.api.nvim_buf_get_lines(0, srow - 1, erow, true)
+    end
+  elseif vim.fn.mode() == "v" then
+    if srow < erow or (srow == erow and scol <= ecol) then
+      return vim.api.nvim_buf_get_text(0, srow - 1, scol - 1, erow - 1, ecol, {})
+    else
+      return vim.api.nvim_buf_get_text(0, erow - 1, ecol - 1, srow - 1, scol, {})
+    end
+  elseif vim.fn.mode() == "\22" then
+    local lines = {}
+    if srow > erow then
+      srow, erow = erow, srow
+    end
+    if scol > ecol then
+      scol, ecol = ecol, scol
+    end
+    for i = srow, erow do
+      table.insert(
+        lines,
+        vim.api.nvim_buf_get_text(0, i - 1, math.min(scol - 1, ecol), i - 1, math.max(scol - 1, ecol), {})[1]
+      )
+    end
+    return lines
+  end
+end
+
 -- Send visual selection to terminal
 function M.send_to_terminal(id)
   -- Get visual selection
-  local start_line = vim.fn.line("'<")
-  local end_line = vim.fn.line("'>")
-  local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+  local lines = get_visual_selection_text()
 
   -- Join lines and add newline
   local text = table.concat(lines, "\n") .. "\n"
-
+  -- for python 3.13 repl
+  -- TODO: Probably want to make this more extensible
+  local bracketed_text = "\027[200~" .. text .. "\027[201~\n"
   -- Get or create terminal buffer
   local buf = get_or_create_terminal_buffer(id)
 
   -- Send text to terminal
-  vim.api.nvim_chan_send(vim.bo[buf].channel, text)
+  vim.api.nvim_chan_send(vim.bo[buf].channel, bracketed_text)
 
   -- Optional: open terminal to see result
   -- if not (M.terminal_state.current == id and M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win)) then
