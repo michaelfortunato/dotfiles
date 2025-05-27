@@ -23,7 +23,7 @@ local function create_floating_window(buf, title)
       { "╰", "FloatBorder" },
       { "│", "FloatBorder" },
     },
-    title = { { " Terminal " .. (title or "") .. " ", "TerminalTitle" } },
+    title = { { title, "TerminalTitle" } },
     title_pos = "center",
     noautocmd = true,
   }

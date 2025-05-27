@@ -1,4 +1,5 @@
 -- lua/plugins/mnf.lua (with optional configuration)
+local last_used_term = 1
 return {
   name = "mnf.terminal",
   dir = vim.fn.stdpath("config"),
@@ -21,7 +22,7 @@ return {
       ";;",
       function()
         local mnf_terminal = require("mnf.terminal.managed")
-        mnf_terminal.toggle_terminal(mnf_terminal.terminal_state.current or 1)
+        mnf_terminal.toggle_terminal(last_used_term)
       end,
       mode = { "n", "t" },
       desc = "Toggle Terminal",
@@ -31,6 +32,7 @@ return {
       function()
         local mnf_terminal = require("mnf.terminal.managed")
         mnf_terminal.toggle_terminal(1)
+        last_used_term = 1
       end,
       mode = { "n", "t" },
       desc = "Toggle Terminal 1",
@@ -40,6 +42,7 @@ return {
       function()
         local mnf_terminal = require("mnf.terminal.managed")
         mnf_terminal.toggle_terminal(2)
+        last_used_term = 2
       end,
       mode = { "n", "t" },
       desc = "Toggle Terminal 2",
@@ -49,6 +52,7 @@ return {
       function()
         local mnf_terminal = require("mnf.terminal.managed")
         mnf_terminal.toggle_terminal(3)
+        last_used_term = 3
       end,
       mode = { "n", "t" },
       desc = "Toggle Terminal 3",
