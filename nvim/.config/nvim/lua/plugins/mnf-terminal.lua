@@ -33,7 +33,7 @@ return {
         mnf_terminal.toggle_terminal(1)
       end,
       mode = { "n", "t" },
-      desc = "Toggle Terminal",
+      desc = "Toggle Terminal 1",
     },
     {
       ";2",
