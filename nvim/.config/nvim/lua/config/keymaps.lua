@@ -94,6 +94,10 @@ wk.add({
   { "<leader>m", group = "personal" }, -- group
 })
 
+-- HACK: This lets my mnf-terminal register the ';' prefix with which-key
+-- so I get a preview
+-- because otherwise it will conflict with mini.ai or something like that
+-- @see ../plugins/mnf-terminal.lua
 del("n", ";")
 
 local exrc_helper = require("config.exrc-helper")
