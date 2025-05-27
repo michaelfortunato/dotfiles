@@ -40,6 +40,26 @@ local function create_floating_window(buf, title)
   return win
 end
 
+local function create_vsplit_window(buf, title)
+  local config = {
+    width = math.floor(vim.o.columns * 0.5),
+    split = "right",
+  }
+
+  local win = vim.api.nvim_open_win(buf, true, config)
+
+  -- Set split window options (same as horizontal split)
+  vim.wo[win].winhighlight = "Normal:Normal"
+  vim.wo[win].wrap = false
+  vim.wo[win].number = false
+  vim.wo[win].relativenumber = false
+  vim.wo[win].signcolumn = "no"
+  vim.wo[win].foldcolumn = "0"
+  vim.wo[win].colorcolumn = ""
+
+  return win
+end
+
 local function create_split_window(buf, title)
   local config = {
     height = math.floor(vim.o.lines * 0.3),
@@ -98,6 +118,7 @@ end
 M.layout_functions = {
   floating = create_floating_window,
   split = create_split_window,
+  vsplit = create_vsplit_window,
   -- You can add cross-references like this:
   -- bottom = function(...) return M.layout_functions.split(...) end,
 }
@@ -166,6 +187,11 @@ function M.toggle_layout()
   if M.terminal_state.layout == "floating" then
     M.terminal_state.layout = "split"
     vim.notify("Terminal: horizontal", vim.log.levels.INFO, { title = "Layout" })
+  elseif M.terminal_state.layout == "split" then
+    -- In this case consider serializing the M.layout_functions[bottom] variant!
+    -- If you do not want the toggle to destory the prior layout
+    M.terminal_state.layout = "vsplit"
+    vim.notify("Terminal: vertical", vim.log.levels.INFO, { title = "Layout" })
   else
     -- In this case consider serializing the M.layout_functions[bottom] variant!
     -- If you do not want the toggle to destory the prior layout
