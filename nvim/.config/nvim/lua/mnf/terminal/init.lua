@@ -443,9 +443,9 @@ function M.setup(opts)
   -- end
 
   -- Setup all functionality
-  M.setup_commands()
-  M.setup_keymaps()
-  M.setup_autocmds()
+  -- M.setup_commands()
+  -- M.setup_keymaps()
+  -- M.setup_autocmds()
 
   -- vim.notify("MNF Terminal plugin loaded", vim.log.levels.INFO)
 end

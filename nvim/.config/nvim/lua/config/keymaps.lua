@@ -51,25 +51,26 @@ del("n", "<leader><tab>[", { desc = "Previous Tab" })
 map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Other Buffer" })
 
 --- kitty splits
-map("n", "<C-h>", require("smart-splits").move_cursor_left)
-map("n", "<C-j>", require("smart-splits").move_cursor_down)
-map("n", "<C-k>", require("smart-splits").move_cursor_up)
-map("n", "<C-l>", require("smart-splits").move_cursor_right)
+map({ "n", "t" }, "<C-h>", require("smart-splits").move_cursor_left)
+map({ "n", "t" }, "<C-j>", require("smart-splits").move_cursor_down)
+map({ "n", "t" }, "<C-k>", require("smart-splits").move_cursor_up)
+map({ "n", "t" }, "<C-l>", require("smart-splits").move_cursor_right)
 
-del({ "n" }, ";") --NOTE: This makes it hard to use else where, but makes sure which key comes up
-map({ "n" }, ";1", function()
+-- Terminal state
+del({ "n" }, "'") --NOTE: This makes it hard to use else where, but makes sure which key comes up
+map({ "n" }, "'1", function()
   ---@diagnostic disable-next-line: missing-fields
   Snacks.scratch.open({ ft = "lua" })
-end, { desc = "Open Scratch Lua Buffer" })
-map({ "n" }, ";2", function()
+end, { silent = true, desc = "Open Scratch Lua Buffer" })
+map({ "n" }, "'2", function()
   ---@diagnostic disable-next-line: missing-fields
   Snacks.scratch.open({ ft = "python" })
 end, { desc = "Open Scratch Python Buffer" })
-map({ "n" }, ";3", function()
+map({ "n" }, "'3", function()
   ---@diagnostic disable-next-line: missing-fields
   Snacks.scratch.open({ ft = "typst" })
 end, { desc = "Open Scratch Typst Buffer" })
-map({ "n" }, ";<Tab>", function()
+map({ "n" }, "'<Tab>", function()
   local buf_list = Snacks.scratch.list()
   if #buf_list < 2 then
     ui_notify("No previous scratch buffer for which to switch.")
@@ -80,7 +81,7 @@ map({ "n" }, ";<Tab>", function()
   Snacks.scratch.open({ ft = buf.ft, name = buf.name, file = buf.file, icon = buf.icon })
 end, { desc = "Previous Scratch Buffer" })
 
-map({ "n" }, ";l", function()
+map({ "n" }, "'l", function()
   Snacks.scratch.select()
 end, { desc = "Open Scratch Buffer Picker" })
 
@@ -92,6 +93,8 @@ local wk = require("which-key")
 wk.add({
   { "<leader>m", group = "personal" }, -- group
 })
+
+del("n", ";")
 
 local exrc_helper = require("config.exrc-helper")
 local template = exrc_helper.template
@@ -186,9 +189,6 @@ vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 map("x", "<Tab>", ">gv", { silent = true })
 map("x", "<S-Tab>", "<gv", { silent = true })
 
-del({ "n" }, "<C-/>")
-map("t", "<C-\\>", "<cmd>close<cr>", { desc = "Hide Terminal" })
-
 wk.add({
   { "<leader>t", group = "Task" }, -- group
 })
@@ -212,16 +212,6 @@ vim.keymap.set("t", "<C-h>", require("smart-splits").move_cursor_left)
 vim.keymap.set("t", "<C-j>", require("smart-splits").move_cursor_down)
 vim.keymap.set("t", "<C-k>", require("smart-splits").move_cursor_up)
 vim.keymap.set("t", "<C-l>", require("smart-splits").move_cursor_right)
-
-vim.keymap.set({ "n", "t" }, "<C-\\>", function()
-  Snacks.terminal.toggle(nil, {
-    win = {
-      position = "float",
-      height = 0.8,
-      width = 0.8,
-    },
-  })
-end, { desc = "Toggle floating terminal" })
 
 -- map("n", "<C-/>", function()
 --   Snacks.terminal(nil, { cwd = LazyVim.root() })
