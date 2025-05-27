@@ -188,4 +188,26 @@ function M.toggle_layout()
   vim.cmd("startinsert")
 end
 
+-- Send visual selection to terminal
+function M.send_to_terminal(id)
+  -- Get visual selection
+  local start_line = vim.fn.line("'<")
+  local end_line = vim.fn.line("'>")
+  local lines = vim.api.nvim_buf_get_lines(0, start_line - 1, end_line, false)
+
+  -- Join lines and add newline
+  local text = table.concat(lines, "\n") .. "\n"
+
+  -- Get or create terminal buffer
+  local buf = get_or_create_terminal_buffer(id)
+
+  -- Send text to terminal
+  vim.api.nvim_chan_send(vim.bo[buf].channel, text)
+
+  -- Optional: open terminal to see result
+  -- if not (M.terminal_state.current == id and M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win)) then
+  --   M.toggle_terminal(id)
+  -- end
+end
+
 return M

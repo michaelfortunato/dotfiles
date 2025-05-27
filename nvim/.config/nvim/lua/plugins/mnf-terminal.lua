@@ -4,67 +4,24 @@ return {
   name = "mnf.terminal",
   dir = vim.fn.stdpath("config"),
   main = "mnf.terminal", -- This tells lazy.nvim which module to call
-  -- config = function()
-  --   require("mnf.terminal").setup({
-  --     -- You could add default commands here if you implement that feature
-  --     -- default_system_command = "npm run dev",
-  --     -- default_integrated_command = "python3",
-  --   })
-  -- end,
+  config = function()
+    local mnf_terminal = require("mnf.terminal.managed")
+    for i = 1, 3 do
+      vim.keymap.set({ "n", "t" }, ";" .. i, function()
+        mnf_terminal.toggle_terminal(i)
+        last_used_term = i
+      end, { desc = "Toggle Terminal" .. i })
+      vim.keymap.set({ "v" }, ";" .. i, function()
+        mnf_terminal.send_to_terminal(i)
+      end, { desc = "Send To Terminal" .. i })
+    end
+    vim.keymap.set({ "n", "t" }, ";;", function()
+      mnf_terminal.toggle_terminal(last_used_term)
+    end, { desc = "Toggle Terminal" })
+    vim.keymap.set({ "n", "t" }, ";f", function()
+      mnf_terminal.toggle_layout()
+    end, { desc = "Toggle Terminal Layout" })
+  end,
   opts = {},
-  dependencies = {
-    "folke/snacks.nvim",
-  },
   lazy = false,
-  ---@type LazyKeysSpec[]
-  keys = {
-    {
-      ";;",
-      function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        mnf_terminal.toggle_terminal(last_used_term)
-      end,
-      mode = { "n", "t" },
-      desc = "Toggle Terminal",
-    },
-    {
-      ";1",
-      function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        mnf_terminal.toggle_terminal(1)
-        last_used_term = 1
-      end,
-      mode = { "n", "t" },
-      desc = "Toggle Terminal 1",
-    },
-    {
-      ";2",
-      function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        mnf_terminal.toggle_terminal(2)
-        last_used_term = 2
-      end,
-      mode = { "n", "t" },
-      desc = "Toggle Terminal 2",
-    },
-    {
-      ";3",
-      function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        mnf_terminal.toggle_terminal(3)
-        last_used_term = 3
-      end,
-      mode = { "n", "t" },
-      desc = "Toggle Terminal 3",
-    },
-    {
-      ";f",
-      function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        mnf_terminal.toggle_layout()
-      end,
-      mode = { "n", "t" },
-      desc = "Toggle Terminal Layout",
-    },
-  },
 }
