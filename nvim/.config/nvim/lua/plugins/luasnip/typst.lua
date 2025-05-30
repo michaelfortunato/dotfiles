@@ -260,6 +260,15 @@ local generate_cases = function(args, snip)
   return sn(nil, nodes)
 end
 
+---@param s string
+local function sanitize_label(s)
+  -- FIXME: caller does not work if you invoke a snippet, not this functions
+  -- issue but still should be addressed
+  -- I believe this is because we use the first node as the argument
+  -- but that id is not stable if we add a snippet while typing the name.
+  return s:gsub("%s", "-"):gsub("%$", ""):gsub(">", ""):gsub("<", "")
+end
+
 return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
@@ -983,6 +992,8 @@ $<>]],
   --     { condition = trigger_does_not_follow_alpha_char }
   --   ),
   --- Enter inline mathmode quickly
+  --- TODO: It would be nice if in the case $x_(|)$, a single tab and not
+  --- double moved the cursor to $x_()$|
   s(
     { trig = "mm", wordtrig = false, snippetType = "autosnippet" },
     fmta([[$<>$<>]], {
@@ -1097,7 +1108,7 @@ $<>]],
 <>]],
       {
         iv(1),
-        l(l._1:gsub("%s", "-"), 1),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
@@ -1111,7 +1122,7 @@ $<>]],
 <>]],
       {
         iv(1),
-        l(l._1:gsub("%s", "-"), 1),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
@@ -1125,7 +1136,7 @@ $<>]],
 <>]],
       {
         iv(1),
-        l(l._1:gsub("%s", "-"), 1),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
@@ -1145,7 +1156,7 @@ $<>]],
 <>]],
       {
         iv(1),
-        l(l._1:gsub("%s", "-"), 1),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
@@ -1336,88 +1347,42 @@ $<>]],
     ),
     { condition = line_begin }
   ),
-  --- begin theorem
-  s(
-    { trig = "bte", regTrig = true, snippetType = "autosnippet" },
-    fmta(
-      [[
-        #theorem[
-<>
-]<>
-      ]],
-      {
-        d(1, get_visual),
-        i(0),
-      }
-    ),
-    { condition = line_begin }
-  ),
-  --- begin lemma
-  s(
-    { trig = "ble", snippetType = "autosnippet" },
-    fmta(
-      [[
-        #lemma[
-<>
-]<>
-      ]],
-      {
-        d(1, get_visual),
-        i(0),
-      }
-    ),
-    { condition = line_begin }
-  ),
-  --- begin definition
-  s(
-    { trig = "bde", regTrig = true, snippetType = "autosnippet" },
-    fmta(
-      [[
-#definition(name:[<>])[
-<>
-]<<def:<>>>
-<>]],
-      {
-        i(1),
-        iv(2),
-        rep(1),
-        i(0),
-      }
-    ),
-    { condition = line_begin }
-  ),
   s(
     { trig = "#[rR][eE][mM][aA][rR][kK]", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
 #remark(name: [<>])[
 <>
-]<>
+]<<rmk:<>>><>
       ]],
       {
         i(1),
         iv(2),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
     { condition = line_begin }
   ),
+  -- TODO: Alias this with bte
   s(
     { trig = "#[tT][hH][eE][oO][rR][eE][mM]", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
 #theorem(name: [<>])[
 <>
-]<>
+]<<thrm:<>>><>
       ]],
       {
         i(1),
         iv(2),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
     { condition = line_begin }
   ),
+  --TODO: alias this with `bde`
   s(
     { trig = "#[dD][eE][fF][iI][nN][iI][tT][iI][oO][nN]", regTrig = true, snippetType = "autosnippet" },
     fmta(
@@ -1429,7 +1394,7 @@ $<>]],
       {
         i(1),
         iv(2),
-        l(l._1:gsub("%s", "-"), 1),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
@@ -1441,11 +1406,12 @@ $<>]],
       [[
 #example(name: [<>])[
 <>
-]<>
+]<<example:<>>><>
       ]],
       {
         i(1),
         iv(2),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
     ),
@@ -1457,41 +1423,14 @@ $<>]],
       [[
 #proof(name: [<>])[
 <>
-]<>
+]<<proof:<>>><>
       ]],
       {
         i(1),
         iv(2),
+        l(sanitize_label(l._1), 1),
         i(0),
       }
-    ),
-    { condition = line_begin }
-  ),
-  -- begin PROOF
-  s(
-    { trig = "bpr", regTrig = true, snippetType = "autosnippet" },
-    fmta(
-      [[
-        #proof[
-<>
-]<>
-      ]],
-      {
-        d(1, get_visual),
-        i(0),
-      }
-    ),
-    { condition = line_begin }
-  ),
-  -- begin REMARK
-  s(
-    { trig = "cmd", snippetType = "autosnippet" },
-    fmta(
-      [[
-      % MNF: newcommand, usage \newcommand{hi}[numparams][defaultvalue]{#1 + #2}
-      TODO 
-      ]],
-      {}
     ),
     { condition = line_begin }
   ),

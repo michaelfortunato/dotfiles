@@ -22,6 +22,7 @@ return {
         end,
         desc = "Goto Implementation",
       }
+      keys[#keys + 1] = { "K", false }
     end,
     ---@class PluginLspOpts
     opts = {
