@@ -21,6 +21,12 @@ return {
     vim.keymap.set({ "n", "t" }, ";f", function()
       mnf_terminal.toggle_layout()
     end, { desc = "Toggle Terminal Layout" })
+    vim.keymap.set({ "n", "t" }, ";l", function()
+      mnf_terminal.pick_terminal(function(id)
+        mnf_terminal.toggle_terminal(id)
+        last_used_term = id
+      end)
+    end, { desc = "Toggle Terminal Layout" })
   end,
   opts = {},
   lazy = false,

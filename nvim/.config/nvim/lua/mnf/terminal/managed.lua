@@ -272,4 +272,39 @@ function M.send_to_terminal(id)
   -- end
 end
 
+-- Terminal picker function
+--- @param callback function(int)
+function M.pick_terminal(callback)
+  local items = {}
+  -- Collect all terminal buffers and their info
+  for id, buf in pairs(M.terminal_state.buffers) do
+    if vim.api.nvim_buf_is_valid(buf) then
+      local last_line = "TODO"
+      local is_current = (M.terminal_state.current == id) and "● " or "  "
+      local display = string.format("%sTerminal %s: %s", is_current, id, last_line)
+
+      table.insert(items, { display = display, id = id })
+    end
+  end
+
+  -- If no terminals exist, create a default option
+  if #items == 0 then
+    items = { { display = "  Terminal 1: New terminal", id = 1 } }
+  end
+
+  -- Show picker
+  vim.ui.select(items, {
+    prompt = "Select Terminal:",
+    format_item = function(item)
+      return item.display
+    end,
+  }, function(choice)
+    if choice then
+      -- Toggle to selected terminal (even if it's current - will just close/reopen)
+      -- NOTE: If current terminal is selected, it will close then reopen
+      callback(choice.id)
+    end
+  end)
+end
+
 return M
