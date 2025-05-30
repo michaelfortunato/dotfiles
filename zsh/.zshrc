@@ -97,6 +97,13 @@ source $ZSH/oh-my-zsh.sh
 # keybindings to be like bash
 ## ^U in bash is ^W on zsh, I want to stick with bash
 bindkey \^U backward-kill-line
+## NOTE: This is needed to work in neovim's integrated terminal with zsh.
+## I confirmed that cat -v is sending \x1b[1;3C in both terminals
+## so I really think the problem is zsh, anyway this works
+bindkey "^[[1;3C" forward-word      # ALT-RIGHT
+bindkey "^[[1;3D" backward-word     # ALT-LEFT
+bindkey "^[[1;3A" up-line-or-history    # ALT-UP
+bindkey "^[[1;3B" down-line-or-history  # ALT-DOWN
 
 # User configuration
 
