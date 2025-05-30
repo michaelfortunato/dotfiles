@@ -128,8 +128,8 @@ M.terminal_state = {
   win = nil,
   buffers = {},
   current = nil,
-  layout = "floating",
-  create_window = create_floating_window,
+  layout = "vsplit",
+  create_window = create_vsplit_window,
 }
 
 -- Get or create terminal buffer
@@ -186,17 +186,17 @@ end
 function M.toggle_layout()
   if M.terminal_state.layout == "floating" then
     M.terminal_state.layout = "split"
-    vim.notify("Terminal: horizontal", vim.log.levels.INFO, { title = "Layout" })
+    --vim.notify("Terminal: horizontal", vim.log.levels.DEBUG, { title = "Layout" })
   elseif M.terminal_state.layout == "split" then
     -- In this case consider serializing the M.layout_functions[bottom] variant!
     -- If you do not want the toggle to destory the prior layout
     M.terminal_state.layout = "vsplit"
-    vim.notify("Terminal: vertical", vim.log.levels.INFO, { title = "Layout" })
+    -- vim.notify("Terminal: vertical", vim.log.levels.DEBUG, { title = "Layout" })
   else
     -- In this case consider serializing the M.layout_functions[bottom] variant!
     -- If you do not want the toggle to destory the prior layout
     M.terminal_state.layout = "floating"
-    vim.notify("Terminal: floating", vim.log.levels.INFO, { title = "Layout" })
+    -- vim.notify("Terminal: floating", vim.log.levels.DEBUG, { title = "Layout" })
   end
   M.terminal_state.create_window = M.layout_functions[M.terminal_state.layout]
   -- Path 1 if the terminal is closed no need to do anything else
