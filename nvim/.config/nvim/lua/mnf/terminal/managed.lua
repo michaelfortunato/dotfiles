@@ -144,6 +144,7 @@ local function get_or_create_terminal_buffer(id)
 
     -- Create terminal in buffer
     vim.api.nvim_buf_call(buf, function()
+      vim.opt_local.spell = false
       vim.cmd("terminal")
     end)
   end
