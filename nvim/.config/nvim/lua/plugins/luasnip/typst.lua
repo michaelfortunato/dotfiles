@@ -266,7 +266,14 @@ local function sanitize_label(s)
   -- issue but still should be addressed
   -- I believe this is because we use the first node as the argument
   -- but that id is not stable if we add a snippet while typing the name.
-  return s:gsub("%s", "-"):gsub("%$", ""):gsub(">", ""):gsub("<", "")
+  return s:gsub("%s", "-")
+    :gsub("%$", "")
+    :gsub(">", "")
+    :gsub("<", "")
+    :gsub("%?", "")
+    :gsub("%(", "")
+    :gsub("%)", "")
+    :gsub("%^", "")
 end
 
 return {
@@ -867,47 +874,6 @@ supplement: <>,
     i(0),
   }, { condition = in_mathzone }),
   --- common math commands, notice wordTrig=true
-  s(
-    { trig = "##c", snippetType = "autosnippet" },
-    fmta([[#cite(<>)<>]], {
-      d(1, get_visual),
-      i(0),
-    })
-  ),
-  s(
-    { trig = "##l", snippetType = "autosnippet" },
-    fmta([[#label("<>")<>]], {
-      d(1, get_visual),
-      i(0),
-    })
-  ),
-  s(
-    { trig = "lbl", snippetType = "autosnippet" },
-    fmta([[#label(<>)<>]], {
-      d(1, get_visual),
-      i(0),
-    })
-  ),
-  s(
-    { trig = "##e", snippetType = "autosnippet" },
-    fmta([[@<>]], {
-      d(1, get_visual),
-    })
-  ),
-  s(
-    { trig = "##r", snippetType = "autosnippet" },
-    fmta([[@<>]], {
-      d(1, get_visual),
-    })
-  ),
-  s(
-    { trig = "bxd", wordTrig = false, snippetType = "autosnippet" },
-    fmta([[\boxed{<>}<>]], {
-      d(1, get_visual),
-      i(0),
-    }),
-    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
   -- NOTE: Typst is the same!
   -- s(
   --   { trig = "exists", wordTrig = false, snippetType = "autosnippet" },
