@@ -429,17 +429,6 @@ supplement: <>,
     ),
     { condition = line_begin }
   ),
-  -- SUBSCRIPT
-  -- s(
-  --   { trig = "([%w%)%]%}|])ss", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-  --   fmta("<>_(<>)", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     d(1, get_visual),
-  --   }),
-  --   { condition = in_mathzone }
-  -- ),
   s(
     {
       trig = "([%w%)%]%}|])jj",
@@ -456,19 +445,6 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
-  -- s(
-  --   { trig = "([%w%)%]%}|])s([ijknmt])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-  --   fmta("<>_(<>)<>", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     f(function(_, snip)
-  --       return snip.captures[2]
-  --     end),
-  --     i(0),
-  --   }),
-  --   { condition = in_mathzone }
-  -- ),
   s(
     {
       trig = "([%w%)%]%}|])j([ijknmtvd])",
@@ -488,21 +464,6 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
-  -- SUBSCRIPT
-  -- s(
-  --   { trig = "([%w%)%]%}|])s(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-  --   fmta("<>_(<>)<>", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     f(function(_, snip)
-  --       return snip.captures[2]
-  --     end),
-  --     i(0),
-  --   }),
-  --   { condition = in_mathzone }
-  -- ),
-  -- SUBSCRIPT
   s(
     { trig = "([%w%)%]%}|])j(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>_(<>)<>", {
@@ -532,18 +493,6 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
-  -- -- SUPERSCRIPT
-  -- s(
-  --   { trig = "([%w%)%]%}%|])aa", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-  --   fmta("<>^(<>)<>", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     d(1, get_visual),
-  --     i(0),
-  --   }),
-  --   { condition = in_mathzone }
-  -- ),
   s(
     { trig = "([%w%)%]%}|])kk", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^(<>)", {
@@ -554,19 +503,6 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
-  -- s(
-  --   { trig = "([%w%)%]%}|])a(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-  --   fmta("<>^(<>)<>", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     f(function(_, snip)
-  --       return snip.captures[2]
-  --     end),
-  --     i(0),
-  --   }),
-  --   { condition = in_mathzone }
-  -- ),
   s(
     { trig = "([%w%)%]%}|])k(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^(<>)<>", {
@@ -580,20 +516,6 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
-  --- TODO: Conflicts with mat no t then
-  -- s(
-  --   { trig = "([%w%)%]%}|])a([ijknm])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
-  --   fmta("<>^(<>)<>", {
-  --     f(function(_, snip)
-  --       return snip.captures[1]
-  --     end),
-  --     f(function(_, snip)
-  --       return snip.captures[2]
-  --     end),
-  --     i(0),
-  --   }),
-  --   { condition = in_mathzone }
-  -- ),
   s(
     { trig = "([%w%)%]%}|])k([ijknmtvd])", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>^(<>)<>", {
