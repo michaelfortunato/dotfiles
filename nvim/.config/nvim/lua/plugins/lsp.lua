@@ -1,5 +1,13 @@
 --- Includes lsp, linting, and formatter configurations
 vim.lsp.set_log_level("ERROR")
+vim.diagnostic.config({
+  virtual_text = {
+    source = true, -- or "if_many"
+  },
+  float = {
+    source = true,
+  },
+})
 return {
   {
     -- LSP Configuration, note that some LSPs do formatting. It is
@@ -30,6 +38,13 @@ return {
       inlay_hints = { enabled = false },
       servers = {
         texlab = {
+          settings = {
+            texlab = {
+              diagnostics = {
+                ignoredPatterns = { "Unused label" },
+              },
+            },
+          },
           --  keys = {
           --    { "<Leader>K", "<plug>(vimtex-doc-package)", desc = "Vimtex Docs", silent = true },
           --    -- Override [[ goto reference
@@ -77,11 +92,15 @@ return {
     opts = {
       formatters_by_ft = {
         typst = { "typstyle" },
+        tex = { "tex-fmt" },
       },
       formatters = {
         typstyle = {
           --- Note that for 0.13.7 --line-width will replace --column
           prepend_args = { "--wrap-text", "--column", "79" },
+        },
+        ["tex-fmt"] = {
+          prepend_args = { "--wraplen", "79" },
         },
       },
     },

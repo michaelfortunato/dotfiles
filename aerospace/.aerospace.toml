@@ -289,6 +289,11 @@ run = 'layout floating'
 if.app-id = 'com.openai.chat'
 run = 'layout floating'
 
+[[on-window-detected]]
+if.app-id = 'org.python.python'
+run = 'layout floating'
+
+
 
 [workspace-to-monitor-force-assignment]
 S = '^Sidecar.*'
