@@ -2,6 +2,13 @@
 -- pcall(vim.keymap.del({ "i", "s" }, "<Tab>"))
 vim.g.mnf_auto_show_comp_menu = false
 vim.g.mnf_auto_show_ghost_text = false
+
+vim.keymap.set({ "i", "s" }, "<C-L>", function()
+  local ls = require("luasnip")
+  if ls.choice_active() then
+    ls.change_choice(1)
+  end
+end, { silent = true })
 return {
   "saghen/blink.cmp",
   -- optional: provides snippets for the snippet source

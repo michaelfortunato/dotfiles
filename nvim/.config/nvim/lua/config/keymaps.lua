@@ -192,6 +192,8 @@ vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 -- apprently x makes it so that <Tab> does not done is select mode
 map("x", "<Tab>", ">gv", { silent = true })
 map("x", "<S-Tab>", "<gv", { silent = true })
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true }) -- Shift visual selected line down
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true }) -- Shift visual selected line up
 
 wk.add({
   { "<leader>t", group = "Task" }, -- group
