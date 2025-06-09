@@ -97,7 +97,7 @@ return {
       formatters = {
         typstyle = {
           --- Note that for 0.13.7 --line-width will replace --column
-          prepend_args = { "--wrap-text", "--column", "79" },
+          prepend_args = { "--wrap-text", "--line-width", "79" },
         },
         ["tex-fmt"] = {
           prepend_args = { "--wraplen", "79" },
