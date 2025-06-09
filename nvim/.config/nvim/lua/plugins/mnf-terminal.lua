@@ -27,6 +27,12 @@ return {
         last_used_term = id
       end)
     end, { desc = "Toggle Terminal Layout" })
+    vim.keymap.set({ "n" }, ";s", function()
+      mnf_terminal.send_to_terminal(last_used_term, "FILE")
+    end, { desc = "Send File To Current Terminal" })
+    vim.keymap.set({ "v" }, ";s", function()
+      mnf_terminal.send_to_terminal(last_used_term)
+    end, { desc = "Send File To Current Terminal" })
   end,
   opts = {},
   lazy = false,

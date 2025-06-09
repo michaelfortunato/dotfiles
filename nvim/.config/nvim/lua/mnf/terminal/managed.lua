@@ -251,10 +251,22 @@ local function get_visual_selection_text()
   end
 end
 
+-- Helper function to get entire buffer contents
+local function get_buffer_text()
+  return vim.api.nvim_buf_get_lines(0, 0, -1, true)
+end
 -- Send visual selection to terminal
-function M.send_to_terminal(id)
+function M.send_to_terminal(id, range)
   -- Get visual selection
-  local lines = get_visual_selection_text()
+  range = range or "VISUAL_SELECTION"
+  local lines
+  if range == "FILE" then
+    lines = get_buffer_text()
+  elseif range == "LINE" then
+    lines = get_visual_selection_text()
+  else
+    lines = get_visual_selection_text()
+  end
 
   -- Join lines and add newline
   local text = table.concat(lines, "\n") .. "\n"

@@ -51,13 +51,15 @@ del("n", "<leader><tab>[", { desc = "Previous Tab" })
 map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Other Buffer" })
 
 --- kitty splits
-map({ "n", "t" }, "<C-h>", require("smart-splits").move_cursor_left)
-map({ "n", "t" }, "<C-j>", require("smart-splits").move_cursor_down)
-map({ "n", "t" }, "<C-k>", require("smart-splits").move_cursor_up)
-map({ "n", "t" }, "<C-l>", require("smart-splits").move_cursor_right)
+map({ "n", "t", "v" }, "<C-h>", require("smart-splits").move_cursor_left)
+map({ "n", "t", "v" }, "<C-j>", require("smart-splits").move_cursor_down)
+map({ "n", "t", "v" }, "<C-k>", require("smart-splits").move_cursor_up)
+map({ "n", "t", "v" }, "<C-l>", require("smart-splits").move_cursor_right)
+
+map("n", "<C-q>", "<cmd>qa<cr>", { desc = "Quit All" })
 
 -- Terminal state
-del({ "n" }, "'") --NOTE: This makes it hard to use else where, but makes sure which key comes up
+-- del({ "n" }, "'") --NOTE: This makes it hard to use else where, but makes sure which key comes up
 map({ "n" }, "'1", function()
   ---@diagnostic disable-next-line: missing-fields
   Snacks.scratch.open({ ft = "lua" })
@@ -213,11 +215,6 @@ end, { desc = "Set makeprg" })
 map("n", "<leader>sp", function()
   Snacks.picker.grep({ rtp = true })
 end, { desc = "Grep RTP (3rd-Party Plugin) Directory" })
-
-vim.keymap.set("t", "<C-h>", require("smart-splits").move_cursor_left)
-vim.keymap.set("t", "<C-j>", require("smart-splits").move_cursor_down)
-vim.keymap.set("t", "<C-k>", require("smart-splits").move_cursor_up)
-vim.keymap.set("t", "<C-l>", require("smart-splits").move_cursor_right)
 
 -- map("n", "<C-/>", function()
 --   Snacks.terminal(nil, { cwd = LazyVim.root() })
