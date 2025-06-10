@@ -36,6 +36,7 @@
     background_jobs         # presence of background jobs
     dir                     # current directory
     vcs                     # git status
+    nvim_terminal    # neovim :terminal or not
     # =========================[ Line #2 ]=========================
     newline                 # \n
     # prompt_char           # prompt symbol
@@ -1759,6 +1760,20 @@
   # Custom prefix.
   # typeset -g POWERLEVEL9K_TIME_PREFIX='at '
 
+  # Neovim terminal prompt
+  function prompt_nvim_terminal() {
+    if [[ -n "$NVIM" ]]; then
+      p10k segment -i ''  -b 'green'
+      return
+    fi
+    return
+  }
+  function instant_prompt_nvim_terminal() {
+    # Since prompt_example always makes the same `p10k segment` calls, we can call it from
+    # instant_prompt_example. This will give us the same `example` prompt segment in the instant
+    # and regular prompts.
+    prompt_nvim_terminal
+  }
   # Example of a user-defined prompt segment. Function prompt_example will be called on every
   # prompt if `example` prompt segment is added to POWERLEVEL9K_LEFT_PROMPT_ELEMENTS or
   # POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS. It displays an icon and yellow text on red background
