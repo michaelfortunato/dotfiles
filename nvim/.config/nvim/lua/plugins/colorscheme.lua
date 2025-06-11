@@ -1,3 +1,6 @@
+local M = {
+  show_statusline = true,
+}
 return {
   ---  Install and/or configure the color scheme by uncommenting out the
   ---  object then set the LazyVim/LazyVim  = opts.colorscheme=<your-scheme>
@@ -98,5 +101,26 @@ return {
         opts.options.theme = custom_theme
       end
     end,
+    ---@type LazyKeysSpec[]
+    keys = {
+      {
+        "<leader>ua",
+        function()
+          M.show_statusline = not M.show_statusline
+          ---@diagnostic disable-next-line: missing-fields
+          require("lualine").hide({ unhide = M.show_statusline })
+          if M.show_statusline == false then
+            vim.opt.laststatus = 0
+            -- ref: https://github.com/neovim/neovim/issues/18965#issuecomment-1273195466
+            -- vim.opt.laststatus = 0
+            -- vim.api.nvim_set_hl(0 , 'Statusline', {link = 'Normal'})
+            -- vim.api.nvim_set_hl(0 , 'StatuslineNC', {link = 'Normal'})
+            -- local str = string.repeat('-', vim.api.nvim_win_get_width(0))
+            -- vim.opt.statusline = str
+          end
+        end,
+        desc = "Toggle Statusline",
+      },
+    },
   },
 }
