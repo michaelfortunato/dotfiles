@@ -1,4 +1,5 @@
 local M = {}
+M.input = Snacks.input.input or vim.ui.input
 -- Base layout creators
 local function create_floating_window(buf, title)
   local width = math.floor(vim.o.columns * 0.8)
@@ -130,6 +131,8 @@ M.terminal_state = {
   current = nil,
   layout = "vsplit",
   create_window = create_vsplit_window,
+  last_used_terminal = 1,
+  commands = {},
 }
 
 -- Get or create terminal buffer
@@ -153,6 +156,7 @@ end
 
 -- Toggle terminal
 function M.toggle_terminal(id)
+  M.terminal_state.last_used_terminal = id
   -- If same terminal is open, close it
   if M.terminal_state.current == id and M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
     serialize_and_create_closure()
@@ -255,6 +259,11 @@ end
 local function get_buffer_text()
   return vim.api.nvim_buf_get_lines(0, 0, -1, true)
 end
+
+function M.make_bracketed_paste(text)
+  local bracketed_text = "\027[200~" .. text .. "\027[201~\n"
+  return bracketed_text
+end
 -- Send visual selection to terminal
 function M.send_to_terminal(id, range)
   -- Get visual selection
@@ -272,17 +281,23 @@ function M.send_to_terminal(id, range)
   local text = table.concat(lines, "\n") .. "\n"
   -- for python 3.13 repl
   -- TODO: Probably want to make this more extensible
-  local bracketed_text = "\027[200~" .. text .. "\027[201~\n"
+  local bracketed_text = M.make_bracketed_paste(text)
   -- Get or create terminal buffer
-  local buf = get_or_create_terminal_buffer(id)
-
-  -- Send text to terminal
-  vim.api.nvim_chan_send(vim.bo[buf].channel, bracketed_text)
+  M.terminal_write(id, bracketed_text)
 
   -- Optional: open terminal to see result
   -- if not (M.terminal_state.current == id and M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win)) then
   --   M.toggle_terminal(id)
   -- end
+end
+
+---@param id integer
+---@param text string
+function M.terminal_write(id, text)
+  local buf = get_or_create_terminal_buffer(id)
+
+  -- Send text to terminal
+  vim.api.nvim_chan_send(vim.bo[buf].channel, text)
 end
 
 -- Terminal picker function
@@ -318,6 +333,45 @@ function M.pick_terminal(callback)
       callback(choice.id)
     end
   end)
+end
+
+function M.get_last_used_terminal()
+  return M.terminal_state.last_used_terminal
+end
+
+function M.list_commands(callback)
+  -- TODO
+end
+
+function M.run_command(id)
+  local cmd = M.terminal_state.commands[id]
+  if cmd == nil then
+    M.set_command(id, function(input)
+      input = vim.api.nvim_replace_termcodes(input, true, false, true)
+      if input == nil then
+        -- echo something
+        return
+      end
+      M.terminal_state.commands[id] = input
+      M.terminal_write(id, input .. "\n")
+    end)
+    return
+  end
+  M.terminal_write(id, cmd .. "\n")
+end
+
+---@param callback function(input)
+function M.set_command(id, callback)
+  local default_cb = function(input)
+    input = vim.api.nvim_replace_termcodes(input, true, false, true)
+    if input == nil then
+      -- echo something
+      return
+    end
+    M.terminal_state.commands[id] = input
+  end
+  callback = callback or default_cb
+  M.input({ prompt = "Set Command For Terminal " .. id }, callback)
 end
 
 return M
