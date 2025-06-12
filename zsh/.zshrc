@@ -90,6 +90,9 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Add wisely, as too many plugins slow down shell startup.
 #export NVM_LAZY_LOAD=true # nvm is slow, see here: https://armno.in.th/blog/zsh-startup-time/
 plugins=(git gpg-agent fzf-tab)
+# NOTE: because I use the fzf-tab plugin zsh tabs do work without this add
+# not portable though
+zstyle ':fzf-tab:*' fzf-bindings 'ctrl-y:accept'
 
 
 source $ZSH/oh-my-zsh.sh
@@ -295,23 +298,26 @@ bfs . $HOME -color -mindepth 1  \
     -or -name "dist" \
     -or -name "__pycache__"  \)
 EOF
-export FZF_DEFAULT_OPTS="--ansi"
+export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
 export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
   --ansi
+  --bind=ctrl-y:accept
   --cycle
   --preview 'tree -C {}'"
 export FZF_CTRL_T_COMMAND="command cat <(fd -t d) <(fd -t d . $HOME)"
 export FZF_CTRL_T_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
   --preview 'bat -n --color=always {}'
+  --bind=ctrl-y:accept
   --cycle
   --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 # CTRL-Y to copy the command into clipboard using pbcopy
+# --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
 export FZF_CTRL_R_OPTS="
-  --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
   --color header:italic
+  --bind=ctrl-y:accept
   --cycle
   --header 'Press CTRL-Y to copy command into clipboard'"
 # Nice idea, pretty buggy
@@ -333,6 +339,7 @@ frg() {
       --preview 'bat --color=always {1} --highlight-line {2}' \
       --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
       --bind 'enter:become(nvim {1} +{2})'
+      --bind 'ctrl-y:become(nvim {1} +{2})'
 
 }
 
@@ -364,6 +371,7 @@ cdj() {
     2>/dev/null | fzf --scheme=path --tiebreak=index --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
     --cycle \
+    --bind 'ctrl-y:accept' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
 ) && builtin cd "$dir"
 }
@@ -392,6 +400,7 @@ cdi() {
     2>/dev/null | fzf --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
     --cycle \
+    --bind 'ctrl-y:accept' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
 ) && builtin cd "$dir"
 }
