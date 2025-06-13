@@ -28,6 +28,7 @@ map("n", "p", paste, { noremap = true, silent = true })
 -- map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
 
 -- map({ "n", "v", "o" }, "<leader>r", "<Cmd>make<CR>", { desc = "Run build command" })
+--
 
 -- WARN: We are remapping LazyVim's <Tab> Commands
 -- TODO:  local wk = require("which-key")
@@ -58,40 +59,6 @@ map({ "n", "t", "v" }, "<C-l>", require("smart-splits").move_cursor_right)
 
 map({ "n", "t", "v" }, "<C-q>", "<cmd>qa<cr>", { desc = "Quit All" })
 
--- Terminal state
--- del({ "n" }, "'") --NOTE: This makes it hard to use else where, but makes sure which key comes up
-map({ "n", "t" }, "'1", function()
-  ---@diagnostic disable-next-line: missing-fields
-  Snacks.scratch.open({ ft = "lua" })
-end, { silent = true, desc = "Open Scratch Lua Buffer" })
-map({ "n", "t" }, "'2", function()
-  ---@diagnostic disable-next-line: missing-fields
-  Snacks.scratch.open({ ft = "python" })
-end, { desc = "Open Scratch Python Buffer" })
-map({ "n", "t" }, "'3", function()
-  ---@diagnostic disable-next-line: missing-fields
-  Snacks.scratch.open({ ft = "typst" })
-end, { desc = "Open Scratch Typst Buffer" })
-map({ "n", "t" }, "''", function()
-  Snacks.scratch()
-end, { desc = "Previous Scratch Buffer" })
-map({ "n", "t" }, "'<Tab>", function()
-  local buf_list = Snacks.scratch.list()
-  if #buf_list < 2 then
-    ui_notify("No previous scratch buffer for which to switch.")
-    return
-  end
-  local buf = buf_list[2]
-  ---@diagnostic disable-next-line: missing-fields
-  Snacks.scratch.open({ ft = buf.ft, name = buf.name, file = buf.file, icon = buf.icon })
-end, { desc = "Previous Scratch Buffer" })
-
-map({ "n", "t" }, "'l", function()
-  Snacks.scratch.select()
-end, { desc = "Open Scratch Buffer Picker" })
-
--- Personal key map system?
--- map("n", "..", "<Cmd>Make!<CR>", { desc = "Run Make" })
 del("n", "m")
 map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })
 local wk = require("which-key")
@@ -209,6 +176,11 @@ end, { desc = "Set makeprg" })
 map("n", "<leader>sp", function()
   Snacks.picker.grep({ rtp = true })
 end, { desc = "Grep RTP (3rd-Party Plugin) Directory" })
+
+map({ "n", "t" }, "<A-Up>", "<cmd>resize +2<cr>", { desc = "Increase Window Height" })
+map({ "n", "t" }, "<A-Down>", "<cmd>resize -2<cr>", { desc = "Decrease Window Height" })
+map({ "n", "t" }, "<A-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease Window Width" })
+map({ "n", "t" }, "<A-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase Window Width" })
 
 -- map("n", "<C-/>", function()
 --   Snacks.terminal(nil, { cwd = LazyVim.root() })

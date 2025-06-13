@@ -1,10 +1,10 @@
 -- lua/plugins/mnf.lua (with optional configuration)
-local last_command_id = 1
+-- local last_command_id = 1
 return {
   name = "mnf.terminal",
   dir = vim.fn.stdpath("config"),
   main = "mnf.terminal", -- This tells lazy.nvim which module to call
-  -- dependencies = { "folke/snacks.nvim" },
+  dependencies = { "folke/snacks.nvim" },
   config = function()
     local mnf_terminal = require("mnf.terminal.managed")
     for i = 1, 3 do
@@ -34,6 +34,10 @@ return {
         mnf_terminal.toggle_terminal(id)
       end)
     end, { desc = "List Terminals" })
+    vim.keymap.set({ "n", "v" }, ";a", function()
+      local last_used_term = mnf_terminal.get_last_used_terminal()
+      mnf_terminal.send_to_terminal(last_used_term, "LINE")
+    end, { desc = "Send Line To Current Terminal" })
     vim.keymap.set({ "n", "v" }, ";s", function()
       local last_used_term = mnf_terminal.get_last_used_terminal()
       mnf_terminal.send_to_terminal(last_used_term, "FILE")
@@ -45,6 +49,8 @@ return {
     -- vim.keymap.set({ "n", "t" }, "..", function()
     --   mnf_terminal.run_command(last_command_id)
     -- end, { desc = "Run Previous Command" })
+    local mnf_jobs = require("mnf.terminal.jobs")
+    mnf_jobs.setup()
   end,
   opts = {},
   lazy = false,

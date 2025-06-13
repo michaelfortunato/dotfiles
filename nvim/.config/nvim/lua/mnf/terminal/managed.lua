@@ -1,5 +1,6 @@
 local M = {}
 M.input = Snacks.input.input or vim.ui.input
+M.notify = Snacks.notify.notify or vim.ui.notify
 -- Base layout creators
 local function create_floating_window(buf, title)
   local width = math.floor(vim.o.columns * 0.8)
@@ -204,8 +205,10 @@ function M.toggle_layout()
     -- vim.notify("Terminal: floating", vim.log.levels.DEBUG, { title = "Layout" })
   end
   M.terminal_state.create_window = M.layout_functions[M.terminal_state.layout]
-  -- Path 1 if the terminal is closed no need to do anything else
+  -- Path 1 if the terminal is closed no need to do anything else but
+  -- notify
   if not M.terminal_state.current then
+    M.notify("Layout: " .. M.terminal_state.layout)
     return
   end
 
@@ -260,6 +263,11 @@ local function get_buffer_text()
   return vim.api.nvim_buf_get_lines(0, 0, -1, true)
 end
 
+-- Helper function to get entire buffer contents
+local function get_current_line()
+  local line_num = vim.api.nvim_win_get_cursor(0)[1]
+  return vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, true)
+end
 function M.make_bracketed_paste(text)
   local bracketed_text = "\027[200~" .. text .. "\027[201~\n"
   return bracketed_text
@@ -272,7 +280,7 @@ function M.send_to_terminal(id, range)
   if range == "FILE" then
     lines = get_buffer_text()
   elseif range == "LINE" then
-    lines = get_visual_selection_text()
+    lines = get_current_line()
   else
     lines = get_visual_selection_text()
   end
