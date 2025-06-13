@@ -148,6 +148,8 @@ function M.start_job(id, use_terminal, cmd)
   vim.bo[buf].bufhidden = "hide" -- Keep buffer around
   vim.bo[buf].buflisted = false
 
+  -- FIXME: This keymap setup is BROKEN noop
+  -- M.setup_terminal_keymaps(buf)
   vim.api.nvim_buf_call(buf, function()
     vim.opt_local.spell = false
 
@@ -172,6 +174,37 @@ function M.start_job(id, use_terminal, cmd)
       --
       M.state.jobs[id].status = "running"
     else
+      -- Add Ctrl-C mapping to kill the job in non-interactive buffers
+      vim.keymap.set("n", "<C-c>", function()
+        if M.state.jobs[id] and M.state.jobs[id].system_job_id then
+          vim.fn.jobstop(M.state.jobs[id].system_job_id)
+          vim.notify("Killed job[" .. id .. "] with Ctrl-C")
+        end
+      end, {
+        buffer = buf,
+        desc = "Kill job with Ctrl-C",
+      })
+      -- q to close the job window
+      vim.keymap.set("n", "q", function()
+        if M.state.win and vim.api.nvim_win_is_valid(M.state.win) then
+          serialize_and_create_closure() -- Preserve layout
+          vim.api.nvim_win_close(M.state.win, false)
+          M.state.win = nil
+        end
+      end, {
+        buffer = buf,
+        desc = "Close job window",
+      })
+
+      -- ESC as alternative to close window (common pattern)
+      vim.keymap.set("n", "<ESC>", function()
+        if M.state.win and vim.api.nvim_win_is_valid(M.state.win) then
+          serialize_and_create_closure()
+          vim.api.nvim_win_close(M.state.win, false)
+          M.state.win = nil
+        end
+      end, { buffer = buf, desc = "Close job window" })
+
       -- Output capture buffer - non-interactive
       vim.bo.buftype = "nofile"
       vim.bo.modifiable = false
@@ -310,7 +343,7 @@ function M.configure_job(id)
     -- Job exists, show options
     local options = {
       "🔄 Restart job",
-      "⚙️  Recigure job",
+      "⚙️ Reconfigure job",
       "❌ Cancel",
     }
 
@@ -369,6 +402,7 @@ function M.show_job(job_id)
     vim.notify("Job[" .. job_id .. "] not found", vim.log.levels.ERROR)
     return
   end
+  local original_win = vim.api.nvim_get_current_win()
   -- Create window if it doesn't exist
   if not (M.state.win and vim.api.nvim_win_is_valid(M.state.win)) then
     local title = "Job[" .. job_id .. "]"
@@ -378,6 +412,11 @@ function M.show_job(job_id)
     vim.api.nvim_win_set_buf(M.state.win, job_info.buffer)
   end
   M.state.current_job_id = job_id
+  if job_info.use_terminal then
+    vim.api.nvim_set_current_win(M.state.win)
+  else
+    vim.api.nvim_set_current_win(original_win)
+  end
 end
 
 -- List jobs and pick one
@@ -475,8 +514,8 @@ function M.toggle_layout()
   M.state.win = M.state.create_window(current_job.buffer, "Job[" .. M.state.current_job_id .. "]")
 
   -- Focus appropriately
-  vim.api.nvim_set_current_win(M.state.win)
   if current_job.use_terminal then
+    vim.api.nvim_set_current_win(M.state.win)
     vim.cmd("startinsert")
   end
 
@@ -583,45 +622,97 @@ function M.restart_job(id)
   if job_info then
     if job_info.system_job_id then
       vim.fn.jobstop(job_info.system_job_id)
+      vim.api.nvim_buf_delete(job_info.buffer, { force = true })
     else
       vim.api.nvim_buf_delete(job_info.buffer, { force = true })
     end
     vim.notify("Killed job[" .. id .. "]")
     M.start_job(id, job_info.use_terminal, job_info.command)
+    vim.notify("Restarting job[" .. id .. "]")
     M.show_job(id)
   else
     vim.notify("Job Does Not Exist [ " .. M.state.current_job_id .. "]")
   end
 end
+function M.setup_terminal_keymaps(buf)
+  local PLUGIN_LEADER = "."
+  local opts = { buffer = buf, nowait = true }
 
+  -- Use shorter timeout for these specific mappings to avoid delays
+  vim.keymap.set("t", PLUGIN_LEADER .. "l", function()
+    vim.cmd("stopinsert")
+    M.list_jobs()
+  end, vim.tbl_extend("force", opts, { desc = "List jobs" }))
+
+  vim.keymap.set("t", PLUGIN_LEADER .. ",", function()
+    vim.cmd("stopinsert")
+    M.toggle()
+  end, vim.tbl_extend("force", opts, { desc = "Show/Hide Job Window" }))
+
+  vim.keymap.set("t", PLUGIN_LEADER .. "f", function()
+    vim.cmd("stopinsert")
+    M.toggle_layout()
+  end, vim.tbl_extend("force", opts, { desc = "Toggle job layout" }))
+
+  vim.keymap.set("t", PLUGIN_LEADER .. "k", function()
+    vim.cmd("stopinsert")
+    M.kill_current_job()
+  end, vim.tbl_extend("force", opts, { desc = "Kill current job" }))
+
+  -- Numbered job mappings
+  for i = 1, 9 do
+    vim.keymap.set("t", PLUGIN_LEADER .. i, function()
+      vim.cmd("stopinsert")
+      M.configure_job(tostring(i))
+    end, vim.tbl_extend("force", opts, { desc = "Configure/run job " .. i }))
+  end
+
+  vim.keymap.set("t", PLUGIN_LEADER .. PLUGIN_LEADER, function()
+    vim.cmd("stopinsert")
+    if not M.state.current_job_id then
+      M.configure_job("1")
+    else
+      M.restart_job(M.state.current_job_id)
+    end
+  end, vim.tbl_extend("force", opts, { desc = "Restart job" }))
+end
+-- TODO: Make sure focus does not go to output buffer
+-- Find a way to kill the output buffer whiile focused on it. Let ctrl-c
+-- be an option
+-- Fix output buffer restart
 -- Setup keymaps
 function M.setup()
   -- .<id> configures or reruns job
   local PLUGIN_LEADER = "."
   for i = 1, 9 do
-    vim.keymap.set({ "n", "t" }, PLUGIN_LEADER .. i, function()
+    -- vim.keymap.set({ "n", "t" }, PLUGIN_LEADER .. i, function()
+    vim.keymap.set({ "n" }, PLUGIN_LEADER .. i, function()
       M.configure_job(tostring(i))
     end, { desc = "Configure/run job " .. i })
   end
 
+  --- TODO Makes these buffer local with a timeout
   -- .g lists jobs
-  vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "l", M.list_jobs, { desc = "List jobs" })
-  -- .t toggles job window
-  vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. PLUGIN_LEADER, function()
+  -- vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "l", M.list_jobs, { desc = "List jobs" })
+  vim.keymap.set({ "n" }, PLUGIN_LEADER .. "l", M.list_jobs, { desc = "List jobs" })
+  vim.keymap.set({ "n" }, PLUGIN_LEADER .. PLUGIN_LEADER, function()
     if not M.state.current_job_id then
       M.configure_job("1")
     else
       M.restart_job(M.state.current_job_id)
     end
   end, { desc = "Restart job" })
-  vim.keymap.set({ "t", "n" }, ".,", M.toggle, { desc = "Show/Hide Job Window" })
+  -- ., toggles job window
+  -- vim.keymap.set({ "t", "n" }, ".,", M.toggle, { desc = "Show/Hide Job Window" })
+  vim.keymap.set({ "n" }, ".,", M.toggle, { desc = "Show/Hide Job Window" })
 
   -- .l toggles layout
-  vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "f", M.toggle_layout, { desc = "Toggle job layout" })
+  -- vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "f", M.toggle_layout, { desc = "Toggle job layout" })
+  vim.keymap.set({ "n" }, PLUGIN_LEADER .. "f", M.toggle_layout, { desc = "Toggle job layout" })
 
   -- .k kills current job
-  -- vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "f", M.kill_current_job, { desc = "Kill current job" })
-  vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "k", M.kill_current_job, { desc = "Kill current job" })
+  -- vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "k", M.kill_current_job, { desc = "Kill current job" })
+  vim.keymap.set({ "n" }, PLUGIN_LEADER .. "k", M.kill_current_job, { desc = "Kill current job" })
 
   -- Send mappings (visual mode)
   vim.keymap.set("v", PLUGIN_LEADER .. PLUGIN_LEADER, M.send_selection, { desc = "Send selection to job" })
