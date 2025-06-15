@@ -183,6 +183,7 @@ function M.toggle_terminal(id)
   end
 
   M.terminal_state.current = id
+  vim.api.nvim_set_current_win(M.terminal_state.win)
   -- FIXME: Move this to create_<layout>_window
   vim.cmd("startinsert")
 end
@@ -272,6 +273,8 @@ function M.make_bracketed_paste(text)
   local bracketed_text = "\027[200~" .. text .. "\027[201~\n"
   return bracketed_text
 end
+-- TODO: Create a visual mode keymap that sends the selection
+-- with any leading indentation removed
 -- Send visual selection to terminal
 function M.send_to_terminal(id, range)
   -- Get visual selection
@@ -306,6 +309,19 @@ function M.terminal_write(id, text)
 
   -- Send text to terminal
   vim.api.nvim_chan_send(vim.bo[buf].channel, text)
+  -- Auto-scroll to bottom if terminal window is visible, without changing focus
+  if M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
+    local current_buf = vim.api.nvim_win_get_buf(M.terminal_state.win)
+    if current_buf == buf then
+      -- Schedule the scroll to happen after the text is processed
+      vim.schedule(function()
+        if vim.api.nvim_win_is_valid(M.terminal_state.win) then
+          -- Scroll to bottom without changing focus or cursor position
+          vim.fn.win_execute(M.terminal_state.win, "normal! G")
+        end
+      end)
+    end
+  end
 end
 
 -- Terminal picker function
