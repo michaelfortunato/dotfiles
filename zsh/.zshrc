@@ -375,7 +375,6 @@ cdj() {
 }
 
 cdi() {
-
   local search_dirs
   if [[ $# -eq 0 ]]; then
     search_dirs=("$PWD" "$HOME")
@@ -385,7 +384,7 @@ cdi() {
   # If no arguments are provided, use fzf to select a directory
     # Find directories and pipe to fzf, then cd into the selected one
     local dir
-    dir=$(fd --type d \
+    dir=$(fd --type f \
     --hidden --follow \
     --exclude ".git" \
     --exclude "node_modules" \
@@ -395,10 +394,11 @@ cdi() {
     --exclude "build" \
     --exclude "dist" \
     --exclude "__pycache__" . "${search_dirs[@]}" \
-    2>/dev/null | fzf --walker-skip .git,node_modules,target,obj,build,dist \
-    --preview 'tree -C {}' \
+    2>/dev/null | fzf --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    --preview 'bat -n --color=always {}' \
     --cycle \
-    --bind 'ctrl-y:accept' \
+    --bind 'enter:become(nvim {1} +{2})' \
+    --bind 'ctrl-y:become(nvim {1} +{2})' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
 ) && builtin cd "$dir"
 }
