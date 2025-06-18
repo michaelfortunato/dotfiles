@@ -1,0 +1,22 @@
+# Keybindings
+keybinding:
+  universal:
+    # should really be gg but this works
+    gotoTop-alt: g
+    gotoBottom-alt: G
+    scrollUpMain: <c-u>
+    scrollDownMain: <c-d>
+    scrollUpMain-alt1: <c-b>
+    scrollDownMain-alt1: <c-f>
+    # no need for it, swapped pgup with <c-u>
+    scrollUpMain-alt2: <disabled>
+    # no need for it, swapped pgdown with <c-d>
+    scrollDownMain-alt2: <disabled>
+  files:
+    # frees up <c-f>
+    findBaseCommitForFixup: <disabled>
+    # frees up <c-b>
+    openStatusFilter: <disabled>
+  stash:
+    # frees up g
+    popStash: <disabled>
