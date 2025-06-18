@@ -324,8 +324,7 @@ export FZF_CTRL_R_OPTS="
 # fzf - https://github.com/junegunn/fzf
 bindkey '\C-f' fzf-cd-widget
 
-alias fgrep='frg' #This is just kinda harder to type than fgrep lol
-frg() {
+gri() {
   RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
   INITIAL_QUERY="${*:-}"
   fzf --ansi --disabled --query "$INITIAL_QUERY" \
@@ -344,7 +343,6 @@ frg() {
 }
 
 cdj() {
-
   local search_dirs
   if [[ $# -eq 0 ]]; then
     if [[ "$PWD" != "$HOME" ]]; then
@@ -368,7 +366,7 @@ cdj() {
     -or -name "build" \
     -or -name "dist" \
     -or -name "__pycache__"  \) -type d \
-    2>/dev/null | fzf --scheme=path --tiebreak=index --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    2>/dev/null | fzf --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
     --cycle \
     --bind 'ctrl-y:accept' \
@@ -406,7 +404,7 @@ cdi() {
 }
 
 # fkill - kill process
-fkill() {
+ki() {
   local pid
   pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
 
@@ -415,13 +413,13 @@ fkill() {
     echo $pid | xargs kill -${1:-15}
   fi
 }
-fps() {
+psi() {
   local pid
   pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
   echo pid
 }
 
-fman() {
+mani() {
   man -k . | fzf -q "$1" --prompt='man> '  --preview $'echo {} | tr -d \'()\' | awk \'{printf "%s ", $2} {print $1}\' | xargs -r man | col -bx | bat -l man -p --color always' | tr -d '()' | awk '{printf "%s ", $2} {print $1}' | xargs -r man
 }
 
