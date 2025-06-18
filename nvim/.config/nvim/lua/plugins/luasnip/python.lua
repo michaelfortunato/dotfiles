@@ -208,22 +208,22 @@ if <>:
     ),
     { condition = -in_string - in_comment }
   ),
-  s(
-    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
-    fmta("(<>)<>", {
-      iv(1),
-      i(0),
-    }),
-    { condition = -in_string - in_comment }
-  ),
-  s(
-    { trig = "{", snippetType = "autosnippet" },
-    fmta("{<>}<>", {
-      iv(1),
-      i(0),
-    }),
-    { condition = -in_string - in_comment }
-  ),
+  -- s(
+  --   { trig = "(", wordTrig = false, snippetType = "autosnippet" },
+  --   fmta("(<>)<>", {
+  --     iv(1),
+  --     i(0),
+  --   }),
+  --   { condition = -in_string - in_comment }
+  -- ),
+  -- s(
+  --   { trig = "{", snippetType = "autosnippet" },
+  --   fmta("{<>}<>", {
+  --     iv(1),
+  --     i(0),
+  --   }),
+  --   { condition = -in_string - in_comment }
+  -- ),
   -- s(
   --   { trig = "[", wordTrig = false, snippetType = "autosnippet" },
   --   fmta("[<>]<>", {

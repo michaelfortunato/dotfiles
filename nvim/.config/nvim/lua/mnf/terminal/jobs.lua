@@ -243,6 +243,7 @@ function M.start_job(id, use_terminal, cmd)
             end
           end)
         end,
+        --FIXME: On exist is calleda after so does not refelect the state
         on_exit = function(job_id, exit_code, event)
           M.state.jobs[id].status = "exited"
           M.state.jobs[id].exit_code = exit_code
@@ -252,7 +253,7 @@ function M.start_job(id, use_terminal, cmd)
               vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", "=== Job exited with code " .. exit_code .. " ===" })
               vim.bo[buf].modifiable = false
             end
-            vim.notify("Job[" .. buf .. "] finished (exit code: " .. exit_code .. ")")
+            vim.notify("Job " .. buf .. ":  finished (exit code: " .. exit_code .. ")")
           end)
         end,
       })
@@ -291,7 +292,7 @@ local function configure_job_ui(id, callback)
 
   -- Step 1: Get command
   M.input({
-    prompt = "Command for job[" .. id .. "] (empty for shell): ",
+    prompt = "Command for job " .. id .. "  (empty for shell): ",
     default = "",
   }, function(command_str)
     if command_str == nil then
@@ -307,7 +308,7 @@ local function configure_job_ui(id, callback)
     }
 
     vim.ui.select(buffer_options, {
-      prompt = "Job[" .. id .. "] buffer type:",
+      prompt = "Job " .. id .. " buffer type:",
       format_item = function(item)
         return item.text
       end,
@@ -405,7 +406,7 @@ function M.show_job(job_id)
   local original_win = vim.api.nvim_get_current_win()
   -- Create window if it doesn't exist
   if not (M.state.win and vim.api.nvim_win_is_valid(M.state.win)) then
-    local title = "Job[" .. job_id .. "]"
+    local title = "Job " .. job_id
     M.state.win = M.state.create_window(job_info.buffer, title)
   else
     -- Switch buffer in existing window
@@ -509,8 +510,10 @@ function M.toggle_layout()
   end
 
   -- Close current window and open with new layout
-  serialize_and_create_closure()
-  vim.api.nvim_win_close(M.state.win, false)
+  if M.state.win and vim.api.nvim_win_is_valid(M.state.win) then
+    serialize_and_create_closure()
+    vim.api.nvim_win_close(M.state.win, false)
+  end
   M.state.win = M.state.create_window(current_job.buffer, "Job[" .. M.state.current_job_id .. "]")
 
   -- Focus appropriately
@@ -616,8 +619,8 @@ function M.kill_current_job()
   end
 end
 
--- Kill current job
-function M.restart_job(id)
+function M.kill_job(id)
+  -- TODO: Return an exit code or some indicator that it was killed
   local job_info = M.state.jobs[id]
   if job_info then
     if job_info.system_job_id then
@@ -626,12 +629,29 @@ function M.restart_job(id)
     else
       vim.api.nvim_buf_delete(job_info.buffer, { force = true })
     end
-    vim.notify("Killed job[" .. id .. "]")
-    M.start_job(id, job_info.use_terminal, job_info.command)
-    vim.notify("Restarting job[" .. id .. "]")
-    M.show_job(id)
+    vim.notify("Killed job " .. id)
   else
-    vim.notify("Job Does Not Exist [ " .. M.state.current_job_id .. "]")
+    vim.notify("Job " .. id .. " Does Not Exist")
+  end
+end
+-- Kill current job
+function M.restart_job(id, quiet)
+  local job_info = M.state.jobs[id]
+  if job_info then
+    if job_info.system_job_id then
+      vim.fn.jobstop(job_info.system_job_id)
+      vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+    else
+      vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+    end
+    vim.notify("Killed job " .. id)
+    M.start_job(id, job_info.use_terminal, job_info.command)
+    vim.notify("Restarting job " .. id .. " ...")
+    if not quiet then
+      M.show_job(id)
+    end
+  else
+    vim.notify("Job " .. id .. " Does Not Exist")
   end
 end
 function M.setup_terminal_keymaps(buf)

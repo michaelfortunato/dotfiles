@@ -117,8 +117,8 @@ return {
           inside_last = "il",
 
           -- Move cursor to corresponding edge of `a` textobject
-          goto_left = ";",
-          goto_right = "'",
+          goto_left = "[",
+          goto_right = "]",
         },
         custom_textobjects = {
           o = ai.gen_spec.treesitter({ -- code block
