@@ -161,6 +161,8 @@ alias n="nvim" # This one is aggressive!
 alias e="nvim" # This one is aggressive!
 alias c="clear"
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
+alias py="ipython" # better python shell
+alias ipy="ipython" # better python shell
 alias lt="tree" #TODO: Choose
 alias l1="tree -a -L 1"
 alias l2="tree -a -L 2"
@@ -450,7 +452,9 @@ cd() {
   fi
 }
 
+
 eval "$(fzf --zsh)"
+eval "$(uv generate-shell-completion zsh)"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
