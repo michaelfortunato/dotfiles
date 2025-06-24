@@ -159,7 +159,7 @@ def setup_catppuccin_theme():
 
     except ImportError:
         print("❌ Catppuccin not found. Install with:")
-        print("   uv add catppuccin")
+        print("   uv pip install catppuccin")
         return False
     except Exception as e:
         print(f"❌ Error setting up Catppuccin theme: {e}")
