@@ -16,6 +16,13 @@ c.TerminalInteractiveShell.shortcuts = [
 # Default: []
 c.InteractiveShellApp.exec_lines = ["%alias c clear"]
 
+## Specifies from which source automatic suggestions are provided. Can be set to
+#  ``'NavigableAutoSuggestFromHistory'`` (:kbd:`up` and :kbd:`down` swap
+#  suggestions), ``'AutoSuggestFromHistory'``,  or ``None`` to disable automatic
+#  suggestions. Default is `'NavigableAutoSuggestFromHistory`'.
+#  Default: 'NavigableAutoSuggestFromHistory'
+c.TerminalInteractiveShell.autosuggestions_provider = None
+
 # c.InteractiveShell.separate_in = ""
 # c.TerminalIPythonApp.display_banner = False
 

@@ -50,7 +50,14 @@ depend on the upstream version of oh-my-zsh. Here is what I did.
 2. git clone oh-my-zsh ~/dotfiles/zsh
 3. `git submodule add <url> ~/dotfiles/zsh`
 
-#### Updating Submodules
+#### Updating Or Getting Submodules
+
+Two use cases:
+
+1. This will
+   update submodules to the tip of their branches, according to `.gitmodules`.
+2. If you are already in your repo and you notice that `.oh-my-zsh`
+   and the like is an empty folder, fear not! Just run this.
 
 ```bash
 ~ $ git submodule update --init --recursive --remote
