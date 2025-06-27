@@ -653,9 +653,6 @@ sorting=ynt
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("\\cdot"),
   }, { condition = tex.in_mathzone }),
-  s({ trig = "..", snippetType = "autosnippet" }, {
-    t("\\cdot"),
-  }, { condition = tex.in_mathzone }),
   -- \times
   s({ trig = "xx", snippetType = "autosnippet" }, {
     t("\\times"),
@@ -666,7 +663,7 @@ sorting=ynt
   -- CDOTS, i.e. \cdots
   -- DOT PRODUCT, i.e. \cdot
   s({ trig = "...", snippetType = "autosnippet" }, {
-    t("\\dots"),
+    t("..."),
   }, { condition = in_mathzone }),
   s({ trig = "dot", snippetType = "autosnippet" }, {
     t("\\cdot"),
