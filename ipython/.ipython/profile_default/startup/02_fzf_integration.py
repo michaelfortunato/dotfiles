@@ -171,8 +171,11 @@ def setup_fzf_integration():
                     if result.returncode == 0 and result.stdout.strip():
                         # Insert selected command
                         buffer = event.current_buffer
-                        buffer.delete_before_cursor(len(buffer.text))
-                        buffer.insert_text(result.stdout.strip())
+                        buffer.text = result.stdout.strip()
+                        # buffer.delete_before_cursor(1)
+                        buffer.cursor_position = len(result.stdout.strip())
+                        # buffer.insert_text(result.stdout.strip())
+                        # buffer.cursor_position = len(result.stdout.strip())
 
                 except Exception:
                     pass  # User cancelled with Escape or error

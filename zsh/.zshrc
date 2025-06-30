@@ -107,6 +107,7 @@ bindkey "^[[1;3C" forward-word      # ALT-RIGHT
 bindkey "^[[1;3D" backward-word     # ALT-LEFT
 bindkey "^[[1;3A" up-line-or-history    # ALT-UP
 bindkey "^[[1;3B" down-line-or-history  # ALT-DOWN
+bindkey '\C-h' backward-kill-word
 
 # User configuration
 
@@ -386,23 +387,23 @@ cdi() {
   # If no arguments are provided, use fzf to select a directory
     # Find directories and pipe to fzf, then cd into the selected one
     local dir
-    dir=$(fd --type f \
-    --hidden --follow \
-    --exclude ".git" \
-    --exclude "node_modules" \
-    --exclude "target/debug" \
-    --exclude "target/release" \
-    --exclude "obj" \
-    --exclude "build" \
-    --exclude "dist" \
-    --exclude "__pycache__" . "${search_dirs[@]}" \
+    dir=$(bfs "${search_dirs[@]}" -color -mindepth 1  \
+     -exclude \( \
+    -name ".git" \
+    -or -name "node_modules" \
+    -or -name "target/debug" \
+    -or -name "target/release" \
+    -or -name "obj" \
+    -or -name "build" \
+    -or -name "dist" \
+    -or -name "__pycache__"  \) -type f \
     2>/dev/null | fzf --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
-    --preview 'bat -n --color=always {}' \
+    --preview 'tree -C {}' \
     --cycle \
-    --bind 'enter:become(nvim {1} +{2})' \
-    --bind 'ctrl-y:become(nvim {1} +{2})' \
+    --bind 'ctrl-y:accept' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
-) && builtin cd "$dir"
+) && $EDITOR "$dir"
+# not sure if I want that&& builtin cd "$dir"
 }
 
 # fkill - kill process
