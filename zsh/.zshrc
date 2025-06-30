@@ -380,7 +380,11 @@ cdj() {
 cdi() {
   local search_dirs
   if [[ $# -eq 0 ]]; then
-    search_dirs=("$PWD" "$HOME")
+    if [[ "$PWD" != "$HOME" ]]; then
+      search_dirs=("$PWD" "$HOME")
+    else
+      search_dirs=("$HOME")
+    fi
   else
     search_dirs=("$@")  # Use all provided arguments as base directories
   fi

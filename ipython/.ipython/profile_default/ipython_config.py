@@ -14,7 +14,20 @@ c.TerminalInteractiveShell.shortcuts = [
 
 # lines of code to run at IPython startup.
 # Default: []
-c.InteractiveShellApp.exec_lines = ["%alias c clear"]
+c.InteractiveShellApp.exec_lines = [
+    "%alias c clear",
+    """
+try:
+    %colors catppuccin-mocha
+except Exception as e:
+    # # Silently fall back to a default theme
+    # try:
+    #     %colors linux
+    # except:
+    #   pass
+    pass
+""",
+]
 
 ## Specifies from which source automatic suggestions are provided. Can be set to
 #  ``'NavigableAutoSuggestFromHistory'`` (:kbd:`up` and :kbd:`down` swap

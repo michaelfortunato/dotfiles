@@ -4,9 +4,28 @@
 from IPython import get_ipython
 
 
+ip = get_ipython()
+logger = ip.log if ip else None
+
+
+def mnf_log(msg, level):
+    if logger:
+        getattr(logger, level)(msg)
+    # Fallback to print if no logger (shouldn't happen in IPython)
+    else:
+        print(msg)
+
+
+def mnf_debug(msg):
+    return mnf_log(msg, "debug")
+
+
+def mnf_error(msg):
+    return mnf_log(msg, "error")
+
+
 def setup_catppuccin_neovim_theme():
     """Set up Catppuccin Mocha theme with Neovim-style completion menu and exact syntax highlighting."""
-
     try:
         import catppuccin
         from catppuccin import PALETTE
@@ -196,31 +215,31 @@ def setup_catppuccin_neovim_theme():
 
                 # Force apply the theme using the magic command
                 # ip.magic("colors catppuccin-mocha")
-                print(
+                mnf_debug(
                     "🎨 Enhanced Catppuccin Mocha theme with Neovim-style completion applied!"
                 )
-                print("   ✨ Improved syntax highlighting to match Neovim")
-                print(
+                mnf_debug("   ✨ Improved syntax highlighting to match Neovim")
+                mnf_debug(
                     "   🔍 Styled completion menu with dark background and blue selection"
                 )
 
             except Exception as e:
-                print(f"⚠️  Theme applied but completion styling failed: {e}")
+                mnf_error(f"⚠️  Theme applied but completion styling failed: {e}")
                 # Fallback: just apply the basic theme
                 # ip.magic("colors catppuccin-mocha")
-                print("🎨 Catppuccin Mocha theme applied (basic version)")
+                mnf_error("🎨 Catppuccin Mocha theme applied (basic version)")
 
-            print("   Theme available as: catppuccin-mocha")
-            print("   You can also use: %colors catppuccin-mocha")
+            mnf_debug("   Theme available as: catppuccin-mocha")
+            mnf_debug("   You can also use: %colors catppuccin-mocha")
 
         return True
 
     except ImportError as e:
-        print(f"❌ Missing dependency: {e}")
-        print("   Install with: uv add catppuccin")
+        mnf_error(f"❌ Missing dependency: {e}")
+        mnf_error("   Install with: uv add catppuccin")
         return False
     except Exception as e:
-        print(f"❌ Error setting up enhanced Catppuccin theme: {e}")
+        mnf_error(f"❌ Error setting up enhanced Catppuccin theme: {e}")
         import traceback
 
         traceback.print_exc()

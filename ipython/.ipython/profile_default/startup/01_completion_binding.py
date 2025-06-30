@@ -7,6 +7,25 @@ from prompt_toolkit.filters import HasFocus, Condition
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.application.current import get_app
 
+ip = get_ipython()
+logger = ip.log if ip else None
+
+
+def mnf_log(msg, level):
+    if logger:
+        getattr(logger, level)(msg)
+    # Fallback to print if no logger (shouldn't happen in IPython)
+    else:
+        print(msg)
+
+
+def mnf_debug(msg):
+    return mnf_log(msg, "debug")
+
+
+def mnf_error(msg):
+    return mnf_log(msg, "error")
+
 
 def setup_completion_shortcut():
     """Set up Ctrl-Y to accept completion menu selections and autosuggestions."""
@@ -131,22 +150,22 @@ def setup_ctrl_space_completion():
 # Try the advanced version first, fall back to simple if it fails
 try:
     setup_completion_shortcut()
-    print("Advanced Ctrl-Y completion binding loaded successfully")
+    mnf_debug("Advanced Ctrl-Y completion binding loaded successfully")
 except Exception as e:
-    print(f"Advanced binding failed ({e}), trying simple version...")
+    mnf_error(f"Advanced binding failed ({e}), trying simple version...")
     try:
         setup_simple_completion_shortcut()
-        print("Simple Ctrl-Y completion binding loaded successfully")
+        mnf_error("Simple Ctrl-Y completion binding loaded successfully")
     except Exception as e2:
-        print(f"Both completion bindings failed: {e2}")
+        mnf_error(f"Both completion bindings failed: {e2}")
 
 
 # Set up ctrl-space binding
 try:
     setup_ctrl_space_completion()
-    print("Ctrl-Space completion binding loaded successfully")
+    mnf_debug("Ctrl-Space completion binding loaded successfully")
 except Exception as e:
-    print(f"Ctrl-Space completion binding failed: {e}")
+    mnf_debug(f"Ctrl-Space completion binding failed: {e}")
 
 
 # Optional: Also set up the config-based autosuggestion binding as backup
@@ -162,4 +181,4 @@ try:
             },
         ]
 except Exception as e:
-    print(f"Config-based autosuggestion binding failed: {e}")
+    mnf_error(f"Config-based autosuggestion binding failed: {e}")

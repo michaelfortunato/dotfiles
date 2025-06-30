@@ -4,6 +4,26 @@
 from IPython import get_ipython
 
 
+ip = get_ipython()
+logger = ip.log if ip else None
+
+
+def mnf_log(msg, level):
+    if logger:
+        getattr(logger, level)(msg)
+    # Fallback to print if no logger (shouldn't happen in IPython)
+    else:
+        print(msg)
+
+
+def mnf_debug(msg):
+    return mnf_log(msg, "debug")
+
+
+def mnf_error(msg):
+    return mnf_log(msg, "error")
+
+
 def setup_fzf_integration():
     """Set up FZF integration for IPython history search."""
 
@@ -13,11 +33,11 @@ def setup_fzf_integration():
 
         subprocess.run(["fzf", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("⚠️  fzf not found. Install with:")
-        print("   # macOS: brew install fzf")
-        print("   # Ubuntu/Debian: sudo apt install fzf")
-        print("   # Arch: sudo pacman -S fzf")
-        print(
+        mnf_error("⚠️  fzf not found. Install with:")
+        mnf_error("   # macOS: brew install fzf")
+        mnf_error("   # Ubuntu/Debian: sudo apt install fzf")
+        mnf_error("   # Arch: sudo pacman -S fzf")
+        mnf_error(
             "   # Or: git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install"
         )
         return False
@@ -71,7 +91,7 @@ def setup_fzf_integration():
                 pass  # User cancelled with Escape or Ctrl+C
 
         fzf_implementation = "iterfzf"
-        print("🔍 FZF integration: using iterfzf")
+        mnf_debug("🔍 FZF integration: using iterfzf")
 
     except ImportError:
         # 2. Try pyfzf
@@ -116,7 +136,7 @@ def setup_fzf_integration():
                     pass  # User cancelled with Escape or error
 
             fzf_implementation = "pyfzf"
-            print("🔍 FZF integration: using pyfzf")
+            mnf_debug("🔍 FZF integration: using pyfzf")
 
         except ImportError:
             # 3. Direct subprocess fallback
@@ -181,12 +201,12 @@ def setup_fzf_integration():
                     pass  # User cancelled with Escape or error
 
             fzf_implementation = "subprocess"
-            print("🔍 FZF integration: using direct subprocess")
+            mnf_debug("🔍 FZF integration: using direct subprocess")
 
     # Register the key binding
     ip = get_ipython()
     if not (hasattr(ip, "pt_app") and ip.pt_app):
-        print("⚠️  prompt_toolkit not available, FZF hotkey not registered")
+        mnf_error("⚠️  prompt_toolkit not available, FZF hotkey not registered")
         return False
 
     try:
@@ -217,14 +237,14 @@ def setup_fzf_integration():
                 except:
                     pass  # Might fail, but registration might still work
 
-        print(f"✅ FZF history search enabled (using {fzf_implementation})")
-        print("   📋 Ctrl+R: search command history with FZF")
-        print("   🚪 Escape: dismiss FZF interface")
+        mnf_debug(f"✅ FZF history search enabled (using {fzf_implementation})")
+        mnf_debug("   📋 Ctrl+R: search command history with FZF")
+        mnf_debug("   🚪 Escape: dismiss FZF interface")
         return True
 
     except Exception as e:
-        print(f"⚠️  Key binding registration failed: {e}")
-        print("   FZF functions available, but hotkey not registered")
+        mnf_debug(f"⚠️  Key binding registration failed: {e}")
+        mnf_debug("   FZF functions available, but hotkey not registered")
         return False
 
 
