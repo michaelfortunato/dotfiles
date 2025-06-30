@@ -1,3 +1,4 @@
+-- FIXME: Typst concealing messing up fixed cursor on <c-u> <c-d>
 -- Your treesitter math detection setup my custom concealer code
 local MATH_NODES = {
   math = true,
@@ -113,6 +114,116 @@ local symbol_map = {
   YY = "𝕐",
   ZZ = "ℤ",
 
+  -- bold letters
+  ["upright(bold(A))"] = "𝐀",
+  ["upright(bold(B))"] = "𝐁",
+  ["upright(bold(C))"] = "𝐂",
+  ["upright(bold(D))"] = "𝐃",
+  ["upright(bold(E))"] = "𝐄",
+  ["upright(bold(F))"] = "𝐅",
+  ["upright(bold(G))"] = "𝐆",
+  ["upright(bold(H))"] = "𝐇",
+  ["upright(bold(I))"] = "𝐈",
+  ["upright(bold(J))"] = "𝐉",
+  ["upright(bold(K))"] = "𝐊",
+  ["upright(bold(L))"] = "𝐋",
+  ["upright(bold(M))"] = "𝐌",
+  ["upright(bold(N))"] = "𝐍",
+  ["upright(bold(O))"] = "𝐎",
+  ["upright(bold(P))"] = "𝐏",
+  ["upright(bold(Q))"] = "𝐐",
+  ["upright(bold(R))"] = "𝐑",
+  ["upright(bold(S))"] = "𝐒",
+  ["upright(bold(T))"] = "𝐓",
+  ["upright(bold(U))"] = "𝐔",
+  ["upright(bold(V))"] = "𝐕",
+  ["upright(bold(W))"] = "𝐖",
+  ["upright(bold(X))"] = "𝐗",
+  ["upright(bold(Y))"] = "𝐘",
+  ["upright(bold(Z))"] = "𝐙",
+  -- Calligraphic Letters (Lower case)
+  ["upright(bold(a))"] = "𝐚",
+  ["upright(bold(b))"] = "𝐛",
+  ["upright(bold(c))"] = "𝐜",
+  ["upright(bold(d))"] = "𝐝",
+  ["upright(bold(e))"] = "𝐞",
+  ["upright(bold(f))"] = "𝐟",
+  ["upright(bold(g))"] = "𝐠",
+  ["upright(bold(h))"] = "𝐡",
+  ["upright(bold(i))"] = "𝐢",
+  ["upright(bold(j))"] = "𝐣",
+  ["upright(bold(k))"] = "𝐤",
+  ["upright(bold(l))"] = "𝐥",
+  ["upright(bold(m))"] = "𝐦",
+  ["upright(bold(n))"] = "𝐧",
+  ["upright(bold(o))"] = "𝐨",
+  ["upright(bold(p))"] = "𝐩",
+  ["upright(bold(q))"] = "𝐪",
+  ["upright(bold(r))"] = "𝐫",
+  ["upright(bold(s))"] = "𝐬",
+  ["upright(bold(t))"] = "𝐭",
+  ["upright(bold(u))"] = "𝐮",
+  ["upright(bold(v))"] = "𝐯",
+  ["upright(bold(w))"] = "𝐰",
+  ["upright(bold(x))"] = "𝐱",
+  ["upright(bold(y))"] = "𝐲",
+  ["upright(bold(z))"] = "𝐳",
+
+  -- Calligraphic Letters
+  ["cal(A)"] = "𝒜",
+  ["cal(B)"] = "ℬ",
+  ["cal(C)"] = "𝒞",
+  ["cal(D)"] = "𝒟",
+  ["cal(E)"] = "ℰ",
+  ["cal(F)"] = "ℱ",
+  ["cal(G)"] = "𝒢",
+  ["cal(H)"] = "ℋ",
+  ["cal(I)"] = "ℐ",
+  ["cal(J)"] = "𝒥",
+  ["cal(K)"] = "𝒦",
+  ["cal(L)"] = "ℒ",
+  ["cal(M)"] = "ℳ",
+  ["cal(N)"] = "𝒩",
+  ["cal(O)"] = "𝒪",
+  ["cal(P)"] = "𝒫",
+  ["cal(Q)"] = "𝒬",
+  ["cal(R)"] = "ℛ",
+  ["cal(S)"] = "𝒮",
+  ["cal(T)"] = "𝒯",
+  ["cal(U)"] = "𝒰",
+  ["cal(V)"] = "𝒱",
+  ["cal(W)"] = "𝒲",
+  ["cal(X)"] = "𝒳",
+  ["cal(Y)"] = "𝒴",
+  ["cal(Z)"] = "𝒵",
+  -- Calligraphic letters lower case
+  ["cal(a)"] = "𝒶",
+  ["cal(b)"] = "𝒷",
+  ["cal(c)"] = "𝒸",
+  ["cal(d)"] = "𝒹",
+  ["cal(e)"] = "ℯ",
+  ["cal(f)"] = "𝒻",
+  ["cal(g)"] = "ℊ",
+  ["cal(h)"] = "𝒽",
+  ["cal(i)"] = "𝒾",
+  ["cal(j)"] = "𝒿",
+  ["cal(k)"] = "𝓀",
+  ["cal(l)"] = "𝓁",
+  ["cal(m)"] = "𝓂",
+  ["cal(n)"] = "𝓃",
+  ["cal(o)"] = "ℴ",
+  ["cal(p)"] = "𝓅",
+  ["cal(q)"] = "𝓆",
+  ["cal(r)"] = "𝓇",
+  ["cal(s)"] = "𝓈",
+  ["cal(t)"] = "𝓉",
+  ["cal(u)"] = "𝓊",
+  ["cal(v)"] = "𝓋",
+  ["cal(w)"] = "𝓌",
+  ["cal(x)"] = "𝓍",
+  ["cal(y)"] = "𝓎",
+  ["cal(z)"] = "𝓏",
+
   -- Math operators
   times = "×",
   div = "÷",
@@ -145,6 +256,7 @@ local symbol_map = {
   ["not"] = "¬",
   top = "⊤",
   bot = "⊥",
+  ["bar.v"] = "|",
 
   -- Relations
   approx = "≈",
@@ -162,6 +274,7 @@ local symbol_map = {
 
   -- Arrows (basic)
   ["arrow.r"] = "→",
+  ["->"] = "→",
   ["arrow.l"] = "←",
   ["arrow.u"] = "↑",
   ["arrow.d"] = "↓",
@@ -661,13 +774,16 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     local bufnr = vim.api.nvim_get_current_buf()
 
-    -- Set conceallevel if not set
-    if vim.wo.conceallevel == 0 then
-      vim.wo.conceallevel = 2
+    -- NOTE: I fyou want it on automatically, uncomment this
+    -- -- Set conceallevel if not set
+    -- if vim.wo.conceallevel == 0 then
+    --   vim.wo.conceallevel = 2
+    -- end
+    -- -- Initial concealing
+    -- vim.defer_fn(update_concealing, 100) -- Small delay to ensure treesitter is ready
+    if vim.wo.conceallevel == 2 then
+      vim.wo.conceallevel = 0
     end
-
-    -- Initial concealing
-    vim.defer_fn(update_concealing, 100) -- Small delay to ensure treesitter is ready
 
     -- Update on text changes (current line only for performance)
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
@@ -703,7 +819,7 @@ return {
     dependencies_bin = {
       -- ["tinymist"] = vim.fn.stdpath("data") .. "/mason/bin/tinymist",
       -- My fork
-      ["tinymist"] = "/Users/michaelfortunato/projects/tinymist/target/release/tinymist",
+      -- ["tinymist"] = "/Users/michaelfortunato/projects/tinymist/target/release/tinymist",
     },
   }, -- lazy.nvim will implicitly calls `setup {}`
   keys = { {

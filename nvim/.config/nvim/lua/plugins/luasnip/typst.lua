@@ -627,6 +627,7 @@ supplement: <>,
   s({ trig = "~~", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
   s({ trig = "sim", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
   s({ trig = "to ", snippetType = "autosnippet" }, t("-> "), { condition = in_mathzone }),
+  s({ trig = "too ", snippetType = "autosnippet" }, t("--> "), { condition = in_mathzone }),
   --- TODO: See if I actually use these
   s({ trig = "<|", snippetType = "autosnippet" }, t("lt.tri"), { condition = in_mathzone }),
   s({ trig = "<j", snippetType = "autosnippet" }, t("lt.tri.eq"), { condition = in_mathzone }),
