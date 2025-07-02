@@ -714,7 +714,7 @@ function M.setup()
   --- TODO Makes these buffer local with a timeout
   -- .g lists jobs
   -- vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "l", M.list_jobs, { desc = "List jobs" })
-  vim.keymap.set({ "n" }, PLUGIN_LEADER .. "l", M.list_jobs, { desc = "List jobs" })
+  vim.keymap.set({ "n" }, PLUGIN_LEADER .. "g", M.list_jobs, { desc = "List jobs" })
   vim.keymap.set({ "n" }, PLUGIN_LEADER .. PLUGIN_LEADER, function()
     if not M.state.current_job_id then
       M.configure_job("1")

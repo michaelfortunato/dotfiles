@@ -138,9 +138,9 @@ M.terminal_state = {
 
 -- Get or create terminal buffer
 local function get_or_create_terminal_buffer(id)
-  if not M.terminal_state.buffers[id] or not vim.api.nvim_buf_is_valid(M.terminal_state.buffers[id]) then
+  if not M.terminal_state.buffers[id] or not vim.api.nvim_buf_is_valid(M.terminal_state.buffers[id].buf) then
     local buf = vim.api.nvim_create_buf(false, true)
-    M.terminal_state.buffers[id] = buf
+    M.terminal_state.buffers[id] = { buf = buf, safe_to_send_text = false }
 
     -- Set buffer options
     vim.bo[buf].buflisted = false
@@ -152,7 +152,7 @@ local function get_or_create_terminal_buffer(id)
       vim.cmd("terminal")
     end)
   end
-  return M.terminal_state.buffers[id]
+  return M.terminal_state.buffers[id].buf
 end
 
 -- Toggle terminal
@@ -213,7 +213,7 @@ function M.toggle_layout()
     return
   end
 
-  local buf = M.terminal_state.buffers[M.terminal_state.current]
+  local buf = M.terminal_state.buffers[M.terminal_state.current].buf
   -- Path 2 if the terminal is open close the current window and
   -- Close current window
   if M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
@@ -273,12 +273,40 @@ function M.make_bracketed_paste(text)
   local bracketed_text = "\027[200~" .. text .. "\027[201~\n"
   return bracketed_text
 end
+
+function M.check_if_safe_to_send_text(id, range)
+  if M.terminal_state.buffers[id].safe_to_send_text then
+    return true
+  end
+  local choice = vim.fn.confirm(
+    string.format(
+      "Send %s to Terminal %d?\n\nWarning: Cannot verify if this is a REPL or shell.\nSending code to shell can be dangerous!",
+      range,
+      id
+    ),
+    "&Once\n&Always for Terminal " .. id .. "\n&Cancel",
+    3, -- default choice (Cancel)
+    "Warning" -- dialog type (can be "Error", "Warning", "Info", "Question")
+  )
+  if choice == 1 then
+    return true
+  elseif choice == 2 then
+    M.terminal_state.buffers[id].safe_to_send_text = true
+    return true
+  else
+    return false
+  end
+end
+
 -- TODO: Create a visual mode keymap that sends the selection
 -- with any leading indentation removed
 -- Send visual selection to terminal
 function M.send_to_terminal(id, range)
   -- Get visual selection
   range = range or "VISUAL_SELECTION"
+  if not M.check_if_safe_to_send_text(id, range) then
+    return
+  end
   local lines
   if range == "FILE" then
     lines = get_buffer_text()
@@ -330,7 +358,7 @@ function M.pick_terminal(callback)
   local items = {}
   -- Collect all terminal buffers and their info
   for id, buf in pairs(M.terminal_state.buffers) do
-    if vim.api.nvim_buf_is_valid(buf) then
+    if vim.api.nvim_buf_is_valid(buf.buf) then
       local last_line = "TODO"
       local is_current = (M.terminal_state.current == id) and "● " or "  "
       local display = string.format("%sTerminal %s: %s", is_current, id, last_line)
