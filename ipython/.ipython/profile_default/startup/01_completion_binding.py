@@ -1,5 +1,5 @@
-# Save this file as: ~/.ipython/profile_default/startup/completion_binding.py
-# This will be automatically loaded when IPython starts
+# Save this file as: ~/.ipython/profile_default/startup/01_completion_binding.py
+# Enhanced completion binding with auto-selection of first option
 
 from IPython import get_ipython
 from prompt_toolkit.keys import Keys
@@ -14,7 +14,6 @@ logger = ip.log if ip else None
 def mnf_log(msg, level):
     if logger:
         getattr(logger, level)(msg)
-    # Fallback to print if no logger (shouldn't happen in IPython)
     else:
         print(msg)
 
@@ -27,15 +26,36 @@ def mnf_error(msg):
     return mnf_log(msg, "error")
 
 
-def setup_completion_shortcut():
-    """Set up Ctrl-Y to accept completion menu selections and autosuggestions."""
+def setup_enhanced_completion():
+    """Set up enhanced completion with auto-selection and better bindings."""
     ip = get_ipython()
     if not ip or not hasattr(ip, "pt_app") or not ip.pt_app:
         return
 
+    # Configure IPython for better completion behavior
+    try:
+        # Enable greedy completion (auto-selects when there's one option)
+        ip.config.IPCompleter.greedy = True
+
+        # Configure completion display
+        ip.config.TerminalInteractiveShell.display_completions = "multicolumn"
+
+        # Ensure Jedi is enabled for better completions
+        ip.config.IPCompleter.use_jedi = True
+
+        # Configure auto-suggestions
+        ip.config.TerminalInteractiveShell.autosuggestions_provider = (
+            "NavigableAutoSuggestFromHistory"
+        )
+
+        mnf_debug("✅ Enhanced completion configuration applied")
+
+    except Exception as e:
+        mnf_error(f"⚠️ Completion configuration failed: {e}")
+
     kb = ip.pt_app.key_bindings
 
-    # Define a filter to check if completion menu is active
+    # Enhanced completion filters
     def completion_menu_is_active():
         try:
             app = get_app()
@@ -43,7 +63,6 @@ def setup_completion_shortcut():
         except:
             return False
 
-    # Define a filter to check if autosuggestion is available
     def autosuggestion_is_available():
         try:
             app = get_app()
@@ -52,6 +71,7 @@ def setup_completion_shortcut():
         except:
             return False
 
+    # Ctrl+Y for accepting completions/suggestions
     @kb.add(
         "c-y", filter=HasFocus(DEFAULT_BUFFER) & Condition(completion_menu_is_active)
     )
@@ -59,10 +79,8 @@ def setup_completion_shortcut():
         """Accept the currently selected completion from the menu."""
         buffer = event.current_buffer
         if buffer.complete_state:
-            # Get the current completion
             current_completion = buffer.complete_state.current_completion
             if current_completion:
-                # Accept the completion
                 buffer.apply_completion(current_completion)
 
     @kb.add(
@@ -77,102 +95,65 @@ def setup_completion_shortcut():
         if buffer.suggestion:
             buffer.insert_text(buffer.suggestion.text)
 
-    # Fallback: if neither completion menu nor autosuggestion is active,
-    # behave like the default Ctrl-Y (yank/paste)
-    @kb.add(
-        "c-y",
-        filter=HasFocus(DEFAULT_BUFFER)
-        & ~Condition(completion_menu_is_active)
-        & ~Condition(autosuggestion_is_available),
-    )
-    def default_yank(event):
-        """Default yank behavior when no completions are available."""
-        # This preserves the original Ctrl-Y functionality
-        event.current_buffer.paste_clipboard_data(event.app.clipboard.get_data())
-
-
-# Alternative simpler version if the above doesn't work
-def setup_simple_completion_shortcut():
-    """Simpler version that tries to handle both cases in one binding."""
-    ip = get_ipython()
-    if not ip or not hasattr(ip, "pt_app") or not ip.pt_app:
-        return
-
-    kb = ip.pt_app.key_bindings
-
-    @kb.add("c-y", filter=HasFocus(DEFAULT_BUFFER))
-    def smart_accept(event):
-        """Smart accept: tries completion menu first, then autosuggestion, then default yank."""
+    # Enhanced Tab behavior for auto-selecting first completion
+    @kb.add("tab", filter=HasFocus(DEFAULT_BUFFER))
+    def smart_tab_completion(event):
+        """Smart Tab: auto-select first completion or show menu with first selected."""
         buffer = event.current_buffer
 
-        # Try completion menu first
+        # If there's already a completion menu, navigate it
         if buffer.complete_state:
-            current_completion = buffer.complete_state.current_completion
-            if current_completion:
-                buffer.apply_completion(current_completion)
-                return
-
-        # Try autosuggestion
-        if buffer.suggestion:
-            buffer.insert_text(buffer.suggestion.text)
+            buffer.complete_next()
             return
 
-        # Fallback to default yank behavior
-        try:
-            event.current_buffer.paste_clipboard_data(event.app.clipboard.get_data())
-        except:
-            pass
+        # Start completion
+        buffer.start_completion(select_first=True)
 
+        # If only one completion, accept it immediately
+        if buffer.complete_state:
+            completions = buffer.complete_state.completions
+            if len(completions) == 1:
+                buffer.apply_completion(completions[0])
 
-# Add Ctrl-Space for completion (like VSCode)
-def setup_ctrl_space_completion():
-    """Set up Ctrl-Space to trigger completion like VSCode."""
-    ip = get_ipython()
-    if not ip or not hasattr(ip, "pt_app") or not ip.pt_app:
-        return
-
-    kb = ip.pt_app.key_bindings
-
+    # Ctrl+Space for explicit completion (like VSCode)
     @kb.add("c-space", filter=HasFocus(DEFAULT_BUFFER))
     def trigger_completion(event):
-        """Trigger completion menu like Tab but with Ctrl-Space."""
+        """Trigger completion menu explicitly."""
         buffer = event.current_buffer
 
-        # If there's already a completion state, cycle through completions
         if buffer.complete_state:
-            # Move to next completion
             buffer.complete_next()
         else:
-            # Start completion
             buffer.start_completion(select_first=True)
 
+    # Shift+Tab for reverse completion navigation
+    @kb.add(
+        "s-tab", filter=HasFocus(DEFAULT_BUFFER) & Condition(completion_menu_is_active)
+    )
+    def reverse_completion(event):
+        """Navigate completions in reverse."""
+        buffer = event.current_buffer
+        if buffer.complete_state:
+            buffer.complete_previous()
 
-# Try the advanced version first, fall back to simple if it fails
+    mnf_debug("✅ Enhanced completion bindings loaded")
+    mnf_debug("   Tab: Smart completion with auto-select first option")
+    mnf_debug("   Ctrl+Y: Accept completion/suggestion")
+    mnf_debug("   Ctrl+Space: Explicit completion trigger")
+    mnf_debug("   Shift+Tab: Reverse completion navigation")
+
+
+# Set up enhanced completion
 try:
-    setup_completion_shortcut()
-    mnf_debug("Advanced Ctrl-Y completion binding loaded successfully")
+    setup_enhanced_completion()
 except Exception as e:
-    mnf_error(f"Advanced binding failed ({e}), trying simple version...")
-    try:
-        setup_simple_completion_shortcut()
-        mnf_error("Simple Ctrl-Y completion binding loaded successfully")
-    except Exception as e2:
-        mnf_error(f"Both completion bindings failed: {e2}")
+    mnf_error(f"Enhanced completion setup failed: {e}")
 
-
-# Set up ctrl-space binding
-try:
-    setup_ctrl_space_completion()
-    mnf_debug("Ctrl-Space completion binding loaded successfully")
-except Exception as e:
-    mnf_debug(f"Ctrl-Space completion binding failed: {e}")
-
-
-# Optional: Also set up the config-based autosuggestion binding as backup
+# Fallback configuration through IPython config
 try:
     ip = get_ipython()
     if ip:
-        # This adds the autosuggestion binding through the config system
+        # Additional config-based setup
         ip.config.TerminalInteractiveShell.shortcuts = [
             {
                 "new_keys": ["c-y"],
@@ -180,5 +161,6 @@ try:
                 "create": True,
             },
         ]
+        mnf_debug("✅ Fallback completion bindings configured")
 except Exception as e:
-    mnf_error(f"Config-based autosuggestion binding failed: {e}")
+    mnf_debug(f"Fallback completion binding failed: {e}")

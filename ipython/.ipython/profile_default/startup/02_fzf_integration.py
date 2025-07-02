@@ -1,7 +1,10 @@
 # Save this as: ~/.ipython/profile_default/startup/02_fzf_integration.py
-# Standalone FZF integration for IPython - completely independent of theming
+# Improved FZF integration for IPython with multi-line support and CLI-only implementation
 
 from IPython import get_ipython
+import subprocess
+import tempfile
+import os
 
 
 ip = get_ipython()
@@ -11,7 +14,6 @@ logger = ip.log if ip else None
 def mnf_log(msg, level):
     if logger:
         getattr(logger, level)(msg)
-    # Fallback to print if no logger (shouldn't happen in IPython)
     else:
         print(msg)
 
@@ -25,12 +27,10 @@ def mnf_error(msg):
 
 
 def setup_fzf_integration():
-    """Set up FZF integration for IPython history search."""
+    """Set up FZF integration for IPython history search with multi-line support."""
 
     # Check if fzf is available
     try:
-        import subprocess
-
         subprocess.run(["fzf", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         mnf_error("⚠️  fzf not found. Install with:")
@@ -42,166 +42,89 @@ def setup_fzf_integration():
         )
         return False
 
-    # Try different FZF implementations in order of preference
-    fzf_implementation = None
+    def fzf_history_search(event):
+        """FZF-powered history search with multi-line command support."""
+        from IPython.core.history import HistoryAccessor
 
-    # 1. Try iterfzf (most reliable)
-    try:
-        import iterfzf
+        ip = get_ipython()
+        history_accessor = HistoryAccessor()
 
-        def fzf_history_search(event):
-            """FZF-powered history search using iterfzf."""
-            from IPython.core.history import HistoryAccessor
+        # Get history entries with multi-line support
+        history_entries = []
+        seen_commands = set()
 
-            # Get IPython instance
-            ip = get_ipython()
-            history_accessor = HistoryAccessor()
+        # Get more history entries (last 3000) for better search
+        for session, line_num, source in history_accessor.get_tail(3000):
+            if source.strip():
+                # Clean up the source - remove leading/trailing whitespace but preserve internal structure
+                cleaned_source = source.strip()
 
-            # Get unique history entries (last 2000)
-            history_set = set()
-            history_entries = []
-            for session, line_num, source in history_accessor.get_tail(2000):
-                if source.strip() and source not in history_set:
-                    history_set.add(source)
-                    history_entries.append(source.strip())
+                # Skip duplicates (case-sensitive to preserve intentional variations)
+                if cleaned_source not in seen_commands:
+                    seen_commands.add(cleaned_source)
+                    # For display in FZF, replace newlines with ␤ symbol for visibility
+                    display_command = cleaned_source.replace("\n", " ␤ ")
+                    # Store both display version and original for later use
+                    history_entries.append((display_command, cleaned_source))
 
-            history_entries.reverse()  # Most recent first
+        # Reverse to show most recent first
+        history_entries.reverse()
 
-            if not history_entries:
-                return
+        if not history_entries:
+            return
 
-            try:
-                # Use iterfzf for selection with Escape to dismiss
-                selected = iterfzf.iterfzf(
-                    history_entries,
-                    multi=False,
-                    prompt="History> ",
-                    preview_window="up:3:wrap",
-                    height="40%",
-                    bind=["esc:abort"],  # Escape to dismiss!
-                )
-
-                if selected:
-                    # Insert selected command
-                    buffer = event.current_buffer
-                    buffer.delete_before_cursor(len(buffer.text))
-                    buffer.insert_text(selected)
-
-            except KeyboardInterrupt:
-                pass  # User cancelled with Escape or Ctrl+C
-
-        fzf_implementation = "iterfzf"
-        mnf_debug("🔍 FZF integration: using iterfzf")
-
-    except ImportError:
-        # 2. Try pyfzf
         try:
-            import pyfzf
+            # Write display versions to temp file for FZF
+            with tempfile.NamedTemporaryFile(
+                mode="w", delete=False, encoding="utf-8"
+            ) as f:
+                for display_cmd, _ in history_entries:
+                    f.write(display_cmd + "\n")
+                temp_file = f.name
 
-            def fzf_history_search(event):
-                """FZF-powered history search using pyfzf."""
-                from IPython.core.history import HistoryAccessor
+            # Run fzf with enhanced options
+            result = subprocess.run(
+                [
+                    "fzf",
+                    "--height=50%",  # Taller for better multi-line viewing
+                    "--layout=reverse",
+                    "--border=rounded",  # Rounded border for better aesthetics
+                    "--prompt=History ❯ ",  # Nice prompt
+                    "--bind=esc:abort",  # Escape to dismiss
+                    "--bind=ctrl-c:abort",  # Ctrl+C to dismiss
+                    "--preview-window=up:3:wrap",  # Preview window for long commands
+                    "--preview=echo {q}",  # Show search query in preview
+                    "--ansi",  # Support ANSI colors if available
+                    "--tabstop=4",  # Better tab handling
+                    "--info=inline",  # Compact info display
+                ],
+                stdin=open(temp_file, encoding="utf-8"),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
 
-                ip = get_ipython()
-                history_accessor = HistoryAccessor()
-                fzf = pyfzf.FzfPrompt()
+            # Clean up temp file
+            os.unlink(temp_file)
 
-                # Get unique history entries
-                history_set = set()
-                history_entries = []
-                for session, line_num, source in history_accessor.get_tail(2000):
-                    if source.strip() and source not in history_set:
-                        history_set.add(source)
-                        history_entries.append(source.strip())
+            if result.returncode == 0 and result.stdout.strip():
+                selected_display = result.stdout.strip()
 
-                history_entries.reverse()
+                # Find the original command corresponding to the selected display version
+                original_command = None
+                for display_cmd, orig_cmd in history_entries:
+                    if display_cmd == selected_display:
+                        original_command = orig_cmd
+                        break
 
-                if not history_entries:
-                    return
+                if original_command:
+                    # Clear current buffer and insert the selected command
+                    buffer = event.current_buffer
+                    buffer.text = original_command
+                    buffer.cursor_position = len(original_command)
 
-                try:
-                    # Use pyfzf for selection with Escape to dismiss
-                    selected = fzf.prompt(
-                        history_entries,
-                        fzf_options="--height=40% --layout=reverse --border --prompt='History> ' --bind 'esc:abort'",
-                    )
-
-                    if selected and len(selected) > 0:
-                        # Insert selected command
-                        buffer = event.current_buffer
-                        buffer.delete_before_cursor(len(buffer.text))
-                        buffer.insert_text(selected[0])
-
-                except Exception:
-                    pass  # User cancelled with Escape or error
-
-            fzf_implementation = "pyfzf"
-            mnf_debug("🔍 FZF integration: using pyfzf")
-
-        except ImportError:
-            # 3. Direct subprocess fallback
-            def fzf_history_search(event):
-                """FZF-powered history search using direct subprocess."""
-                from IPython.core.history import HistoryAccessor
-                import subprocess
-                import tempfile
-                import os
-
-                ip = get_ipython()
-                history_accessor = HistoryAccessor()
-
-                # Get unique history entries
-                history_set = set()
-                history_entries = []
-                for session, line_num, source in history_accessor.get_tail(2000):
-                    if source.strip() and source not in history_set:
-                        history_set.add(source)
-                        history_entries.append(source.strip())
-
-                history_entries.reverse()
-
-                if not history_entries:
-                    return
-
-                try:
-                    # Write history to temp file
-                    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-                        for entry in history_entries:
-                            f.write(entry + "\n")
-                        temp_file = f.name
-
-                    # Run fzf with Escape to dismiss
-                    result = subprocess.run(
-                        [
-                            "fzf",
-                            "--height=40%",
-                            "--layout=reverse",
-                            "--border",
-                            "--prompt=History> ",
-                            "--bind=esc:abort",  # Escape to dismiss!
-                        ],
-                        stdin=open(temp_file),
-                        capture_output=True,
-                        text=True,
-                    )
-
-                    # Clean up
-                    os.unlink(temp_file)
-
-                    if result.returncode == 0 and result.stdout.strip():
-                        # Insert selected command
-                        buffer = event.current_buffer
-                        buffer.text = result.stdout.strip()
-                        # buffer.delete_before_cursor(1)
-                        buffer.cursor_position = len(result.stdout.strip())
-                        # buffer.insert_text(result.stdout.strip())
-                        # buffer.cursor_position = len(result.stdout.strip())
-
-                except Exception:
-                    pass  # User cancelled with Escape or error
-
-            fzf_implementation = "subprocess"
-            mnf_debug("🔍 FZF integration: using direct subprocess")
+        except Exception as e:
+            mnf_debug(f"FZF search error: {e}")
 
     # Register the key binding
     ip = get_ipython()
@@ -211,15 +134,11 @@ def setup_fzf_integration():
 
     try:
         from prompt_toolkit.key_binding import KeyBindings
-        from prompt_toolkit.keys import Keys
 
         # Get or create key bindings registry
         if hasattr(ip.pt_app, "key_bindings"):
             registry = ip.pt_app.key_bindings
-        elif hasattr(ip, "_key_bindings"):
-            registry = ip._key_bindings
         else:
-            # Create new registry
             registry = KeyBindings()
 
         # Add Ctrl+R binding for FZF history search
@@ -228,45 +147,43 @@ def setup_fzf_integration():
             """FZF history search triggered by Ctrl+R."""
             fzf_history_search(event)
 
-        # If we created a new registry, try to integrate it
-        if not hasattr(ip.pt_app, "key_bindings") or registry != ip.pt_app.key_bindings:
-            # This might require reinitialization, but let's try
-            if hasattr(ip, "init_prompt_toolkit_cli"):
-                try:
-                    ip.init_prompt_toolkit_cli()
-                except:
-                    pass  # Might fail, but registration might still work
-
-        mnf_debug(f"✅ FZF history search enabled (using {fzf_implementation})")
-        mnf_debug("   📋 Ctrl+R: search command history with FZF")
-        mnf_debug("   🚪 Escape: dismiss FZF interface")
+        mnf_debug("✅ Enhanced FZF history search enabled")
+        mnf_debug("   📋 Ctrl+R: search command history (multi-line supported)")
+        mnf_debug("   🚪 Escape/Ctrl+C: dismiss FZF interface")
+        mnf_debug("   ␤ symbol indicates line breaks in multi-line commands")
         return True
 
     except Exception as e:
-        mnf_debug(f"⚠️  Key binding registration failed: {e}")
-        mnf_debug("   FZF functions available, but hotkey not registered")
+        mnf_error(f"⚠️  Key binding registration failed: {e}")
         return False
 
 
-def show_fzf_help():
-    """Show FZF usage help."""
-    print("\n🔍 FZF Integration Help:")
-    print("   Ctrl+R          - Open FZF history search")
-    print("   Escape          - Dismiss/cancel FZF")
-    print("   Enter           - Select command")
-    print("   Ctrl+C          - Cancel (alternative to Escape)")
-    print("   Type to filter  - Fuzzy search history")
-    print("   ↑/↓ arrows      - Navigate results")
-    print("\n📦 Optional: Install Python FZF packages for better integration:")
-    print("   uv add iterfzf  # Recommended")
-    print("   # or")
-    print("   uv add pyfzf")
+def setup_completion_auto_select():
+    """Configure completion to auto-select first option."""
+    try:
+        ip = get_ipython()
+        if ip:
+            # Configure IPython to automatically select the first completion
+            ip.config.IPCompleter.greedy = True
+            ip.config.TerminalInteractiveShell.display_completions = "multicolumn"
+
+            # This makes Tab immediately select the first completion if there's only one
+            # or shows the menu with the first item selected if there are multiple
+            if hasattr(ip, "Completer"):
+                completer = ip.Completer
+                if hasattr(completer, "use_jedi"):
+                    completer.use_jedi = True
+
+            mnf_debug("✅ Auto-select first completion enabled")
+            mnf_debug("   Tab will auto-select first option")
+            return True
+    except Exception as e:
+        mnf_error(f"⚠️  Completion auto-select setup failed: {e}")
+        return False
 
 
-# Setup FZF integration
+# Setup both FZF integration and completion improvements
 if setup_fzf_integration():
-    # Optionally show help (comment out if you don't want this)
-    # show_fzf_help()
-    pass
+    setup_completion_auto_select()
 else:
-    print("❌ FZF integration setup failed")
+    mnf_error("❌ FZF integration setup failed")
