@@ -90,8 +90,9 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Add wisely, as too many plugins slow down shell startup.
 #export NVM_LAZY_LOAD=true # nvm is slow, see here: https://armno.in.th/blog/zsh-startup-time/
 plugins=(git gpg-agent fzf-tab)
-# NOTE: because I use the fzf-tab plugin zsh tabs do work without this add
+# NOTE: Because I use the fzf-tab plugin zsh tabs do work without this add
 # not portable though
+# Doing setopt globdots will make cd <Tab> show dotfiles
 zstyle ':fzf-tab:*' fzf-bindings 'ctrl-y:accept'
 
 
@@ -164,7 +165,8 @@ alias c="clear"
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
 alias py="ipython" # better python shell
 alias ipy="ipython" # better python shell
-alias lt="tree" #TODO: Choose
+alias lg="lazygit" # lazygit
+alias lt="tree -a" #TODO: Choose
 alias l1="tree -a -L 1"
 alias l2="tree -a -L 2"
 alias l3="tree -a -L 2"
@@ -258,6 +260,7 @@ if [[ -n $KITTY_WINDOW_ID ]]; then
 fi
 
 # ** FZF Block **
+# Only applies to `**<Tab>` sequence `cd <Tab>` is entirely different.
 # Use fd (https://github.com/sharkdp/fd) for listing path candidates.
 # - The first argument to the function ($1) is the base path to start traversal
 # - See the source code (completion.{bash,zsh}) for the details.

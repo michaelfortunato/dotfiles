@@ -22,26 +22,32 @@ return {
         mnf_terminal.send_to_terminal(i)
       end, { desc = "Send To Terminal " .. i })
     end
+
     vim.keymap.set({ "n", "t" }, ";;", function()
       local last_used_term = mnf_terminal.get_last_used_terminal()
       mnf_terminal.toggle_terminal(last_used_term)
     end, { desc = "Toggle Terminal" })
+
     vim.keymap.set({ "n", "t" }, ";f", function()
       mnf_terminal.toggle_layout()
     end, { desc = "Toggle Terminal Layout" })
+
     vim.keymap.set({ "n", "t" }, ";g", function()
       mnf_terminal.pick_terminal(function(id)
         mnf_terminal.toggle_terminal(id)
       end)
     end, { desc = "List Terminals" })
-    vim.keymap.set({ "n", "v" }, ";a", function()
+
+    vim.keymap.set({ "n", "v" }, ";l", function()
       local last_used_term = mnf_terminal.get_last_used_terminal()
       mnf_terminal.send_to_terminal(last_used_term, "LINE")
     end, { desc = "Send Line To Current Terminal" })
-    vim.keymap.set({ "n", "v" }, ";s", function()
+
+    vim.keymap.set({ "n", "v" }, ";a", function()
       local last_used_term = mnf_terminal.get_last_used_terminal()
       mnf_terminal.send_to_terminal(last_used_term, "FILE")
     end, { desc = "Send File To Current Terminal" })
+
     vim.keymap.set({ "v" }, ";;", function()
       local last_used_term = mnf_terminal.get_last_used_terminal()
       mnf_terminal.send_to_terminal(last_used_term)
