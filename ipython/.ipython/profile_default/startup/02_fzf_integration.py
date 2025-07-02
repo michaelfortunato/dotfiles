@@ -93,7 +93,8 @@ def setup_fzf_integration():
                     "--bind=esc:abort",  # Escape to dismiss
                     "--bind=ctrl-c:abort",  # Ctrl+C to dismiss
                     "--preview-window=up:3:wrap",  # Preview window for long commands
-                    "--preview=echo {q}",  # Show search query in preview
+                    # "--preview=echo {q}",  # Show search query in preview
+                    "--preview=echo {} | sed 's/ ␤ /\\n/g' | bat --language=python --style=plain --color=always",
                     "--ansi",  # Support ANSI colors if available
                     "--tabstop=4",  # Better tab handling
                     "--info=inline",  # Compact info display
