@@ -131,7 +131,7 @@ local function get_status_icon(job_info)
 end
 
 -- Start a job in its buffer
-function M.start_job(id, use_terminal, cmd)
+function M.start_job(id, use_terminal, cmd, silent)
   local old_buf = M.state.jobs[id] and M.state.jobs[id].buffer
   if old_buf and vim.api.nvim_buf_is_valid(old_buf) then
     -- error you should close this buffer
@@ -144,6 +144,7 @@ function M.start_job(id, use_terminal, cmd)
     use_terminal = use_terminal,
     command = cmd,
     buffer = buf,
+    silent = silent or false,
   }
   vim.bo[buf].bufhidden = "hide" -- Keep buffer around
   vim.bo[buf].buflisted = false
@@ -173,6 +174,20 @@ function M.start_job(id, use_terminal, cmd)
       end
       --
       M.state.jobs[id].status = "running"
+
+      -- ., to toggle job window in terminal mode (short timeout for cd .. compatibility)
+      vim.keymap.set("t", ".,", function()
+        M.toggle()
+      end, {
+        buffer = buf,
+        desc = "Toggle job window",
+        nowait = true, -- Short timeout so cd .. works normally
+      })
+
+      -- Reduce timeout for this buffer to minimize cd .. lag
+      vim.api.nvim_buf_call(buf, function()
+        vim.opt_local.timeoutlen = 100 -- Much shorter timeout (default is usually 1000ms)
+      end)
     else
       -- Add Ctrl-C mapping to kill the job in non-interactive buffers
       vim.keymap.set("n", "<C-c>", function()
@@ -204,6 +219,20 @@ function M.start_job(id, use_terminal, cmd)
           M.state.win = nil
         end
       end, { buffer = buf, desc = "Close job window" })
+
+      -- ., to toggle job window (short timeout for cd .. compatibility)
+      vim.keymap.set("n", ".,", function()
+        M.toggle()
+      end, {
+        buffer = buf,
+        desc = "Toggle job window",
+        nowait = true, -- Short timeout so cd .. works normally
+      })
+
+      -- Reduce timeout for this buffer to minimize lag
+      vim.api.nvim_buf_call(buf, function()
+        vim.opt_local.timeoutlen = 100 -- Much shorter timeout (default is usually 1000ms)
+      end)
 
       -- Output capture buffer - non-interactive
       vim.bo.buftype = "nofile"
@@ -265,6 +294,8 @@ function M.start_job(id, use_terminal, cmd)
     once = true,
     callback = function(ev)
       -- print("FIRED" .. buf)
+      --
+      serialize_and_create_closure()
       -- TODO: Remove this commented out debug code
       -- vim.print(ev)
       -- vim.print(M.state)
@@ -283,11 +314,12 @@ function M.start_job(id, use_terminal, cmd)
   })
 end
 
--- Fancy job configuration UI
+-- Improved job configuration UI with single navigatable menu
 local function configure_job_ui(id, callback)
   local config = {
     command = "",
     use_terminal = true,
+    silent = false,
   }
 
   -- Step 1: Get command
@@ -301,38 +333,54 @@ local function configure_job_ui(id, callback)
 
     config.command = command_str
 
-    -- Step 2: Buffer type selection
-    local buffer_options = {
-      { text = "🖥️  Terminal buffer (interactive)", value = true },
-      { text = "📋  Output buffer (capture output)", value = false },
+    -- Step 2: Single menu for all options
+    local menu_options = {
+      { text = "🖥️  Terminal buffer (interactive)", type = "buffer", value = { use_terminal = true } },
+      { text = "📋  Output buffer (capture output)", type = "buffer", value = { use_terminal = false } },
+      { text = "🔇  Silent mode (no window popup)", type = "mode", value = { silent = true } },
+      { text = "🔊  Normal mode (show window)", type = "mode", value = { silent = false } },
+      { text = "✓  Create and start job", type = "action", value = "create" },
+      { text = "✗  Cancel", type = "action", value = "cancel" },
     }
 
-    vim.ui.select(buffer_options, {
-      prompt = "Job " .. id .. " buffer type:",
-      format_item = function(item)
-        return item.text
-      end,
-    }, function(choice)
-      if choice == nil then
-        return
-      end -- Cancelled
-
-      config.use_terminal = choice.value
-
-      -- Step 3: Show summary and confirm
+    local function show_menu()
       local cmd_display = config.command == "" and "shell" or config.command
       local buffer_display = config.use_terminal and "terminal" or "output capture"
+      local mode_display = config.silent and "silent" or "normal"
+      local prompt = string.format("Job[%s]: %s (%s, %s)", id, cmd_display, buffer_display, mode_display)
 
-      local summary = string.format("Job[%s]: %s (%s)", id, cmd_display, buffer_display)
+      vim.ui.select(menu_options, {
+        prompt = prompt,
+        format_item = function(item)
+          local prefix = ""
+          if item.type == "buffer" then
+            prefix = config.use_terminal == item.value.use_terminal and "● " or "○ "
+          elseif item.type == "mode" then
+            prefix = config.silent == item.value.silent and "● " or "○ "
+          end
+          return prefix .. item.text
+        end,
+      }, function(choice)
+        if choice == nil then
+          return
+        end -- Cancelled
 
-      vim.ui.select({ "✓ Create and start", "✗ Cancel" }, {
-        prompt = summary,
-      }, function(confirm)
-        if confirm and confirm:match("Create") then
-          callback(config)
+        if choice.type == "buffer" then
+          config.use_terminal = choice.value.use_terminal
+          show_menu() -- Show menu again
+        elseif choice.type == "mode" then
+          config.silent = choice.value.silent
+          show_menu() -- Show menu again
+        elseif choice.type == "action" then
+          if choice.value == "create" then
+            callback(config)
+          end
+          -- For cancel, just return (do nothing)
         end
       end)
-    end)
+    end
+
+    show_menu()
   end)
 end
 
@@ -360,8 +408,10 @@ function M.configure_job(id)
           vim.notify_once("Job[" .. id .. "] is already running. Kill it first with .k", vim.log.levels.WARN)
           return
         end
-        M.start_job(id, job_info.use_terminal, job_info.command)
-        M.show_job(id)
+        M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent)
+        if not job_info.silent then
+          M.show_job(id)
+        end
         vim.notify_once("Restarted job[" .. id .. "]")
       elseif choice:match("Reconfigure") then
         configure_job_ui(id, function(config)
@@ -374,12 +424,18 @@ function M.configure_job(id)
           end
 
           config.command = vim.fn.expandcmd(config.command)
-          M.start_job(id, config.use_terminal, config.command)
-          M.show_job(id)
+          M.start_job(id, config.use_terminal, config.command, config.silent)
+          if not config.silent then
+            M.show_job(id)
+          end
 
           local cmd_display = config.command == "" and "shell" or config.command
           local buffer_str = config.use_terminal and " (terminal)" or " (output capture)"
-          vim.notify_once("Reconfigured job[" .. id .. "]: " .. cmd_display .. buffer_str, vim.log.levels.DEBUG)
+          local mode_str = config.silent and " (silent)" or " (normal)"
+          vim.notify_once(
+            "Reconfigured job[" .. id .. "]: " .. cmd_display .. buffer_str .. mode_str,
+            vim.log.levels.DEBUG
+          )
         end)
       end
     end)
@@ -387,12 +443,15 @@ function M.configure_job(id)
     -- New job, configure it
     configure_job_ui(id, function(config)
       config.command = vim.fn.expandcmd(config.command)
-      M.start_job(id, config.use_terminal, config.command)
-      M.show_job(id)
+      M.start_job(id, config.use_terminal, config.command, config.silent)
+      if not config.silent then
+        M.show_job(id)
+      end
 
       local cmd_display = config.command == "" and "shell" or config.command
       local buffer_str = config.use_terminal and " (terminal)" or " (output capture)"
-      vim.notify_once("Created job[" .. id .. "]: " .. cmd_display .. buffer_str, vim.log.levels.DEBUG)
+      local mode_str = config.silent and " (silent)" or " (normal)"
+      vim.notify_once("Created job [" .. id .. "]: " .. cmd_display .. buffer_str .. mode_str, vim.log.levels.DEBUG)
     end)
   end
 end
@@ -401,7 +460,7 @@ end
 function M.show_job(job_id)
   local job_info = M.state.jobs[job_id]
   if not job_info then
-    vim.notify_once("Job[" .. job_id .. "] not found", vim.log.levels.ERROR)
+    vim.notify_once("Job [" .. job_id .. "] not found", vim.log.levels.ERROR)
     return
   end
   local original_win = vim.api.nvim_get_current_win()
@@ -429,6 +488,7 @@ function M.list_jobs()
     if vim.api.nvim_buf_is_valid(job_info.buffer) then
       local status_icon = get_status_icon(job_info)
       local pty_icon = job_info.use_terminal and "🖥️" or "📋"
+      local silent_icon = job_info.silent and "🔇" or ""
       local current_dot = (M.state.current_job_id == job_id) and "• " or "  "
 
       local cmd_display = job_info.command or "shell"
@@ -439,8 +499,16 @@ function M.list_jobs()
         exit_info = " (exit:" .. job_info.exit_code .. ")"
       end
 
-      local display =
-        string.format("%s%s %s Job[%s]: %s%s", current_dot, status_icon, pty_icon, job_id, cmd_display, exit_info)
+      local display = string.format(
+        "%s%s %s%s Job[%s]: %s%s",
+        current_dot,
+        status_icon,
+        pty_icon,
+        silent_icon,
+        job_id,
+        cmd_display,
+        exit_info
+      )
 
       table.insert(items, {
         display = display,
@@ -646,9 +714,9 @@ function M.restart_job(id, quiet)
       vim.api.nvim_buf_delete(job_info.buffer, { force = true })
     end
     vim.notify_once("Killed job " .. id, vim.log.levels.DEBUG)
-    M.start_job(id, job_info.use_terminal, job_info.command)
+    M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent)
     vim.notify_once("Restarting job " .. id .. " ...", vim.log.levels.DEBUG)
-    if not quiet then
+    if not quiet and not job_info.silent then
       M.show_job(id)
     end
   else
@@ -660,7 +728,7 @@ function M.setup_terminal_keymaps(buf)
   local opts = { buffer = buf, nowait = true }
 
   -- Use shorter timeout for these specific mappings to avoid delays
-  vim.keymap.set("t", PLUGIN_LEADER .. "l", function()
+  vim.keymap.set("t", PLUGIN_LEADER .. "g", function()
     vim.cmd("stopinsert")
     M.list_jobs()
   end, vim.tbl_extend("force", opts, { desc = "List jobs" }))
@@ -732,14 +800,13 @@ function M.setup()
   vim.keymap.set({ "n" }, PLUGIN_LEADER .. "f", M.toggle_layout, { desc = "Toggle job layout" })
 
   -- .k kills current job
-  -- vim.keymap.set({ "t", "n" }, PLUGIN_LEADER .. "k", M.kill_current_job, { desc = "Kill current job" })
   vim.keymap.set({ "n" }, PLUGIN_LEADER .. "k", M.kill_current_job, { desc = "Kill current job" })
 
   -- Send mappings (visual mode)
   vim.keymap.set("v", PLUGIN_LEADER .. PLUGIN_LEADER, M.send_selection, { desc = "Send selection to job" })
   -- Send mappings (normal mode)
-  vim.keymap.set({ "v", "n" }, PLUGIN_LEADER .. "a", M.send_line, { desc = "Send line to job" })
-  vim.keymap.set({ "n", "v" }, PLUGIN_LEADER .. "s", M.send_file, { desc = "Send file to job" })
+  vim.keymap.set({ "v", "n" }, PLUGIN_LEADER .. "l", M.send_line, { desc = "Send line to job" })
+  vim.keymap.set({ "n", "v" }, PLUGIN_LEADER .. "a", M.send_file, { desc = "Send file to job" })
 
   -- Commands
   vim.api.nvim_create_user_command("JobList", M.list_jobs, { desc = "List all jobs" })
