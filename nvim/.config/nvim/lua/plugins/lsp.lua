@@ -1,3 +1,4 @@
+-- FIXME: Python LSP servers only! LSP rename fails with "change_annotations must be provided for annotated text edits"
 --- Includes lsp, linting, and formatter configurations
 vim.lsp.set_log_level("ERROR")
 vim.diagnostic.config({
