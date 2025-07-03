@@ -38,10 +38,15 @@ return {
       end)
     end, { desc = "List Terminals" })
 
-    vim.keymap.set({ "n", "v" }, ";l", function()
+    vim.keymap.set({ "n" }, ";l", function()
       local last_used_term = mnf_terminal.get_last_used_terminal()
       mnf_terminal.send_to_terminal(last_used_term, "LINE")
     end, { desc = "Send Line To Current Terminal" })
+
+    vim.keymap.set({ "v" }, ";l", function()
+      local last_used_term = mnf_terminal.get_last_used_terminal()
+      mnf_terminal.send_to_terminal(last_used_term)
+    end, { desc = "Send Selection To Current Terminal" })
 
     vim.keymap.set({ "n", "v" }, ";a", function()
       local last_used_term = mnf_terminal.get_last_used_terminal()

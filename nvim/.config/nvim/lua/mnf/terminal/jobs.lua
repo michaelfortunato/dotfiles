@@ -178,7 +178,7 @@ function M.start_job(id, use_terminal, cmd)
       vim.keymap.set("n", "<C-c>", function()
         if M.state.jobs[id] and M.state.jobs[id].system_job_id then
           vim.fn.jobstop(M.state.jobs[id].system_job_id)
-          vim.notify("Killed job[" .. id .. "] with Ctrl-C")
+          vim.notify_once("Killed job[" .. id .. "] with Ctrl-C")
         end
       end, {
         buffer = buf,
@@ -253,7 +253,7 @@ function M.start_job(id, use_terminal, cmd)
               vim.api.nvim_buf_set_lines(buf, -1, -1, false, { "", "=== Job exited with code " .. exit_code .. " ===" })
               vim.bo[buf].modifiable = false
             end
-            vim.notify("Job " .. buf .. ":  finished (exit code: " .. exit_code .. ")")
+            vim.notify_once("Job " .. buf .. ":  finished (exit code: " .. exit_code .. ")", vim.log.levels.DEBUG)
           end)
         end,
       })
@@ -264,7 +264,7 @@ function M.start_job(id, use_terminal, cmd)
     buffer = buf,
     once = true,
     callback = function(ev)
-      print("FIRED" .. buf)
+      -- print("FIRED" .. buf)
       -- TODO: Remove this commented out debug code
       -- vim.print(ev)
       -- vim.print(M.state)
@@ -357,12 +357,12 @@ function M.configure_job(id)
 
       if choice:match("Restart") then
         if job_info.status == "running" and job_info.system_job_id then
-          vim.notify("Job[" .. id .. "] is already running. Kill it first with .k", vim.log.levels.WARN)
+          vim.notify_once("Job[" .. id .. "] is already running. Kill it first with .k", vim.log.levels.WARN)
           return
         end
         M.start_job(id, job_info.use_terminal, job_info.command)
         M.show_job(id)
-        vim.notify("Restarted job[" .. id .. "]")
+        vim.notify_once("Restarted job[" .. id .. "]")
       elseif choice:match("Reconfigure") then
         configure_job_ui(id, function(config)
           -- Remove old job
@@ -373,12 +373,13 @@ function M.configure_job(id)
             vim.api.nvim_buf_delete(job_info.buffer, { force = true })
           end
 
+          config.command = vim.fn.expandcmd(config.command)
           M.start_job(id, config.use_terminal, config.command)
           M.show_job(id)
 
           local cmd_display = config.command == "" and "shell" or config.command
           local buffer_str = config.use_terminal and " (terminal)" or " (output capture)"
-          vim.notify("Reconfigured job[" .. id .. "]: " .. cmd_display .. buffer_str)
+          vim.notify_once("Reconfigured job[" .. id .. "]: " .. cmd_display .. buffer_str, vim.log.levels.DEBUG)
         end)
       end
     end)
@@ -391,7 +392,7 @@ function M.configure_job(id)
 
       local cmd_display = config.command == "" and "shell" or config.command
       local buffer_str = config.use_terminal and " (terminal)" or " (output capture)"
-      vim.notify("Created job[" .. id .. "]: " .. cmd_display .. buffer_str)
+      vim.notify_once("Created job[" .. id .. "]: " .. cmd_display .. buffer_str, vim.log.levels.DEBUG)
     end)
   end
 end
@@ -400,7 +401,7 @@ end
 function M.show_job(job_id)
   local job_info = M.state.jobs[job_id]
   if not job_info then
-    vim.notify("Job[" .. job_id .. "] not found", vim.log.levels.ERROR)
+    vim.notify_once("Job[" .. job_id .. "] not found", vim.log.levels.ERROR)
     return
   end
   local original_win = vim.api.nvim_get_current_win()
@@ -450,7 +451,7 @@ function M.list_jobs()
   end
 
   if #items == 0 then
-    vim.notify("No jobs available", vim.log.levels.WARN)
+    vim.notify_once("No jobs available", vim.log.levels.WARN)
     return
   end
 
@@ -500,7 +501,7 @@ function M.toggle_layout()
 
   -- If no window is open, just return
   if not (M.state.win and vim.api.nvim_win_is_valid(M.state.win)) then
-    vim.notify("Job layout: " .. M.state.layout)
+    vim.notify_once("Job layout: " .. M.state.layout)
     return
   end
 
@@ -522,24 +523,24 @@ function M.toggle_layout()
     vim.cmd("startinsert")
   end
 
-  vim.notify("Job layout: " .. M.state.layout)
+  vim.notify_once("Job layout: " .. M.state.layout)
 end
 
 -- Send text to current job (only works for terminal buffers)
 function M.send_text(text)
   if not M.state.current_job_id then
-    vim.notify("No current job selected", vim.log.levels.WARN)
+    vim.notify_once("No current job selected", vim.log.levels.WARN)
     return
   end
 
   local job_info = M.state.jobs[M.state.current_job_id]
   if not job_info then
-    vim.notify("Current job not found", vim.log.levels.ERROR)
+    vim.notify_once("Current job not found", vim.log.levels.ERROR)
     return
   end
 
   if not job_info.use_terminal then
-    vim.notify("Current job is not interactive (not a terminal buffer)", vim.log.levels.WARN)
+    vim.notify_once("Current job is not interactive (not a terminal buffer)", vim.log.levels.WARN)
     return
   end
 
@@ -608,14 +609,14 @@ end
 
 function M.kill_current_job()
   if not M.state.current_job_id then
-    vim.notify("No current job selected", vim.log.levels.WARN)
+    vim.notify_once("No current job selected", vim.log.levels.WARN)
     return
   end
 
   local job_info = M.state.jobs[M.state.current_job_id]
   if job_info and job_info.system_job_id then
     vim.fn.jobstop(job_info.system_job_id)
-    vim.notify("Killed job[" .. M.state.current_job_id .. "]")
+    vim.notify_once("Killed job[" .. M.state.current_job_id .. "]")
   end
 end
 
@@ -629,9 +630,9 @@ function M.kill_job(id)
     else
       vim.api.nvim_buf_delete(job_info.buffer, { force = true })
     end
-    vim.notify("Killed job " .. id)
+    vim.notify_once("Killed job " .. id, vim.log.levels.DEBUG)
   else
-    vim.notify("Job " .. id .. " Does Not Exist")
+    vim.notify_once("Job " .. id .. " Does Not Exist", vim.log.levels.WARN)
   end
 end
 -- Kill current job
@@ -644,14 +645,14 @@ function M.restart_job(id, quiet)
     else
       vim.api.nvim_buf_delete(job_info.buffer, { force = true })
     end
-    vim.notify("Killed job " .. id)
+    vim.notify_once("Killed job " .. id, vim.log.levels.DEBUG)
     M.start_job(id, job_info.use_terminal, job_info.command)
-    vim.notify("Restarting job " .. id .. " ...")
+    vim.notify_once("Restarting job " .. id .. " ...", vim.log.levels.DEBUG)
     if not quiet then
       M.show_job(id)
     end
   else
-    vim.notify("Job " .. id .. " Does Not Exist")
+    vim.notify_once("Job " .. id .. " Does Not Exist")
   end
 end
 function M.setup_terminal_keymaps(buf)
