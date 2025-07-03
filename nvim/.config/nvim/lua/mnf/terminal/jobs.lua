@@ -1,10 +1,32 @@
 -- Standalone Job Manager - Complete, self-contained module
 -- No external dependencies, plug and play
 
+---@class JobInfo
+---@field status string
+---@field use_terminal boolean
+---@field command string
+---@field buffer integer
+---@field silent boolean
+---@field system_job_id integer?
+---@field exit_code integer?
+
+---@class JobConfig
+---@field command string
+---@field use_terminal boolean
+---@field silent boolean
+
+---@class JobManager
 local M = {}
 
+---@type fun(opts: table, on_confirm: fun(input: string?)): nil
 M.input = Snacks.input.input or vim.ui.input
 -- State
+---@class JobState
+---@field win integer?
+---@field current_job_id integer?
+---@field layout string
+---@field create_window fun(buf: integer, title: string): integer
+---@field jobs table<integer, JobInfo>
 M.state = {
   win = nil,
   current_job_id = nil,
@@ -14,8 +36,12 @@ M.state = {
 }
 
 -- Layout functions
+---@type table<string, fun(buf: integer, title: string): integer>
 local layout_functions = {
   floating = function(buf, title)
+    ---@param buf integer
+    ---@param title string
+    ---@return integer
     local width = math.floor(vim.o.columns * 0.8)
     local height = math.floor(vim.o.lines * 0.8)
     local row = math.floor((vim.o.lines - height) / 2)
@@ -53,6 +79,9 @@ local layout_functions = {
   end,
 
   vsplit = function(buf, title)
+    ---@param buf integer
+    ---@param title string
+    ---@return integer
     local config = {
       width = math.floor(vim.o.columns * 0.5),
       split = "right",
@@ -69,6 +98,9 @@ local layout_functions = {
   end,
 
   split = function(buf, title)
+    ---@param buf integer
+    ---@param title string
+    ---@return integer
     local config = {
       height = math.floor(vim.o.lines * 0.3),
       split = "below",
@@ -88,6 +120,8 @@ local layout_functions = {
 M.state.create_window = layout_functions.vsplit
 
 -- Create a closure that recreates a window with serialized config
+---@param serialized_config table
+---@return fun(buf: integer, title: string): integer
 local function create_serialized_window_function(serialized_config)
   return function(buf, title)
     local config = vim.deepcopy(serialized_config)
@@ -106,6 +140,7 @@ local function create_serialized_window_function(serialized_config)
 end
 
 -- Serialize window config for layout preservation
+---@return nil
 local function serialize_and_create_closure()
   if M.state.layout ~= "floating" and M.state.win and vim.api.nvim_win_is_valid(M.state.win) then
     local config = vim.api.nvim_win_get_config(M.state.win)
@@ -116,6 +151,8 @@ local function serialize_and_create_closure()
 end
 
 -- Get status icon based on job state
+---@param job_info JobInfo
+---@return string
 local function get_status_icon(job_info)
   if job_info.status == "running" then
     return "⚡" -- Lightning bolt for running
@@ -131,6 +168,11 @@ local function get_status_icon(job_info)
 end
 
 -- Start a job in its buffer
+---@param id integer
+---@param use_terminal boolean
+---@param cmd? string
+---@param silent? boolean
+---@return nil
 function M.start_job(id, use_terminal, cmd, silent)
   local old_buf = M.state.jobs[id] and M.state.jobs[id].buffer
   if old_buf and vim.api.nvim_buf_is_valid(old_buf) then
@@ -149,8 +191,8 @@ function M.start_job(id, use_terminal, cmd, silent)
   vim.bo[buf].bufhidden = "hide" -- Keep buffer around
   vim.bo[buf].buflisted = false
 
-  -- FIXME: This keymap setup is BROKEN noop
-  -- M.setup_terminal_keymaps(buf)
+  -- Set up keymaps for this job buffer (terminal or nofile)
+  M.setup_terminal_keymaps(buf)
   vim.api.nvim_buf_call(buf, function()
     vim.opt_local.spell = false
 
@@ -182,6 +224,15 @@ function M.start_job(id, use_terminal, cmd, silent)
         buffer = buf,
         desc = "Toggle job window",
         nowait = true, -- Short timeout so cd .. works normally
+      })
+
+      -- .f to toggle layout in terminal mode
+      vim.keymap.set("t", ".f", function()
+        M.toggle_layout()
+      end, {
+        buffer = buf,
+        desc = "Toggle job layout",
+        nowait = true,
       })
 
       -- Reduce timeout for this buffer to minimize cd .. lag
@@ -227,6 +278,15 @@ function M.start_job(id, use_terminal, cmd, silent)
         buffer = buf,
         desc = "Toggle job window",
         nowait = true, -- Short timeout so cd .. works normally
+      })
+
+      -- .f to toggle layout in normal mode
+      vim.keymap.set("n", ".f", function()
+        M.toggle_layout()
+      end, {
+        buffer = buf,
+        desc = "Toggle job layout",
+        nowait = true,
       })
 
       -- Reduce timeout for this buffer to minimize lag
@@ -315,6 +375,9 @@ function M.start_job(id, use_terminal, cmd, silent)
 end
 
 -- Improved job configuration UI with single navigatable menu
+---@param id integer
+---@param callback fun(config: JobConfig): nil
+---@return nil
 local function configure_job_ui(id, callback)
   local config = {
     command = "",
@@ -385,6 +448,8 @@ local function configure_job_ui(id, callback)
 end
 
 -- Configure or run job
+---@param id integer
+---@return nil
 function M.configure_job(id)
   local job_info = M.state.jobs[id]
 
@@ -409,6 +474,8 @@ function M.configure_job(id)
           return
         end
         M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent)
+        -- Always set current job ID for tracking
+        M.state.current_job_id = id
         if not job_info.silent then
           M.show_job(id)
         end
@@ -425,6 +492,8 @@ function M.configure_job(id)
 
           config.command = vim.fn.expandcmd(config.command)
           M.start_job(id, config.use_terminal, config.command, config.silent)
+          -- Always set current job ID for tracking
+          M.state.current_job_id = id
           if not config.silent then
             M.show_job(id)
           end
@@ -444,6 +513,8 @@ function M.configure_job(id)
     configure_job_ui(id, function(config)
       config.command = vim.fn.expandcmd(config.command)
       M.start_job(id, config.use_terminal, config.command, config.silent)
+      -- Always set current job ID for tracking
+      M.state.current_job_id = id
       if not config.silent then
         M.show_job(id)
       end
@@ -457,6 +528,8 @@ function M.configure_job(id)
 end
 
 -- Show job in the window
+---@param job_id integer
+---@return nil
 function M.show_job(job_id)
   local job_info = M.state.jobs[job_id]
   if not job_info then
@@ -481,6 +554,7 @@ function M.show_job(job_id)
 end
 
 -- List jobs and pick one
+---@return nil
 function M.list_jobs()
   local items = {}
 
@@ -541,6 +615,7 @@ function M.list_jobs()
 end
 
 -- Toggle job window
+---@return nil
 function M.toggle()
   if M.state.win and vim.api.nvim_win_is_valid(M.state.win) then
     serialize_and_create_closure()
@@ -556,6 +631,7 @@ function M.toggle()
 end
 
 -- Toggle layout with smooth transition
+---@return nil
 function M.toggle_layout()
   if M.state.layout == "floating" then
     M.state.layout = "split"
@@ -595,6 +671,8 @@ function M.toggle_layout()
 end
 
 -- Send text to current job (only works for terminal buffers)
+---@param text string
+---@return nil
 function M.send_text(text)
   if not M.state.current_job_id then
     vim.notify_once("No current job selected", vim.log.levels.WARN)
@@ -617,6 +695,7 @@ function M.send_text(text)
 end
 
 -- Send visual selection to current job
+---@return nil
 function M.send_selection()
   -- Get visual selection
   local _, srow, scol = unpack(vim.fn.getpos("v"))
@@ -660,6 +739,7 @@ function M.send_selection()
 end
 
 -- Send current line to current job
+---@return nil
 function M.send_line()
   local line_num = vim.api.nvim_win_get_cursor(0)[1]
   local lines = vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, true)
@@ -668,6 +748,7 @@ function M.send_line()
 end
 
 -- Send entire file to current job
+---@return nil
 function M.send_file()
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
   local text = table.concat(lines, "\n") .. "\n"
@@ -675,6 +756,7 @@ function M.send_file()
   M.send_text(bracketed_text)
 end
 
+---@return nil
 function M.kill_current_job()
   if not M.state.current_job_id then
     vim.notify_once("No current job selected", vim.log.levels.WARN)
@@ -688,6 +770,8 @@ function M.kill_current_job()
   end
 end
 
+---@param id integer
+---@return nil
 function M.kill_job(id)
   -- TODO: Return an exit code or some indicator that it was killed
   local job_info = M.state.jobs[id]
@@ -704,6 +788,9 @@ function M.kill_job(id)
   end
 end
 -- Kill current job
+---@param id integer
+---@param quiet? boolean
+---@return nil
 function M.restart_job(id, quiet)
   local job_info = M.state.jobs[id]
   if job_info then
@@ -715,6 +802,8 @@ function M.restart_job(id, quiet)
     end
     vim.notify_once("Killed job " .. id, vim.log.levels.DEBUG)
     M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent)
+    -- Always set current job ID for tracking
+    M.state.current_job_id = id
     vim.notify_once("Restarting job " .. id .. " ...", vim.log.levels.DEBUG)
     if not quiet and not job_info.silent then
       M.show_job(id)
@@ -723,6 +812,8 @@ function M.restart_job(id, quiet)
     vim.notify_once("Job " .. id .. " Does Not Exist")
   end
 end
+---@param buf integer
+---@return nil
 function M.setup_terminal_keymaps(buf)
   local PLUGIN_LEADER = "."
   local opts = { buffer = buf, nowait = true }
@@ -770,6 +861,7 @@ end
 -- be an option
 -- Fix output buffer restart
 -- Setup keymaps
+---@return nil
 function M.setup()
   -- .<id> configures or reruns job
   local PLUGIN_LEADER = "."

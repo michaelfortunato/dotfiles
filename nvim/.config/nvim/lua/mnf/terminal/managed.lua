@@ -1,7 +1,13 @@
+---@class ManagedTerminal
 local M = {}
+---@type fun(opts: table, on_confirm: fun(input: string?)): nil
 M.input = Snacks.input.input or vim.ui.input
+---@type fun(msg: string, level?: integer, opts?: table): nil
 M.notify = Snacks.notify.notify or vim.ui.notify
 -- Base layout creators
+---@param buf integer
+---@param title string
+---@return integer
 local function create_floating_window(buf, title)
   local width = math.floor(vim.o.columns * 0.8)
   local height = math.floor(vim.o.lines * 0.8)
@@ -42,6 +48,9 @@ local function create_floating_window(buf, title)
   return win
 end
 
+---@param buf integer
+---@param title string
+---@return integer
 local function create_vsplit_window(buf, title)
   local config = {
     width = math.floor(vim.o.columns * 0.5),
@@ -62,6 +71,9 @@ local function create_vsplit_window(buf, title)
   return win
 end
 
+---@param buf integer
+---@param title string
+---@return integer
 local function create_split_window(buf, title)
   local config = {
     height = math.floor(vim.o.lines * 0.3),
@@ -83,6 +95,8 @@ local function create_split_window(buf, title)
 end
 
 -- Create a closure that recreates a window with serialized config (splits only)
+---@param serialized_config table
+---@return fun(buf: integer, title: string): integer
 local function create_serialized_window_function(serialized_config)
   return function(buf, title)
     local config = vim.deepcopy(serialized_config)
@@ -102,6 +116,7 @@ local function create_serialized_window_function(serialized_config)
   end
 end
 
+---@return nil
 local function serialize_and_create_closure()
   -- Only serialize for split layouts - floating windows don't need it
   if
@@ -117,6 +132,7 @@ local function serialize_and_create_closure()
 end
 
 -- Layout functions table - elements can refer to other elements
+---@type table<string, fun(buf: integer, title: string): integer>
 M.layout_functions = {
   floating = create_floating_window,
   split = create_split_window,
@@ -126,6 +142,14 @@ M.layout_functions = {
 }
 
 -- Terminal state
+---@class TerminalState
+---@field win integer?
+---@field buffers table<integer, {buf: integer, safe_to_send_text: boolean}>
+---@field current integer?
+---@field layout string
+---@field create_window fun(buf: integer, title: string): integer
+---@field last_used_terminal integer
+---@field commands table<integer, string>
 M.terminal_state = {
   win = nil,
   buffers = {},
@@ -137,6 +161,8 @@ M.terminal_state = {
 }
 
 -- Get or create terminal buffer
+---@param id integer
+---@return integer
 local function get_or_create_terminal_buffer(id)
   if not M.terminal_state.buffers[id] or not vim.api.nvim_buf_is_valid(M.terminal_state.buffers[id].buf) then
     local buf = vim.api.nvim_create_buf(false, true)
@@ -156,6 +182,8 @@ local function get_or_create_terminal_buffer(id)
 end
 
 -- Toggle terminal
+---@param id integer
+---@return nil
 function M.toggle_terminal(id)
   M.terminal_state.last_used_terminal = id
   -- If same terminal is open, close it
@@ -190,6 +218,7 @@ end
 
 -- Toggle layout with smooth transition
 -- TODO: Make this cycle layout instead
+---@return nil
 function M.toggle_layout()
   if M.terminal_state.layout == "floating" then
     M.terminal_state.layout = "split"
@@ -225,6 +254,7 @@ function M.toggle_layout()
 end
 
 -- Helper function for visual selection
+---@return string[]
 local function get_visual_selection_text()
   local _, srow, scol = unpack(vim.fn.getpos("v"))
   local _, erow, ecol = unpack(vim.fn.getpos("."))
@@ -260,20 +290,27 @@ local function get_visual_selection_text()
 end
 
 -- Helper function to get entire buffer contents
+---@return string[]
 local function get_buffer_text()
   return vim.api.nvim_buf_get_lines(0, 0, -1, true)
 end
 
--- Helper function to get entire buffer contents
+-- Helper function to get current line
+---@return string[]
 local function get_current_line()
   local line_num = vim.api.nvim_win_get_cursor(0)[1]
   return vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, true)
 end
+---@param text string
+---@return string
 function M.make_bracketed_paste(text)
   local bracketed_text = "\027[200~" .. text .. "\027[201~\n"
   return bracketed_text
 end
 
+---@param id integer
+---@param range string
+---@return boolean
 function M.check_if_safe_to_send_text(id, range)
   if M.terminal_state.buffers[id].safe_to_send_text then
     return true
@@ -301,6 +338,9 @@ end
 -- TODO: Create a visual mode keymap that sends the selection
 -- with any leading indentation removed
 -- Send visual selection to terminal
+---@param id integer
+---@param range? string
+---@return nil
 function M.send_to_terminal(id, range)
   -- Get visual selection
   range = range or "VISUAL_SELECTION"
@@ -353,7 +393,7 @@ function M.terminal_write(id, text)
 end
 
 -- Terminal picker function
---- @param callback function(int)
+---@param callback fun(id: integer): nil
 function M.pick_terminal(callback)
   local items = {}
   -- Collect all terminal buffers and their info
@@ -387,14 +427,18 @@ function M.pick_terminal(callback)
   end)
 end
 
+---@return integer
 function M.get_last_used_terminal()
   return M.terminal_state.last_used_terminal
 end
 
+---@param callback fun(): nil
 function M.list_commands(callback)
   -- TODO
 end
 
+---@param id integer
+---@return nil
 function M.run_command(id)
   local cmd = M.terminal_state.commands[id]
   if cmd == nil then
@@ -412,7 +456,9 @@ function M.run_command(id)
   M.terminal_write(id, cmd .. "\n")
 end
 
----@param callback function(input)
+---@param id integer
+---@param callback? fun(input: string?): nil
+---@return nil
 function M.set_command(id, callback)
   local default_cb = function(input)
     input = vim.api.nvim_replace_termcodes(input, true, false, true)
