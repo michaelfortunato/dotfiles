@@ -169,9 +169,10 @@ def setup_catppuccin_neovim_theme():
                     "completion-menu": f"bg:{mocha.surface0.hex} {mocha.text.hex}",
                     "completion-menu.completion": f"bg:{mocha.surface0.hex} {mocha.text.hex}",
                     "completion-menu.completion.current": f"bg:{mocha.blue.hex} {mocha.base.hex} bold",  # Blue highlight like Neovim
-                    "completion-menu.meta": f"bg:{mocha.surface1.hex} {mocha.subtext0.hex} italic",
-                    "completion-menu.meta.current": f"bg:{mocha.blue.hex} {mocha.base.hex}",
-                    "completion-menu.multi-column-meta": f"bg:{mocha.surface1.hex} {mocha.subtext0.hex}",
+                    # Enhanced type information styling - more distinct from main completion
+                    "completion-menu.meta": f"bg:{mocha.mantle.hex} {mocha.yellow.hex} italic",  # Darker background, yellow text for type info
+                    "completion-menu.meta.current": f"bg:{mocha.peach.hex} {mocha.base.hex} bold",  # Orange highlight when selected
+                    "completion-menu.multi-column-meta": f"bg:{mocha.mantle.hex} {mocha.yellow.hex} italic",  # Consistent with meta
                     "completion-menu.progress-bar": f"bg:{mocha.overlay0.hex}",
                     "completion-menu.progress-button": f"bg:{mocha.blue.hex}",
                     # Scrollbar

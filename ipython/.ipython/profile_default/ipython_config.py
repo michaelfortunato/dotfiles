@@ -27,6 +27,7 @@ except Exception as e:
     #   pass
     pass
 """,
+    "print('💡 Autoreload tip: Works with uv pip install -e packages, not with site-packages')",
 ]
 
 ## Specifies from which source automatic suggestions are provided. Can be set to
