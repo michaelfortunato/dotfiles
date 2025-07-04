@@ -182,13 +182,13 @@ alias git-ignore-local="git_ignore_local"
 alias shconf="nvim $HOME/.zshrc"
 alias shellconf="nvim $HOME/.zshrc"
 alias shellconfig="nvim $HOME/.zshrc"
-alias nvimconf="cd $HOME/.config/nvim && nvim ./"
-alias nvimconfig="cd $HOME/.config/nvim && nvim ./"
+alias nvimconf="cd $HOME/.config/nvim && nvim"
+alias nvimconfig="cd $HOME/.config/nvim && nvim"
 alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
 alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
 alias conf="cd $HOME/dotfiles"
-alias dotconf="cd $HOME/dotfiles && nvim ./"
-alias dotconfig="cd $HOME/dotfiles && nvim ./"
+alias dotconf="cd $HOME/dotfiles && nvim"
+alias dotconfig="cd $HOME/dotfiles && nvim"
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
 alias yazi="y" #TODO: Do we need to make this smarter?
 # be more like bash
