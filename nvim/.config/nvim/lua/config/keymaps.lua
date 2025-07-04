@@ -19,6 +19,7 @@ local function paste()
   end
 end
 
+vim.keymap.set({ "n" }, "<leader>cR", "<CMD>LspRestart<CR>", { desc = "Restart All LSPs" })
 --- FIXME: Eh not great
 map("n", "p", paste, { noremap = true, silent = true })
 -- map("i", "<C-v>", paste, { noremap = true, silent = true })
