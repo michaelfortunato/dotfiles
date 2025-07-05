@@ -345,7 +345,6 @@ gri() {
       --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
       --bind 'enter:become(nvim {1} +{2})' \
       --bind 'ctrl-y:become(nvim {1} +{2})'
-
 }
 
 cdj() {
