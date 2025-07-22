@@ -203,7 +203,16 @@ return {
     -- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
     --
     -- See the fuzzy documentation for more information
-    fuzzy = { implementation = "prefer_rust_with_warning" },
+    fuzzy = {
+      implementation = "prefer_rust_with_warning",
+      -- https://cmp.saghen.dev/configuration/fuzzy.html#sorting-priority-and-tie-breaking
+      sorts = {
+        "score", -- Primary sort: by fuzzy matching score
+        "sort_text", -- Secondary sort: by sortText field if scores are equal
+        "kind", -- Kind is better than label for pyrefly
+        "label", -- Tertiary sort: by label if still tied
+      },
+    },
 
     cmdline = {
       completion = {
