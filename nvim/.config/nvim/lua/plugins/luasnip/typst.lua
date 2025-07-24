@@ -621,6 +621,7 @@ supplement: <>,
   s({ trig = "leq", snippetType = "autosnippet" }, t("<="), { condition = in_mathzone }),
   s({ trig = "geq", snippetType = "autosnippet" }, t(">="), { condition = in_mathzone }),
   s({ trig = "isomorphism", snippetType = "autosnippet" }, t("tilde.equiv"), { condition = in_mathzone }),
+  s({ trig = "isomorphic", snippetType = "autosnippet" }, t("tilde.equiv"), { condition = in_mathzone }),
   -- s({ trig = "-->", snippetType = "autosnippet" }, t(" arrow.r.long"), { condition = in_mathzone }),
   -- s({ trig = ">=", snippetType = "autosnippet" }, t("gt.eq"), { condition = in_mathzone }),
   -- s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = in_mathzone }),
@@ -743,14 +744,14 @@ supplement: <>,
     }),
     { condition = trigger_does_not_follow_alpha_char * (in_mathzone + in_codezone) }
   ),
-  s(
-    { trig = "`", wordTrig = false, snippetType = "autosnippet" },
-    fmta("`<>`<>", {
-      i(1),
-      i(0),
-    }),
-    { condition = -in_mathzone }
-  ),
+  -- s(
+  --   { trig = "`", wordTrig = false, snippetType = "autosnippet" },
+  --   fmta("`<>`<>", {
+  --     i(1),
+  --     i(0),
+  --   }),
+  --   { condition = -in_mathzone }
+  -- ),
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("cdot.op"),
   }, { condition = in_mathzone }),
@@ -818,13 +819,13 @@ supplement: <>,
     { condition = in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --- Accents - hat
-  s(
-    { trig = "hat", wordTrig = false, snippetType = "autosnippet" },
-    fmta([[\hat<>]], {
-      i(0),
-    }),
-    { condition = in_mathzone * trigger_does_not_follow_alpha_char }
-  ),
+  -- s(
+  --   { trig = "hat", wordTrig = false, snippetType = "autosnippet" },
+  --   fmta([[hat<>]], {
+  --     i(0),
+  --   }),
+  --   { condition = in_mathzone * trigger_does_not_follow_alpha_char }
+  -- ),
   --- BAR
   --   TODO: Which is faster? These two? or the dynamic node one?
   --- Enter display mode quickly
@@ -1242,7 +1243,7 @@ $<>]],
       [[
 #remark(name: [<>])[
 <>
-]<<rmk:<>>><>
+]<<remark:<>>><>
       ]],
       {
         i(1),
