@@ -47,28 +47,30 @@ def setup_fzf_integration():
         from IPython.core.history import HistoryAccessor
 
         ip = get_ipython()
-        history_accessor = HistoryAccessor()
-
+        
         # Get history entries with multi-line support
         history_entries = []
         seen_commands = set()
 
-        # Get more history entries (last 3000) for better search
-        for session, line_num, source in history_accessor.get_tail(3000):
+        # First, add current session's in-memory history (most recent first)
+        in_memory_history = ip.history_manager.input_hist_parsed[1:]  # Skip empty first entry
+        for source in reversed(in_memory_history):
             if source.strip():
-                # Clean up the source - remove leading/trailing whitespace but preserve internal structure
                 cleaned_source = source.strip()
-
-                # Skip duplicates (case-sensitive to preserve intentional variations)
                 if cleaned_source not in seen_commands:
                     seen_commands.add(cleaned_source)
-                    # For display in FZF, replace newlines with ␤ symbol for visibility
                     display_command = cleaned_source.replace("\n", " ␤ ")
-                    # Store both display version and original for later use
                     history_entries.append((display_command, cleaned_source))
 
-        # Reverse to show most recent first
-        history_entries.reverse()
+        # Then add persistent history (excluding current session duplicates)
+        history_accessor = HistoryAccessor()
+        for session, line_num, source in reversed(list(history_accessor.get_tail(3000))):
+            if source.strip():
+                cleaned_source = source.strip()
+                if cleaned_source not in seen_commands:
+                    seen_commands.add(cleaned_source)
+                    display_command = cleaned_source.replace("\n", " ␤ ")
+                    history_entries.append((display_command, cleaned_source))
 
         if not history_entries:
             return
