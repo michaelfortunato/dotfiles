@@ -4,6 +4,7 @@ return {
     dashboard = {
       preset = { header = [[mnf.]] },
     },
+    -- image = {},
   },
   --    -- preset = {
   --    --   header = [[mnf]],
