@@ -40,6 +40,14 @@ return {
     },
   },
   {
+    -- Make sure that catppuccin/nvim is pinned to cb56659 v1.11 release
+    -- subseqeunt commits fucked up the highlihghting for python its horrible
+    "catppuccin/nvim",
+    name = "catppuccin",
+    commit = "cb56659",
+    opts = {},
+  },
+  {
     "declancm/maximize.nvim",
     config = true,
     keys = {

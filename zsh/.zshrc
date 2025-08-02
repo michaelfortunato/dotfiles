@@ -147,7 +147,6 @@ export BIBINPUTS=$MNF_BIB_DIR
 
 ############# PATH ############
 # NOTE: Only set path here!
-export PATH=$PATH:$MNF_BIN_DIR
 export PATH=$PATH:$MNF_BIN_DIR:$HOME/.local/bin
 if [[ $MNF_OS != "Darwin" ]]; then
   export PATH=/usr/local/cuda-12.8/bin${PATH:+:${PATH}}
@@ -171,8 +170,8 @@ alias lt="tree -a" #TODO: Choose
 alias l1="tree -a -L 1"
 alias l2="tree -a -L 2"
 alias l3="tree -a -L 2"
-alias tt="tree -a - L 1"
-alias t="tree -a"
+alias t="tree -a -L 1"
+alias tt="tree -a"
 alias t1="tree -a -L 1"
 alias t2="tree -a -L 2"
 alias t3="tree -a -L 2"
