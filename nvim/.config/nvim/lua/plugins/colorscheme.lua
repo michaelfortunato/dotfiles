@@ -44,10 +44,14 @@ return {
     -- subseqeunt commits fucked up the highlihghting for python its horrible
     "catppuccin/nvim",
     name = "catppuccin",
-    commit = "cb56659",
+    -- NOTE: I am concnerened with the direction catppuccinn is going in,
+    -- I am pinning to v1.10.0, and not v1.11.0 out of paranoia, though my change
+    -- this
+    tag = "v1.10.0",
     opts = {},
   },
   {
+    -- FIXME: Doesn't really work lol
     "declancm/maximize.nvim",
     config = true,
     keys = {
