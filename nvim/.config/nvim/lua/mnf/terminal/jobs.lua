@@ -4,8 +4,9 @@
 ---@class JobInfo
 ---@field status string
 ---@field use_terminal boolean
+---@field external_terminal boolean
 ---@field command string
----@field buffer integer
+---@field buffer integer -- neovim buffer ID OR kitty window ID
 ---@field silent boolean
 ---@field system_job_id integer?
 ---@field exit_code integer?
@@ -13,6 +14,7 @@
 ---@class JobConfig
 ---@field command string
 ---@field use_terminal boolean
+---@field external_terminal boolean
 ---@field silent boolean
 
 ---@class JobManager
@@ -20,6 +22,9 @@ local M = {}
 
 ---@type fun(opts: table, on_confirm: fun(input: string?)): nil
 M.input = Snacks.input.input or vim.ui.input
+
+-- Import kitty terminal manager for external terminals
+local kitty = require("mnf.terminal.kitty")
 -- State
 ---@class JobState
 ---@field win integer?
@@ -167,23 +172,68 @@ local function get_status_icon(job_info)
   end
 end
 
--- Start a job in its buffer
+-- Start a job (in neovim buffer OR external kitty window)
 ---@param id integer
 ---@param use_terminal boolean
 ---@param cmd? string
 ---@param silent? boolean
+---@param external_terminal? boolean
 ---@return nil
-function M.start_job(id, use_terminal, cmd, silent)
-  local old_buf = M.state.jobs[id] and M.state.jobs[id].buffer
-  if old_buf and vim.api.nvim_buf_is_valid(old_buf) then
-    -- error you should close this buffer
+function M.start_job(id, use_terminal, cmd, silent, external_terminal)
+  external_terminal = external_terminal or false
+  cmd = cmd or vim.o.shell
+
+  -- Check if job already exists and clean up
+  local old_job = M.state.jobs[id]
+  if old_job then
+    if external_terminal and old_job.external_terminal then
+      -- Check if external kitty window exists
+      if old_job.buffer and kitty.window_exists(old_job.buffer) then
+        return -- External window still exists, don't recreate
+      end
+    elseif not external_terminal and old_job.buffer and vim.api.nvim_buf_is_valid(old_job.buffer) then
+      return -- Neovim buffer still exists, don't recreate
+    end
+  end
+
+  if external_terminal then
+    -- EXTERNAL TERMINAL: Create kitty window (NO neovim buffer)
+    local success, window_id = kitty.create_window(use_terminal and vim.o.shell or cmd, "down")
+    if not success then
+      vim.notify_once("Failed to create external terminal: " .. window_id, vim.log.levels.ERROR)
+      return
+    end
+
+    M.state.jobs[id] = {
+      status = "running",
+      use_terminal = use_terminal,
+      external_terminal = true,
+      command = cmd,
+      buffer = window_id, -- Store kitty window ID in buffer field
+      silent = silent or false,
+    }
+
+    -- For non-interactive external jobs, send command after window creation
+    if use_terminal and cmd ~= vim.o.shell then
+      local send_success, send_error = kitty.send_command(window_id, cmd)
+      if not send_success then
+        vim.notify_once("Failed to send command to external terminal: " .. (send_error or ""), vim.log.levels.WARN)
+      end
+    end
+
+    if not silent then
+      kitty.focus_window(window_id)
+    end
+
     return
   end
+
+  -- INTERNAL TERMINAL: Create neovim buffer (existing logic)
   local buf = vim.api.nvim_create_buf(false, true)
-  cmd = cmd or vim.o.shell
   M.state.jobs[id] = {
     status = "creating",
     use_terminal = use_terminal,
+    external_terminal = false,
     command = cmd,
     buffer = buf,
     silent = silent or false,
@@ -382,6 +432,7 @@ local function configure_job_ui(id, callback)
   local config = {
     command = "",
     use_terminal = true,
+    external_terminal = false,
     silent = false,
   }
 
@@ -398,19 +449,23 @@ local function configure_job_ui(id, callback)
 
     -- Step 2: Single menu for all options
     local menu_options = {
-      { text = "🖥️  Terminal buffer (interactive)", type = "buffer", value = { use_terminal = true } },
-      { text = "📋  Output buffer (capture output)", type = "buffer", value = { use_terminal = false } },
-      { text = "🔇  Silent mode (no window popup)", type = "mode", value = { silent = true } },
-      { text = "🔊  Normal mode (show window)", type = "mode", value = { silent = false } },
       { text = "✓  Create and start job", type = "action", value = "create" },
       { text = "✗  Cancel", type = "action", value = "cancel" },
+      { text = "🖥️  Terminal buffer (interactive)", type = "buffer", value = { use_terminal = true } },
+      { text = "📋  Output buffer (capture output)", type = "buffer", value = { use_terminal = false } },
+      { text = "🏠  Internal (neovim buffer/window)", type = "location", value = { external_terminal = false } },
+      { text = "🌐  External (kitty window)", type = "location", value = { external_terminal = true } },
+      { text = "🔇  Silent mode (no window popup)", type = "mode", value = { silent = true } },
+      { text = "🔊  Normal mode (show window)", type = "mode", value = { silent = false } },
     }
 
     local function show_menu()
       local cmd_display = config.command == "" and "shell" or config.command
       local buffer_display = config.use_terminal and "terminal" or "output capture"
+      local location_display = config.external_terminal and "external" or "internal"
       local mode_display = config.silent and "silent" or "normal"
-      local prompt = string.format("Job[%s]: %s (%s, %s)", id, cmd_display, buffer_display, mode_display)
+      local prompt =
+        string.format("Job[%s]: %s (%s, %s, %s)", id, cmd_display, buffer_display, location_display, mode_display)
 
       vim.ui.select(menu_options, {
         prompt = prompt,
@@ -418,6 +473,8 @@ local function configure_job_ui(id, callback)
           local prefix = ""
           if item.type == "buffer" then
             prefix = config.use_terminal == item.value.use_terminal and "● " or "○ "
+          elseif item.type == "location" then
+            prefix = config.external_terminal == item.value.external_terminal and "● " or "○ "
           elseif item.type == "mode" then
             prefix = config.silent == item.value.silent and "● " or "○ "
           end
@@ -430,6 +487,9 @@ local function configure_job_ui(id, callback)
 
         if choice.type == "buffer" then
           config.use_terminal = choice.value.use_terminal
+          show_menu() -- Show menu again
+        elseif choice.type == "location" then
+          config.external_terminal = choice.value.external_terminal
           show_menu() -- Show menu again
         elseif choice.type == "mode" then
           config.silent = choice.value.silent
@@ -473,7 +533,7 @@ function M.configure_job(id)
           vim.notify_once("Job[" .. id .. "] is already running. Kill it first with .k", vim.log.levels.WARN)
           return
         end
-        M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent)
+        M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent, job_info.external_terminal)
         -- Always set current job ID for tracking
         M.state.current_job_id = id
         if not job_info.silent then
@@ -491,7 +551,7 @@ function M.configure_job(id)
           end
 
           config.command = vim.fn.expandcmd(config.command)
-          M.start_job(id, config.use_terminal, config.command, config.silent)
+          M.start_job(id, config.use_terminal, config.command, config.silent, config.external_terminal)
           -- Always set current job ID for tracking
           M.state.current_job_id = id
           if not config.silent then
@@ -512,7 +572,7 @@ function M.configure_job(id)
     -- New job, configure it
     configure_job_ui(id, function(config)
       config.command = vim.fn.expandcmd(config.command)
-      M.start_job(id, config.use_terminal, config.command, config.silent)
+      M.start_job(id, config.use_terminal, config.command, config.silent, config.external_terminal)
       -- Always set current job ID for tracking
       M.state.current_job_id = id
       if not config.silent then
@@ -527,7 +587,7 @@ function M.configure_job(id)
   end
 end
 
--- Show job in the window
+-- Show job in the window (internal only - external jobs focus kitty window)
 ---@param job_id integer
 ---@return nil
 function M.show_job(job_id)
@@ -536,6 +596,23 @@ function M.show_job(job_id)
     vim.notify_once("Job [" .. job_id .. "] not found", vim.log.levels.ERROR)
     return
   end
+
+  M.state.current_job_id = job_id
+
+  -- Handle external terminals - focus kitty window instead of showing in neovim
+  if job_info.external_terminal then
+    if job_info.buffer and kitty.window_exists(job_info.buffer) then
+      local success, error_msg = kitty.focus_window(job_info.buffer)
+      if not success then
+        vim.notify_once("Failed to focus external terminal: " .. (error_msg or ""), vim.log.levels.WARN)
+      end
+    else
+      vim.notify_once("External terminal window not found", vim.log.levels.WARN)
+    end
+    return
+  end
+
+  -- Handle internal terminals - show in neovim window
   local original_win = vim.api.nvim_get_current_win()
   -- Create window if it doesn't exist
   if not (M.state.win and vim.api.nvim_win_is_valid(M.state.win)) then
@@ -545,7 +622,7 @@ function M.show_job(job_id)
     -- Switch buffer in existing window
     vim.api.nvim_win_set_buf(M.state.win, job_info.buffer)
   end
-  M.state.current_job_id = job_id
+
   if job_info.use_terminal then
     vim.api.nvim_set_current_win(M.state.win)
   else
@@ -559,9 +636,18 @@ function M.list_jobs()
   local items = {}
 
   for job_id, job_info in pairs(M.state.jobs) do
-    if vim.api.nvim_buf_is_valid(job_info.buffer) then
+    -- Check if job is valid (neovim buffer OR kitty window)
+    local is_valid = false
+    if job_info.external_terminal then
+      is_valid = job_info.buffer and kitty.window_exists(job_info.buffer)
+    else
+      is_valid = job_info.buffer and vim.api.nvim_buf_is_valid(job_info.buffer)
+    end
+
+    if is_valid then
       local status_icon = get_status_icon(job_info)
       local pty_icon = job_info.use_terminal and "🖥️" or "📋"
+      local location_icon = job_info.external_terminal and "🌐" or "🏠"
       local silent_icon = job_info.silent and "🔇" or ""
       local current_dot = (M.state.current_job_id == job_id) and "• " or "  "
 
@@ -574,10 +660,11 @@ function M.list_jobs()
       end
 
       local display = string.format(
-        "%s%s %s%s Job[%s]: %s%s",
+        "%s%s %s%s%s Job[%s]: %s%s",
         current_dot,
         status_icon,
         pty_icon,
+        location_icon,
         silent_icon,
         job_id,
         cmd_display,
@@ -670,7 +757,7 @@ function M.toggle_layout()
   vim.notify_once("Job layout: " .. M.state.layout)
 end
 
--- Send text to current job (only works for terminal buffers)
+-- Send text to current job (works for both internal and external terminals)
 ---@param text string
 ---@return nil
 function M.send_text(text)
@@ -686,12 +773,24 @@ function M.send_text(text)
   end
 
   if not job_info.use_terminal then
-    vim.notify_once("Current job is not interactive (not a terminal buffer)", vim.log.levels.WARN)
+    vim.notify_once("Current job is not interactive (not a terminal)", vim.log.levels.WARN)
     return
   end
 
-  -- Send to terminal buffer
-  vim.api.nvim_chan_send(vim.bo[job_info.buffer].channel, text)
+  if job_info.external_terminal then
+    -- Send to external kitty terminal
+    if job_info.buffer and kitty.window_exists(job_info.buffer) then
+      local success, error_msg = kitty.send_text(job_info.buffer, text)
+      if not success then
+        vim.notify_once("Failed to send text to external terminal: " .. (error_msg or ""), vim.log.levels.ERROR)
+      end
+    else
+      vim.notify_once("External terminal window not found", vim.log.levels.ERROR)
+    end
+  else
+    -- Send to internal neovim terminal buffer
+    vim.api.nvim_chan_send(vim.bo[job_info.buffer].channel, text)
+  end
 end
 
 -- Send visual selection to current job
@@ -733,7 +832,7 @@ function M.send_selection()
   if lines then
     local text = table.concat(lines, "\n") .. "\n"
     -- Add bracketed paste for better handling in terminals
-    local bracketed_text = "\027[200~" .. text .. "\027[201~"
+    local bracketed_text = "\027[200~" .. text .. "\027[201~" .. "\n"
     M.send_text(bracketed_text)
   end
 end
@@ -752,7 +851,7 @@ end
 function M.send_file()
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
   local text = table.concat(lines, "\n") .. "\n"
-  local bracketed_text = "\027[200~" .. text .. "\027[201~"
+  local bracketed_text = "\027[200~" .. text .. "\027[201~" .. "\n"
   M.send_text(bracketed_text)
 end
 
@@ -776,11 +875,22 @@ function M.kill_job(id)
   -- TODO: Return an exit code or some indicator that it was killed
   local job_info = M.state.jobs[id]
   if job_info then
-    if job_info.system_job_id then
-      vim.fn.jobstop(job_info.system_job_id)
-      vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+    if job_info.external_terminal then
+      -- Kill external kitty window (NO neovim buffer cleanup)
+      if job_info.buffer and kitty.window_exists(job_info.buffer) then
+        local success, error_msg = kitty.close_window(job_info.buffer)
+        if not success then
+          vim.notify_once("Failed to close external terminal: " .. (error_msg or ""), vim.log.levels.WARN)
+        end
+      end
     else
-      vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+      -- Kill internal neovim job/buffer
+      if job_info.system_job_id then
+        vim.fn.jobstop(job_info.system_job_id)
+        vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+      else
+        vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+      end
     end
     vim.notify_once("Killed job " .. id, vim.log.levels.DEBUG)
   else
@@ -794,14 +904,25 @@ end
 function M.restart_job(id, quiet)
   local job_info = M.state.jobs[id]
   if job_info then
-    if job_info.system_job_id then
-      vim.fn.jobstop(job_info.system_job_id)
-      vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+    if job_info.external_terminal then
+      -- Kill external kitty window (NO neovim buffer cleanup)
+      if job_info.buffer and kitty.window_exists(job_info.buffer) then
+        local success, error_msg = kitty.close_window(job_info.buffer)
+        if not success then
+          vim.notify_once("Failed to close external terminal: " .. (error_msg or ""), vim.log.levels.WARN)
+        end
+      end
     else
-      vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+      -- Kill internal neovim job/buffer
+      if job_info.system_job_id then
+        vim.fn.jobstop(job_info.system_job_id)
+        vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+      else
+        vim.api.nvim_buf_delete(job_info.buffer, { force = true })
+      end
     end
     vim.notify_once("Killed job " .. id, vim.log.levels.DEBUG)
-    M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent)
+    M.start_job(id, job_info.use_terminal, job_info.command, job_info.silent, job_info.external_terminal)
     -- Always set current job ID for tracking
     M.state.current_job_id = id
     vim.notify_once("Restarting job " .. id .. " ...", vim.log.levels.DEBUG)

@@ -4,6 +4,10 @@ local M = {}
 M.input = Snacks.input.input or vim.ui.input
 ---@type fun(msg: string, level?: integer, opts?: table): nil
 M.notify = Snacks.notify.notify or vim.ui.notify
+
+-- Kitty external terminal support
+local kitty = require("mnf.terminal.kitty")
+local use_external_kitty = false
 -- Base layout creators
 ---@param buf integer
 ---@param title string
@@ -118,6 +122,9 @@ end
 
 ---@return nil
 local function serialize_and_create_closure()
+  -- TODO: Layout config integration challenge - this function serializes neovim window
+  -- configurations, but kitty terminals don't use neovim windows at all. This entire
+  -- serialization system needs to be bypassed or reworked for external kitty terminals.
   -- Only serialize for split layouts - floating windows don't need it
   if
     M.terminal_state.layout ~= "floating"
@@ -132,6 +139,8 @@ local function serialize_and_create_closure()
 end
 
 -- Layout functions table - elements can refer to other elements
+-- TODO: Layout config integration with external kitty terminals is complex
+-- because kitty manages its own layout system independently of neovim
 ---@type table<string, fun(buf: integer, title: string): integer>
 M.layout_functions = {
   floating = create_floating_window,
@@ -144,7 +153,7 @@ M.layout_functions = {
 -- Terminal state
 ---@class TerminalState
 ---@field win integer?
----@field buffers table<integer, {buf: integer, safe_to_send_text: boolean}>
+---@field buffers table<integer, {buf: integer, safe_to_send_text: boolean, type?: string}>
 ---@field current integer?
 ---@field layout string
 ---@field create_window fun(buf: integer, title: string): integer
@@ -160,17 +169,56 @@ M.terminal_state = {
   commands = {},
 }
 
--- Get or create terminal buffer
+-- API function to enable kitty external terminals
+---@return nil
+function M.use_kitty()
+  use_external_kitty = true
+end
+
+-- Get or create terminal buffer (or kitty window)
 ---@param id integer
 ---@return integer
 local function get_or_create_terminal_buffer(id)
-  if not M.terminal_state.buffers[id] or not vim.api.nvim_buf_is_valid(M.terminal_state.buffers[id].buf) then
+  local buffer_entry = M.terminal_state.buffers[id]
+
+  if use_external_kitty then
+    -- For kitty terminals, check if kitty window exists
+    if not buffer_entry or not kitty.window_exists(buffer_entry.buf) then
+      local success, window_id = kitty.create_window()
+      if not success then
+        M.notify("Failed to create kitty terminal: " .. tostring(window_id), vim.log.levels.ERROR)
+        return nil
+      end
+      M.terminal_state.buffers[id] = { buf = window_id, safe_to_send_text = false, type = "kitty" }
+    else
+      local window_id = M.terminal_state.buffers[id].buf
+      -- Show kitty terminal by switching away from stack layout and focusing
+      -- WARN: goto-layout command name may be incorrect, might be "set-layout" or "layout"
+      local success, error_msg = kitty.kitty_exec({ "action", "toggle_layout", "stack" })
+      --- NOTE: probably a faster way
+      if success then
+        kitty.focus_window(window_id)
+      else
+        M.notify(error_msg)
+      end
+    end
+    return M.terminal_state.buffers[id].buf
+  end
+
+  -- Original neovim terminal logic
+  if not buffer_entry or not vim.api.nvim_buf_is_valid(buffer_entry.buf) then
     local buf = vim.api.nvim_create_buf(false, true)
-    M.terminal_state.buffers[id] = { buf = buf, safe_to_send_text = false }
+    M.terminal_state.buffers[id] = { buf = buf, safe_to_send_text = false, type = "neovim" }
 
     -- Set buffer options
     vim.bo[buf].buflisted = false
     vim.bo[buf].bufhidden = "wipe"
+
+    -- ADD BUFFER-LOCAL KEYMAPS HERE
+    vim.keymap.set({ "n", "t" }, ";;", function()
+      local last_used_term = M.get_last_used_terminal()
+      M.toggle_terminal(last_used_term)
+    end, { buffer = buf, desc = "Toggle Terminal" })
 
     -- Create terminal in buffer
     vim.api.nvim_buf_call(buf, function()
@@ -186,6 +234,29 @@ end
 ---@return nil
 function M.toggle_terminal(id)
   M.terminal_state.last_used_terminal = id
+
+  -- Handle kitty external terminals
+  if use_external_kitty then
+    local buffer_entry = M.terminal_state.buffers[id]
+    if M.terminal_state.current == id and buffer_entry then
+      -- Hide kitty terminal by switching to stack layout
+      -- WARN: goto-layout command name may be incorrect, might be "set-layout" or "layout"
+      local success, error_msg = kitty.kitty_exec({ "goto-layout", "stack" })
+      if not success then
+        M.notify("Failed to hide kitty terminal: " .. tostring(error_msg), vim.log.levels.ERROR)
+      end
+      M.terminal_state.current = nil
+      return
+    end
+
+    local kitty_window_id = get_or_create_terminal_buffer(id)
+    if kitty_window_id then
+      M.terminal_state.current = id
+    end
+    return
+  end
+
+  -- Original neovim terminal logic
   -- If same terminal is open, close it
   if M.terminal_state.current == id and M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
     serialize_and_create_closure()
@@ -218,6 +289,10 @@ end
 
 -- Toggle layout with smooth transition
 -- TODO: Make this cycle layout instead
+-- TODO: Layout config integration with kitty terminals is challenging because
+-- kitty has its own layout system (stack, fat, tall, etc.) that conflicts
+-- with neovim's window management. For kitty mode, this function should
+-- probably be disabled or reworked to manage kitty layouts instead.
 ---@return nil
 function M.toggle_layout()
   if M.terminal_state.layout == "floating" then
@@ -312,7 +387,12 @@ end
 ---@param range string
 ---@return boolean
 function M.check_if_safe_to_send_text(id, range)
-  if M.terminal_state.buffers[id].safe_to_send_text then
+  local buffer_entry = M.terminal_state.buffers[id]
+  if not buffer_entry then
+    return false
+  end
+
+  if buffer_entry.safe_to_send_text then
     return true
   end
   local choice = vim.fn.confirm(
@@ -328,7 +408,7 @@ function M.check_if_safe_to_send_text(id, range)
   if choice == 1 then
     return true
   elseif choice == 2 then
-    M.terminal_state.buffers[id].safe_to_send_text = true
+    buffer_entry.safe_to_send_text = true
     return true
   else
     return false
@@ -373,7 +453,25 @@ end
 ---@param id integer
 ---@param text string
 function M.terminal_write(id, text)
-  local buf = get_or_create_terminal_buffer(id)
+  local buffer_entry = M.terminal_state.buffers[id]
+  if not buffer_entry then
+    return
+  end
+
+  -- Handle kitty external terminals
+  if buffer_entry.type == "kitty" then
+    local success, error_msg = kitty.send_text(buffer_entry.buf, text)
+    if not success then
+      M.notify("Failed to send text to kitty terminal: " .. tostring(error_msg), vim.log.levels.ERROR)
+    end
+    return
+  end
+
+  -- Original neovim terminal logic
+  local buf = buffer_entry.buf
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
 
   -- Send text to terminal
   vim.api.nvim_chan_send(vim.bo[buf].channel, text)
@@ -397,11 +495,19 @@ end
 function M.pick_terminal(callback)
   local items = {}
   -- Collect all terminal buffers and their info
-  for id, buf in pairs(M.terminal_state.buffers) do
-    if vim.api.nvim_buf_is_valid(buf.buf) then
+  for id, buffer_entry in pairs(M.terminal_state.buffers) do
+    local is_valid = false
+    if buffer_entry.type == "kitty" then
+      is_valid = kitty.window_exists(buffer_entry.buf)
+    else
+      is_valid = vim.api.nvim_buf_is_valid(buffer_entry.buf)
+    end
+
+    if is_valid then
       local last_line = "TODO"
       local is_current = (M.terminal_state.current == id) and "● " or "  "
-      local display = string.format("%sTerminal %s: %s", is_current, id, last_line)
+      local term_type = buffer_entry.type == "kitty" and " (kitty)" or ""
+      local display = string.format("%sTerminal %s: %s%s", is_current, id, last_line, term_type)
 
       table.insert(items, { display = display, id = id })
     end

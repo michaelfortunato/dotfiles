@@ -9,6 +9,10 @@ vim.diagnostic.config({
     source = true,
   },
 })
+vim.lsp.enable("pyrefly")
+-- basedpyright is great but too noisy
+-- vim.lsp.enable("basedpyright")
+vim.lsp.enable("ruff")
 return {
   {
     -- LSP Configuration, note that some LSPs do formatting. It is

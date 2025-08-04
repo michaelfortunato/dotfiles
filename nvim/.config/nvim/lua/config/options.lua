@@ -34,6 +34,16 @@ else
 end
 vim.o.exrc = true
 
+vim.ui.open = (function(original_open)
+  return function(path)
+    if vim.env.SSH_CLIENT or vim.env.SSH_TTY then
+      vim.fn.system(string.format("kitten @ action open_url %s", vim.fn.shellescape(path)))
+    else
+      original_open(path)
+    end
+  end
+end)(vim.ui.open)
+
 -- LazyVim root dir detection
 -- Each entry can be:
 -- * the name of a detector function like `lsp` or `cwd`

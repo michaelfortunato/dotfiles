@@ -76,7 +76,7 @@ return {
     -- FIXME: This will make start up slowwer, as these plugins should only
     -- load if they are used
     -- dependencies = { "saghen/blink.cmp", "neovim/nvim-lspconfig", "folke/which-key.nvim", "folke/snacks.nvim" },
-    dependencies = { "folke/which-key.nvim", "folke/snacks.nvim" },
+    -- dependencies = { "folke/which-key.nvim", "folke/snacks.nvim" },
     config = function()
       local mnf_scratch = require("mnf.scratch")
       mnf_scratch.setup()
