@@ -72,7 +72,9 @@ function M.create_window(cmd, direction)
     table.insert(launch_args, "--bias=30")
   else
     table.insert(launch_args, "--location=vsplit")
-    table.insert(launch_args, "--bias=30")
+    -- TODO: I just want 1/2 vsplit, putting nothign seems to work,
+    -- `--bias` of 50 seems to work differently than I thought
+    -- table.insert(launch_args, "--bias=50")
   end
 
   if cmd then

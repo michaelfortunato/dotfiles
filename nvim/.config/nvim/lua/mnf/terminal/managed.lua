@@ -184,7 +184,7 @@ local function get_or_create_terminal_buffer(id)
   if use_external_kitty then
     -- For kitty terminals, check if kitty window exists
     if not buffer_entry or not kitty.window_exists(buffer_entry.buf) then
-      local success, window_id = kitty.create_window()
+      local success, window_id = kitty.create_window(nil, "right")
       if not success then
         M.notify("Failed to create kitty terminal: " .. tostring(window_id), vim.log.levels.ERROR)
         return nil
@@ -238,7 +238,17 @@ function M.toggle_terminal(id)
   -- Handle kitty external terminals
   if use_external_kitty then
     local buffer_entry = M.terminal_state.buffers[id]
-    if M.terminal_state.current == id and buffer_entry then
+
+    if M.terminal_state.current == id and buffer_entry and not kitty.window_exists(buffer_entry.buf) then
+      M.terminal_state.buffers[id] = nil
+    end
+
+    if M.terminal_state.current == id and buffer_entry and kitty.window_exists(buffer_entry.buf) then
+      -- free the memory if the window got closed somewhere else
+      if not kitty.window_exists(buffer_entry.buf) then
+        M.terminal_state.buffers[id] = nil
+        return
+      end
       -- Hide kitty terminal by switching to stack layout
       -- WARN: goto-layout command name may be incorrect, might be "set-layout" or "layout"
       local success, error_msg = kitty.kitty_exec({ "goto-layout", "stack" })
