@@ -9,7 +9,9 @@ vim.diagnostic.config({
     source = true,
   },
 })
-vim.lsp.enable("pyrefly")
+
+-- WARN: UNDO THIS:  vim.lsp.enable("pyrefly")
+
 -- basedpyright is great but too noisy
 -- vim.lsp.enable("basedpyright")
 vim.lsp.enable("ruff")
@@ -117,5 +119,37 @@ return {
         },
       },
     },
+  },
+  {
+    "nvimtools/none-ls.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "danymat/neogen",
+    },
+    config = function()
+      local null_ls = require("null-ls")
+      null_ls.setup({
+        sources = {
+          -- NeoGen Code Action
+          {
+            name = "neogen", -- Custom name instead of "null-ls"
+            method = null_ls.methods.CODE_ACTION,
+            filetypes = { "lua", "python", "javascript", "typescript", "go", "rust", "java", "c", "cpp" },
+            generator = {
+              fn = function(params)
+                return {
+                  {
+                    title = "Generate Documentation",
+                    action = function()
+                      require("neogen").generate()
+                    end,
+                  },
+                }
+              end,
+            },
+          },
+        },
+      })
+    end,
   },
 }
