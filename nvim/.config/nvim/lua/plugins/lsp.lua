@@ -10,10 +10,7 @@ vim.diagnostic.config({
   },
 })
 
--- WARN: UNDO THIS:  vim.lsp.enable("pyrefly")
-
--- basedpyright is great but too noisy
--- vim.lsp.enable("basedpyright")
+vim.lsp.enable("pyrefly")
 vim.lsp.enable("ruff")
 return {
   {
