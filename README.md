@@ -273,6 +273,22 @@ have
 ~/dotfiles/Tactitus/.config/nvim
 ```
 
+## How To Make Neovim Like Jupyter Notebook
+
+- Use these dotfiles
+- `uv venv`
+- `source .venv/bin/activate`
+- `uv pip install pynvim jupyter jupyter_client`
+- Open Neovim, and run `:UpdateRemotePlugins`
+
+> [!NOTE]
+> If Molten doesn't see a kernel, you got a problem.
+> You should never make the jupyter kernel manually. Use the venv, and
+> keep repeating the above steps until it works.
+
+Repeat these steps until it works. This is all you need ignore--`image.nvim`
+dependency stressors.
+
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
 [3]: https://www.lazyvim.org
