@@ -841,7 +841,7 @@ $<>]],
         i(0),
       }
     ),
-    { condition = line_begin }
+    { condition = line_begin * -in_mathzone }
   ),
   s(
     { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
@@ -857,7 +857,7 @@ $<>]],
       },
       { trim_empty = false }
     ),
-    { condition = -line_begin * trigger_does_not_follow_alpha_char }
+    { condition = -line_begin * -in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   --  TODO: Which is faster?
   --   s(
@@ -890,7 +890,7 @@ $<>]],
       d(1, get_visual),
       i(0),
     }),
-    { condition = trigger_does_not_follow_alpha_char }
+    { condition = -in_mathzone * trigger_does_not_follow_alpha_char }
   ),
   s(
     { trig = "(%a)mb", regTrig = true, wordTrig = false, snippetType = "autosnippet" },

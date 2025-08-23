@@ -269,41 +269,21 @@ match <> {
     ),
     { condition = -in_string - in_comment }
   ),
-  s(
-    { trig = "if", snippetType = "autosnippet" },
-    fmta(
-      [[
-if <> {
-  <>
-};<>
-]],
-      { i(1), i(2), i(0) }
-    ),
-    { condition = -in_string - in_comment }
-  ),
-  s(
-    { trig = "error", snippetType = "autosnippet" },
-    fmta([[error!(<>)<>]], { iv(1), i(0) }),
-    { condition = -in_string - in_comment }
-  ),
-  s(
-    { trig = "warn", snippetType = "autosnippet" },
-    fmta([[warn!(<>)<>]], { iv(1), i(0) }),
-    { condition = -in_string - in_comment }
-  ),
-  s(
-    { trig = "info", snippetType = "autosnippet" },
-    fmta([[info!(<>)<>]], { iv(1), i(0) }),
-    { condition = -in_string - in_comment }
-  ),
-  s(
-    { trig = "debug", snippetType = "autosnippet" },
-    fmta([[debug!(<>)<>]], { iv(1), i(0) }),
-    { condition = -in_string - in_comment }
-  ),
-  s(
-    { trig = "trace", snippetType = "autosnippet" },
-    fmta([[error!(<>)<>]], { iv(1), i(0) }),
-    { condition = -in_string - in_comment }
-  ),
+  --   s(
+  --     { trig = "if", snippetType = "autosnippet" },
+  --     fmta(
+  --       [[
+  -- if <> {
+  --   <>
+  -- };<>
+  -- ]],
+  --       { i(1), i(2), i(0) }
+  --     ),
+  --     { condition = -in_string - in_comment }
+  --   ),
+  s({ trig = "error" }, fmta([[error!(<>)<>]], { iv(1), i(0) }), { condition = -in_string - in_comment }),
+  s({ trig = "warn" }, fmta([[warn!(<>)<>]], { iv(1), i(0) }), { condition = -in_string - in_comment }),
+  s({ trig = "info" }, fmta([[info!(<>)<>]], { iv(1), i(0) }), { condition = -in_string - in_comment }),
+  s({ trig = "debug" }, fmta([[debug!(<>)<>]], { iv(1), i(0) }), { condition = -in_string - in_comment }),
+  s({ trig = "trace" }, fmta([[error!(<>)<>]], { iv(1), i(0) }), { condition = -in_string - in_comment }),
 }
