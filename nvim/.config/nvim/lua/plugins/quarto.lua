@@ -1,8 +1,7 @@
 return {
   {
     "quarto-dev/quarto-nvim",
-    dependencies = { "jmbuhr/otter.nvim", "nvim-treesitter/nvim-treesitter", "benlubas/molten-nvim"
- },
+    dependencies = { "jmbuhr/otter.nvim", "nvim-treesitter/nvim-treesitter", "benlubas/molten-nvim" },
     ft = { "quarto", "markdown", "qmd" }, -- Load for these filetypes
     config = function()
       require("quarto").setup({
@@ -133,6 +132,63 @@ return {
         end
       end
 
+      -- ftplugin/quarto.lua
+
+      -- Only treat <Esc> specially while cursor is inside a fenced code block?
+
+      local function in_fenced_cell()
+        local ok, node = pcall(vim.treesitter.get_node, { ignore_injections = true })
+        if not ok or not node then
+          return false
+        end
+        while node do
+          local t = node:type()
+          if t == "fenced_code_block" or t == "indented_code_block" then
+            return true
+          end
+          node = node:parent()
+        end
+        return false
+      end
+
+      local function count_floats()
+        local n = 0
+        for _, w in ipairs(vim.api.nvim_list_wins()) do
+          local cfg = vim.api.nvim_win_get_config(w)
+          if cfg and cfg.relative ~= "" then
+            n = n + 1
+          end
+        end
+        return n
+      end
+
+      -- Expr mapping: return a string. Either <Ignore> (handled) or a real <Esc>.
+      local function esc_maybe_hide_expr()
+        -- If not Quarto (or not in a cell, if required): pass built-in <Esc>.
+        if vim.bo.filetype ~= "quarto" or not in_fenced_cell() then
+          return "<ESC>"
+        end
+
+        return "<CMD>MoltenHideOutput<CR>"
+
+        -- -- If we closed something, consume the key; else pass built-in <Esc>.
+        -- if after < before then
+        --   return "<Ignore>"
+        -- else
+        --   return vim.api.nvim_replace_termcodes("<Esc>", true, true, true)
+        -- end
+      end
+
+      -- Optional: when focus is inside *any* floating window, make <Esc> close it.
+      vim.api.nvim_create_autocmd("WinEnter", {
+        callback = function()
+          local cfg = vim.api.nvim_win_get_config(0)
+          if cfg and cfg.relative ~= "" then
+            vim.keymap.set("n", "<Esc>", "<Cmd>q<CR>", { buffer = true, silent = true, desc = "Close float" })
+          end
+        end,
+      })
+
       -- Set up buffer-local keymaps for quarto files
       local function setup_quarto_keymaps()
         -- Only set these keymaps for quarto/qmd files
@@ -141,7 +197,7 @@ return {
           local runner = require("quarto.runner")
 
           -- Quarto/Molten integration keymaps
-          vim.keymap.set("n", "<S-Enter>", function()
+          vim.keymap.set({ "v", "n" }, "<S-Enter>", function()
             runner.run_cell()
           end, vim.tbl_extend("force", opts, { desc = "run cell" }))
           -- vim.keymap.set(
@@ -158,17 +214,26 @@ return {
           vim.keymap.set("n", "<S-J>", function()
             expand_fence("python")
           end, vim.tbl_extend("force", opts, { desc = "run cell" }))
+          vim.keymap.set("n", "<Esc>", esc_maybe_hide_expr, {
+            buffer = true,
+            expr = true,
+            noremap = true, -- ensures returned <Esc> is *not* remapped; default behavior runs
+            silent = true,
+            desc = "Molten: hide output if visible; else normal <Esc>",
+          })
 
-          vim.keymap.set("n", "<Leader-j>", function()
-            expand_fence("python")
-          end, vim.tbl_extend("force", opts, { desc = "run cell" }))
-          -- TODO: Below
-          vim.keymap.set(
-            "v",
-            "<S-Enter>",
-            runner.run_range,
-            vim.tbl_extend("force", opts, { desc = "evaluate visual selection" })
-          )
+          vim.keymap.set("n", "<S-w>", function()
+            if not in_fenced_cell() then
+              return "<S-w>"
+            end
+            return "<CMD>MoltenShowOutput<CR>"
+          end, {
+            buffer = true,
+            expr = true,
+            noremap = true, -- ensures returned <Esc> is *not* remapped; default behavior runs
+            silent = true,
+            desc = "Molten: show output if visible; else normal <Esc>",
+          })
 
           -- Additional useful keymaps for Quarto files
           -- vim.keymap.set("n", "<leader>qr", function()
