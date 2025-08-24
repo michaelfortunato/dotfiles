@@ -221,6 +221,22 @@ return {
             silent = true,
             desc = "Molten: hide output if visible; else normal <Esc>",
           })
+          pcall(vim.keymap.del, "n", "]c", { buffer = 0 })
+          pcall(vim.keymap.del, "n", "[c", { buffer = 0 })
+          vim.keymap.set("n", "]c", function()
+            local move = require("nvim-treesitter.textobjects.move")
+            move.goto_next("@fenced_code_block")
+          end, { buffer = true, desc = "Next code cell (content start)" })
+          vim.keymap.set("n", "[c", function()
+            local move = require("nvim-treesitter.textobjects.move")
+            move.goto_previous("@fenced_code_block")
+          end, { buffer = true, desc = "Next code cell (content start)" })
+
+          vim.keymap.set("n", "<S-Up>", function()
+            print("UHHHH")
+            local move = require("nvim-treesitter.textobjects.move")
+            move.goto_previous("@fenced_code_block")
+          end, { buffer = true, desc = "Previous code cell (content start)" })
 
           vim.keymap.set("n", "<S-w>", function()
             if not in_fenced_cell() then
@@ -241,7 +257,254 @@ return {
           -- end, vim.tbl_extend("force", opts, { desc = "run all cells" }))
           -- vim.keymap.set("n", "<leader>qa", function()
           -- 	runner.run_above()
+          --
           -- end, vim.tbl_extend("force", opts, { desc = "run cells above" }))
+          -- Make the "quarto" filetype use the markdown parser (no-op if already done)
+          pcall(vim.treesitter.language.register, "markdown", "quarto")
+
+          -- Query the host (markdown) tree for code blocks
+          local CELL_QUERY = vim.treesitter.query.parse(
+            "markdown",
+            [[
+  (fenced_code_block) @cell
+  (indented_code_block) @cell
+]]
+          )
+
+          -- Utilities ---------------------------------------------------------------
+
+          local function get_parser(bufnr)
+            bufnr = bufnr or 0
+            local ok, parser = pcall(vim.treesitter.get_parser, bufnr, "markdown")
+            if not ok then
+              ok, parser = pcall(vim.treesitter.get_parser, bufnr)
+            end
+            return ok and parser or nil
+          end
+
+          local function get_node_text(node, bufnr)
+            return vim.treesitter.get_node_text(node, bufnr or 0)
+          end
+
+          -- Extract content range and language/meta for fenced blocks
+          local function fenced_content_rows(node, bufnr)
+            local cs, ce
+            local info
+            for i = 0, node:child_count() - 1 do
+              local ch = node:child(i)
+              local t = ch:type()
+              if t == "code_fence_content" then
+                local srow, _, erow, _ = ch:range() -- erow exclusive
+                cs, ce = srow, erow
+              elseif t == "info_string" then
+                info = get_node_text(ch, bufnr)
+              end
+            end
+            -- Parse language token from info string: accepts "{python}" or "python opts"
+            local lang
+            if info then
+              info = info:gsub("^%s+", ""):gsub("%s+$", "")
+              local inside = info:match("^%{(.-)%}") or info:match("^%{(.-)$")
+              local head = inside or info
+              lang = head:match("^([%w_%.%-]+)") -- conservative first token
+            end
+            return cs, ce, lang, info
+          end
+
+          -- Build a list of all cells with computed IDs and metadata
+          local function collect_cells(bufnr)
+            bufnr = bufnr or 0
+            local parser = get_parser(bufnr)
+            if not parser then
+              return {}
+            end
+            local tree = parser:parse()[1]
+            if not tree then
+              return {}
+            end
+            local root = tree:root()
+
+            local cells = {}
+            for _, node in CELL_QUERY:iter_captures(root, bufnr, 0, -1) do
+              local srow, _, erow, _ = node:range() -- erow exclusive
+              local kind = node:type()
+              local cs, ce, lang, info
+
+              if kind == "fenced_code_block" then
+                cs, ce, lang, info = fenced_content_rows(node, bufnr)
+                -- empty fences: content is effectively between the fences if present
+                if not cs or not ce or ce <= cs then
+                  cs = math.min(srow + 1, erow - 1)
+                  ce = cs
+                end
+              else
+                -- indented code block: content is whole node
+                cs, ce = srow, erow
+              end
+
+              cells[#cells + 1] = {
+                node = node,
+                bufnr = bufnr,
+                kind = kind,
+                srow = srow,
+                erow = erow,
+                cs = cs,
+                ce = ce, -- content [cs, ce)
+                lang = lang,
+                info = info,
+              }
+            end
+
+            table.sort(cells, function(a, b)
+              return a.srow < b.srow
+            end)
+            -- Assign 1..N IDs in buffer order
+            for i, c in ipairs(cells) do
+              c.id = i
+            end
+            return cells
+          end
+
+          local function idx_next(cells, cur_row)
+            for i, c in ipairs(cells) do
+              if c.srow > cur_row then
+                return i
+              end
+            end
+          end
+
+          local function idx_prev(cells, cur_row)
+            -- 1) If cursor is INSIDE cell j, jump to j-1
+            for j = 1, #cells do
+              local c = cells[j]
+              if c.srow <= cur_row and cur_row < c.erow then
+                return (j > 1) and (j - 1) or nil
+              end
+            end
+            -- 2) Cursor is BETWEEN cells: pick the last start < cur_row
+            local last
+            for i, c in ipairs(cells) do
+              if c.srow < cur_row then
+                last = i
+              else
+                break
+              end
+            end
+            return last
+          end
+
+          -- Choose target row: "middle" (default), "inside" (first content line), or "start" (fence)
+          local function target_row_for_cell(cell, where)
+            where = where or "middle"
+            if where == "start" then
+              return cell.srow
+            end
+            -- For both fenced & indented, we have content bounds [cs, ce)
+            local cs, ce = cell.cs, cell.ce
+            if not cs or not ce then
+              return cell.srow
+            end
+            if where == "inside" then
+              return cs
+            end
+            -- middle of content region; ce is exclusive, so last content row is ce-1
+            local last = math.max(cs, ce - 1)
+            return math.floor((cs + last) / 2)
+          end
+
+          local function goto_cell(cell, where)
+            if not cell then
+              return
+            end
+            local row = math.max(0, target_row_for_cell(cell, where))
+            vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
+          end
+
+          -- Echo quick info like: Cell [3/10] python (12 lines)
+          local function echo_cell_info(cell, total)
+            if not cell then
+              return
+            end
+            local lines = math.max(0, (cell.ce or cell.erow) - (cell.cs or cell.srow))
+            local lang = cell.lang or "?"
+            vim.notify(
+              string.format(
+                "Cell [%d/%d] %s • %d line%s",
+                cell.id,
+                total or cell.id,
+                lang,
+                lines,
+                lines == 1 and "" or "s"
+              ),
+              vim.log.levels.INFO,
+              { title = "Quarto cells" }
+            )
+          end
+
+          -- Public jump (wraps around by default)
+          local function jump_cell(direction, opts)
+            opts = opts or {}
+            local where = opts.where or "middle"
+            local wrap = opts.wrap ~= false
+
+            local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+            local cells = collect_cells(0)
+            if #cells == 0 then
+              vim.notify("No code fences found", vim.log.levels.INFO, { title = "Quarto cells" })
+              return
+            end
+
+            local idx = (direction == "next") and idx_next(cells, row) or idx_prev(cells, row)
+            if not idx and wrap then
+              idx = (direction == "next") and 1 or #cells
+            end
+            if not idx then
+              vim.notify("No " .. direction .. " cell", vim.log.levels.INFO, { title = "Quarto cells" })
+              return
+            end
+            local cell = cells[idx]
+            goto_cell(cell, where)
+            echo_cell_info(cell, #cells)
+          end
+
+          -- Mappings (buffer-local) -------------------------------------------------
+
+          -- Prefer landing at the MIDDLE of content
+          vim.keymap.set("n", "[c", function()
+            jump_cell("prev", { where = "middle", wrap = true })
+          end, { buffer = true, desc = "Previous code cell (middle of content)" })
+          vim.keymap.set("n", "[[", function()
+            jump_cell("prev", { where = "middle", wrap = true })
+          end, { buffer = true, desc = "Previous code cell (middle of content)" })
+
+          vim.keymap.set("n", "]c", function()
+            jump_cell("next", { where = "middle", wrap = true })
+          end, { buffer = true, desc = "Next code cell (middle of content)" })
+          vim.keymap.set("n", "]]", function()
+            jump_cell("next", { where = "middle", wrap = true })
+          end, { buffer = true, desc = "Next code cell (middle of content)" })
+
+          -- -- (Optional) Variants that land on first content line or fence line:
+          -- vim.keymap.set("n", "]C", function()
+          --   jump_cell("next", { where = "inside", wrap = true })
+          -- end, { buffer = true, desc = "Next code cell (first content line)" })
+          --
+          -- vim.keymap.set("n", "[C", function()
+          --   jump_cell("prev", { where = "inside", wrap = true })
+          -- end, { buffer = true, desc = "Previous code cell (first content line)" })
+
+          -- (Optional) Show the current cell's id/lang/size without moving
+          vim.keymap.set("n", "g?c", function()
+            local row = vim.api.nvim_win_get_cursor(0)[1] - 1
+            local cells = collect_cells(0)
+            for i = #cells, 1, -1 do
+              if cells[i].srow <= row and row < cells[i].erow then
+                echo_cell_info(cells[i], #cells)
+                return
+              end
+            end
+            vim.notify("Cursor is not in a code cell", vim.log.levels.INFO, { title = "Quarto cells" })
+          end, { buffer = true, desc = "Current cell info" }) --
         end
       end
 
@@ -282,6 +545,7 @@ return {
       -- these are examples, not defaults. Please see the readme
       vim.g.molten_image_provider = "image.nvim"
       vim.g.molten_output_win_max_height = 20
+      vim.g.molten_auto_open_output = false
     end,
   },
 }
