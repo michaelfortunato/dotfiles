@@ -464,7 +464,8 @@ return {
             end
             local cell = cells[idx]
             goto_cell(cell, where)
-            echo_cell_info(cell, #cells)
+            -- For debugging
+            -- echo_cell_info(cell, #cells)
           end
 
           -- Mappings (buffer-local) -------------------------------------------------
