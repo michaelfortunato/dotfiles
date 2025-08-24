@@ -214,9 +214,9 @@ return {
           vim.keymap.set("n", "<S-J>", function()
             expand_fence("python")
           end, vim.tbl_extend("force", opts, { desc = "run cell" }))
-          vim.keymap.set("n", "<Esc>", esc_maybe_hide_expr, {
+          vim.keymap.set("n", "<Esc>", "<CMD>MoltenEnterOutput<CR>", {
             buffer = true,
-            expr = true,
+            -- expr = true,
             noremap = true, -- ensures returned <Esc> is *not* remapped; default behavior runs
             silent = true,
             desc = "Molten: hide output if visible; else normal <Esc>",
@@ -238,11 +238,16 @@ return {
             move.goto_previous("@fenced_code_block")
           end, { buffer = true, desc = "Previous code cell (content start)" })
 
-          vim.keymap.set("n", "<S-w>", function()
+          -- From the Molten docs doubling enter will enter the the output
+          -- which is what we want, requires this variable to be set though.
+          -- | `g:molten_enter_output_behavior`
+          -- | (`"open_then_enter"`) \| `"open_and_enter"` \| `"no_open"`  |
+          -- The behavior of [MoltenEnterOutput](#moltenenteroutput) |
+          vim.keymap.set("n", "<Enter>", function()
             if not in_fenced_cell() then
               return "<S-w>"
             end
-            return "<CMD>MoltenShowOutput<CR>"
+            return "<CMD>MoltenEnterOutput<CR>"
           end, {
             buffer = true,
             expr = true,
@@ -547,6 +552,8 @@ return {
       vim.g.molten_image_provider = "image.nvim"
       vim.g.molten_output_win_max_height = 20
       vim.g.molten_auto_open_output = false
+      -- See our comment in quarto plugin spec
+      vim.g.molten_enter_output_behavior = "open_then_enter"
     end,
   },
 }
