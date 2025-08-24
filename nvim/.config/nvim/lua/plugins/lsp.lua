@@ -105,6 +105,7 @@ return {
           -- To organize the imports.
           "ruff_organize_imports",
         },
+        quarto = { "injected" },
       },
       formatters = {
         typstyle = {
@@ -113,6 +114,21 @@ return {
         },
         ["tex-fmt"] = {
           prepend_args = { "--wraplen", "79" },
+        },
+        injected = {
+          options = {
+            -- Map fence languages -> conform formatters to run on the cell content
+            lang_to_formatters = {
+              python = { "ruff_fix", "ruff_format", "ruff_organize_imports" }, -- or just { "ruff_format" }
+              -- add more if you like:
+              -- r = { "styler" },        -- if you use an R formatter
+              -- bash = { "shfmt" },
+              -- yaml = { "prettierd", "prettier" },
+            },
+            -- You can set these if you want:
+            -- ignore_errors = true, -- don’t abort if one cell fails
+            -- trailing_newline = false,
+          },
         },
       },
     },
