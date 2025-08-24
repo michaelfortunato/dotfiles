@@ -289,6 +289,11 @@ have
 Repeat these steps until it works. This is all you need ignore--`image.nvim`
 dependency stressors.
 
+### How to do this above, _in Rust_
+
+See here <https://github.com/jmbuhr/otter.nvim/issues/208#issuecomment-2682553879>
+and checkout `templates/burn` for the tutorial.
+
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
 [3]: https://www.lazyvim.org

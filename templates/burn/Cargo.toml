@@ -1,0 +1,11 @@
+[package]
+name = "tmp"
+version = "0.1.0"
+edition = "2024"
+
+[[example]]
+name = "notebook"
+path = "notebook.qmd.otter.rs"
+
+[dependencies]
+burn = {version = "*", features=["wgpu"]}
