@@ -162,33 +162,6 @@ return {
         return n
       end
 
-      -- Expr mapping: return a string. Either <Ignore> (handled) or a real <Esc>.
-      local function esc_maybe_hide_expr()
-        -- If not Quarto (or not in a cell, if required): pass built-in <Esc>.
-        if vim.bo.filetype ~= "quarto" or not in_fenced_cell() then
-          return "<ESC>"
-        end
-
-        return "<CMD>MoltenHideOutput<CR>"
-
-        -- -- If we closed something, consume the key; else pass built-in <Esc>.
-        -- if after < before then
-        --   return "<Ignore>"
-        -- else
-        --   return vim.api.nvim_replace_termcodes("<Esc>", true, true, true)
-        -- end
-      end
-
-      -- Optional: when focus is inside *any* floating window, make <Esc> close it.
-      vim.api.nvim_create_autocmd("WinEnter", {
-        callback = function()
-          local cfg = vim.api.nvim_win_get_config(0)
-          if cfg and cfg.relative ~= "" then
-            vim.keymap.set("n", "<Esc>", "<Cmd>q<CR>", { buffer = true, silent = true, desc = "Close float" })
-          end
-        end,
-      })
-
       -- Set up buffer-local keymaps for quarto files
       local function setup_quarto_keymaps()
         -- Only set these keymaps for quarto/qmd files
@@ -214,9 +187,14 @@ return {
           vim.keymap.set("n", "<S-J>", function()
             expand_fence("python")
           end, vim.tbl_extend("force", opts, { desc = "run cell" }))
-          vim.keymap.set("n", "<Esc>", "<CMD>MoltenEnterOutput<CR>", {
+          vim.keymap.set("n", "<Esc>", function()
+            if not in_fenced_cell() then
+              return "<Esc>"
+            end
+            return "<CMD>MoltenHideOutput<CR>"
+          end, {
             buffer = true,
-            -- expr = true,
+            expr = true,
             noremap = true, -- ensures returned <Esc> is *not* remapped; default behavior runs
             silent = true,
             desc = "Molten: hide output if visible; else normal <Esc>",
@@ -245,9 +223,9 @@ return {
           -- The behavior of [MoltenEnterOutput](#moltenenteroutput) |
           vim.keymap.set("n", "<Enter>", function()
             if not in_fenced_cell() then
-              return "<S-w>"
+              return "<Enter>"
             end
-            return "<CMD>MoltenEnterOutput<CR>"
+            return "<CMD>:noautocmd MoltenEnterOutput<CR>"
           end, {
             buffer = true,
             expr = true,
@@ -522,6 +500,15 @@ return {
           vim.opt_local.conceallevel = 0
         end,
       })
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "molten_output",
+        callback = function()
+          vim.keymap.set("n", "q", "<cmd>MoltenHideOutput<cr>", { buffer = true })
+          vim.keymap.set("n", "<Esc>", "<cmd>MoltenHideOutput<cr>", { buffer = true })
+          vim.keymap.set("n", "<Enter>", "<cmd>MoltenHideOutput<cr>", { buffer = true, silent = true })
+          -- or whatever key/command you prefer
+        end,
+      })
     end,
   },
   {
@@ -554,6 +541,10 @@ return {
       vim.g.molten_auto_open_output = false
       -- See our comment in quarto plugin spec
       vim.g.molten_enter_output_behavior = "open_then_enter"
+      vim.g.molten_output_win_zindex = 1 -- I want lsp to cover it
+      -- vim.g.molten_tick_rate = 500 -- be careful with this
+      -- shows the number of extra lines in the buffer  if any
+      vim.g.molten_output_show_more = true
     end,
   },
 }
