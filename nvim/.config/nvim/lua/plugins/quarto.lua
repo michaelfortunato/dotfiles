@@ -151,15 +151,14 @@ return {
         return false
       end
 
-      local function count_floats()
-        local n = 0
+      local function molten_output_visible()
         for _, w in ipairs(vim.api.nvim_list_wins()) do
-          local cfg = vim.api.nvim_win_get_config(w)
-          if cfg and cfg.relative ~= "" then
-            n = n + 1
+          local b = vim.api.nvim_win_get_buf(w)
+          if vim.bo[b].filetype == "molten_output" then
+            return true
           end
         end
-        return n
+        return false
       end
 
       -- Set up buffer-local keymaps for quarto files
@@ -188,7 +187,7 @@ return {
             expand_fence("python")
           end, vim.tbl_extend("force", opts, { desc = "run cell" }))
           vim.keymap.set("n", "<Esc>", function()
-            if not in_fenced_cell() then
+            if not in_fenced_cell() or not molten_output_visible() then
               return "<Esc>"
             end
             return "<CMD>MoltenHideOutput<CR>"
