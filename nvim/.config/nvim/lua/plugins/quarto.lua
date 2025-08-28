@@ -494,7 +494,7 @@ return {
       -- Set up autocommand to apply keymaps to quarto buffers
       vim.api.nvim_create_autocmd({ "FileType" }, {
         pattern = { "quarto", "qmd" }, -- Only for actual quarto files, not general markdown
-        callback = function(ev)
+        callback = function()
           setup_quarto_keymaps()
           vim.opt_local.conceallevel = 0
         end,
@@ -540,10 +540,10 @@ return {
       vim.g.molten_auto_open_output = false
       -- See our comment in quarto plugin spec
       vim.g.molten_enter_output_behavior = "open_then_enter"
-      vim.g.molten_output_win_zindex = 1 -- I want lsp to cover it
+      -- vim.g.molten_output_win_zindex = 1 -- I want lsp to cover it
       -- vim.g.molten_tick_rate = 500 -- be careful with this
       -- shows the number of extra lines in the buffer  if any
-      vim.g.molten_output_show_more = true
+      -- vim.g.molten_output_show_more = true
     end,
   },
 }
