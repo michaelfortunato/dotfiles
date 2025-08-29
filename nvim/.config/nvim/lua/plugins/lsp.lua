@@ -119,7 +119,9 @@ return {
           options = {
             -- Map fence languages -> conform formatters to run on the cell content
             lang_to_formatters = {
-              python = { "ruff_fix", "ruff_format", "ruff_organize_imports" }, -- or just { "ruff_format" }
+              -- python = { "ruff_fix", "ruff_format", "ruff_organize_imports" }, -- or just { "ruff_format" }
+              -- Remove ruff_fix so that it does not remove unused imports
+              python = { "ruff_format", "ruff_organize_imports" }, -- or just { "ruff_format" }
               -- add more if you like:
               -- r = { "styler" },        -- if you use an R formatter
               -- bash = { "shfmt" },
