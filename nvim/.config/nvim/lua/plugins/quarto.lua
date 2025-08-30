@@ -1,7 +1,11 @@
 return {
   {
     "quarto-dev/quarto-nvim",
-    dependencies = { "jmbuhr/otter.nvim", "nvim-treesitter/nvim-treesitter", "benlubas/molten-nvim" },
+    dependencies = {
+      "jmbuhr/otter.nvim",
+      "nvim-treesitter/nvim-treesitter",
+      { "benlubas/molten-nvim", commit = "4e1c999" },
+    },
     ft = { "quarto", "markdown", "qmd" }, -- Load for these filetypes
     config = function()
       require("quarto").setup({
@@ -22,9 +26,9 @@ return {
         codeRunner = {
           enabled = true,
           default_method = "molten", -- Use molten as the code runner
-          ft_runners = {}, -- filetype to runner, ie. `{ python = "molten" }`.
+          ft_runners = { typst = nil }, -- filetype to runner, ie. `{ python = "molten" }`.
           -- Takes precedence over `default_method`
-          never_run = { "yaml" }, -- filetypes which are never sent to a code runner
+          never_run = { "yaml", "typst" }, -- filetypes which are never sent to a code runner
         },
       })
 
@@ -181,6 +185,7 @@ return {
           -- TODO: Above
           vim.keymap.set("n", "<S-K>", function()
             expand_fence("python")
+            vim.notify("TODO: Above")
           end, vim.tbl_extend("force", opts, { desc = "run cell" }))
           -- TODO: Below
           vim.keymap.set("n", "<S-J>", function()
@@ -190,7 +195,13 @@ return {
             if not in_fenced_cell() or not molten_output_visible() then
               return "<Esc>"
             end
-            return "<CMD>MoltenHideOutput<CR>"
+            -- FIXME: This command is broken if I am outside the buffer
+            -- report to molten or find workour. Basically I have to enter
+            -- the output window to close it from there now.
+            -- HACK: Molten has a crazy bug where MoltenEnterOutput
+            -- _closes_ the window if called _without_ :noautocmd
+            -- and MoltenHideOutput is a noop. this is on 4e1cc9
+            return "<CMD>MoltenEnterOutput<CR>"
           end, {
             buffer = true,
             expr = true,
@@ -521,8 +532,8 @@ return {
             enabled = true,
             doc = {
               enabled = true,
-              max_width = 100,
-              max_height = 100,
+              max_width = 300,
+              max_height = 300,
             },
           },
         },
