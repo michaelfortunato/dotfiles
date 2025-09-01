@@ -1,15 +1,7 @@
 -- FIXME: Python LSP servers only! LSP rename fails with "change_annotations must be provided for annotated text edits"
 --- Includes lsp, linting, and formatter configurations
 vim.lsp.set_log_level("ERROR")
-vim.diagnostic.config({
-  virtual_text = {
-    source = true, -- or "if_many"
-  },
-  float = {
-    source = true,
-  },
-})
-
+-- NOTE: This config is grreat but lazy vim is overriding it.
 vim.lsp.enable("pyrefly")
 vim.lsp.enable("ruff")
 return {
@@ -38,6 +30,20 @@ return {
     end,
     ---@class PluginLspOpts
     opts = {
+      -- NOTE, we still have to use this old API as LazyVim uses
+      -- it. Note that vim.diagnostic.config({}) would be preferable.
+      diagnostics = {
+        virtual_text = false, -- no inline text
+        underline = false, -- no squiggles
+        update_in_insert = false,
+        severity_sort = true,
+        signs = true, -- we still want gutter signs
+        float = { -- when we open the popup
+          border = "rounded",
+          source = "if_many",
+          focusable = false,
+        },
+      },
       --- Get that shi out of here!
       inlay_hints = { enabled = false },
       servers = {

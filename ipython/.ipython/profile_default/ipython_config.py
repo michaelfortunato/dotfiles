@@ -16,6 +16,8 @@ c.TerminalInteractiveShell.shortcuts = [
 # Default: []
 c.InteractiveShellApp.exec_lines = [
     "%alias c clear",
+    "%load_ext autoreload",
+    "%autoreload 2",
     """
 try:
     %colors catppuccin-mocha
