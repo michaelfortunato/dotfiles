@@ -113,6 +113,38 @@ return {
 
         opts.options.theme = custom_theme
       end
+
+      -- Add a minimal winbar component rendered by lualine (top-right)
+      -- Shows "MAX" and/or the tab count when > 1
+      local function winbar_status()
+        local parts = {}
+        if vim.t.maximized then
+          table.insert(parts, "MAX")
+        end
+        local tabs = #vim.api.nvim_list_tabpages()
+        if tabs > 1 then
+          table.insert(parts, tostring(tabs))
+        end
+        return table.concat(parts, " ")
+      end
+
+      opts.tabline = {}
+      opts.tabline.lualine_z = opts.tabline.lualine_z or {}
+      table.insert(opts.tabline.lualine_z, {
+        winbar_status,
+        cond = function()
+          return vim.t.maximized or #vim.api.nvim_list_tabpages() > 1
+        end,
+      })
+
+      -- opts.winbar = opts.winbar or {}
+      -- opts.winbar.lualine_z = opts.winbar.lualine_z or {}
+      -- table.insert(opts.winbar.lualine_z, {
+      --   winbar_status,
+      --   cond = function()
+      --     return vim.t.maximized or #vim.api.nvim_list_tabpages() > 1
+      --   end,
+      -- })
     end,
     ---@type LazyKeysSpec[]
     keys = {
@@ -121,7 +153,13 @@ return {
         function()
           M.show_statusline = not M.show_statusline
           ---@diagnostic disable-next-line: missing-fields
-          require("lualine").hide({ unhide = M.show_statusline })
+          require("lualine").hide({
+            place = {
+              "statusline",
+              -- The only others could be "tabline", "winbar"
+            }, -- The segment this change applies to.
+            unhide = M.show_statusline,
+          })
           if M.show_statusline == false then
             vim.opt.laststatus = 0
             -- ref: https://github.com/neovim/neovim/issues/18965#issuecomment-1273195466

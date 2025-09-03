@@ -7,7 +7,8 @@ M.notify = Snacks.notify.notify or vim.ui.notify
 
 -- Kitty external terminal support
 local kitty = require("mnf.terminal.kitty")
-local use_external_kitty = true
+-- Off by default
+local use_external_kitty = false
 -- Base layout creators
 ---@param buf integer
 ---@param title string

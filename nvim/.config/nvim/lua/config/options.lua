@@ -10,6 +10,7 @@ vim.opt.relativenumber = false
 --- Prepare for lazyvim v14 if I ever decide to go with it.
 vim.g.snacks_animate = false
 
+--- SSH things
 --- "+y$
 --- vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
 if vim.env.SSH_TTY then
@@ -32,7 +33,6 @@ else
   -- Local - use system clipboard
   vim.opt.clipboard = "unnamedplus"
 end
-vim.o.exrc = true
 
 vim.ui.open = (function(original_open)
   return function(path)
@@ -43,7 +43,9 @@ vim.ui.open = (function(original_open)
     end
   end
 end)(vim.ui.open)
+--- SSH things
 
+vim.o.exrc = true
 -- LazyVim root dir detection
 -- Each entry can be:
 -- * the name of a detector function like `lsp` or `cwd`
@@ -52,3 +54,32 @@ end)(vim.ui.open)
 -- vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
 -- To disable root detection set to just "cwd"
 -- vim.g.root_spec = { "cwd" }
+
+-- Never show the native tabline (even with multiple tabs)
+vim.o.showtabline = 0
+
+-- Don't show pending key sequences (e.g. "^Wc", "gj") in statusline
+vim.o.showcmd = false
+
+-- Note this was all moved the lualine
+-- -- Winbar: right-aligned status showing MAX and/or tab count (>1)
+-- -- Uses declancm/maximize.nvim's vim.t.maximized flag (per-tabpage)
+-- _G.winbar_status = function()
+--   local parts = {}
+--   if vim.t.maximized then
+--     table.insert(parts, "MAX")
+--   end
+--   local tabs = #vim.api.nvim_list_tabpages()
+--   if tabs > 1 then
+--     table.insert(parts, tostring(tabs))
+--   end
+--   return table.concat(parts, " ")
+-- end
+--
+-- -- Back-compat for earlier name if referenced elsewhere
+-- _G.maximize_status = function()
+--   return _G.winbar_status()
+-- end
+--
+-- -- Right align with %=; empty string hides the winbar content
+-- vim.o.winbar = "%=%{%v:lua.winbar_status()%}"

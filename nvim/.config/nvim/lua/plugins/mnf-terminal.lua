@@ -63,14 +63,15 @@ return {
       -- end, { desc = "Run Previous Command" })
       local mnf_jobs = require("mnf.terminal.jobs")
       mnf_jobs.setup()
+
       vim.api.nvim_create_user_command("UseKitty", function()
         require("mnf.terminal.managed").use_kitty()
         -- Only not default
-      end, { desc = "(Recommended) Use kitty terminal instead of the integrated one" })
+      end, { desc = "Use kitty terminal instead of the integrated one" })
       vim.api.nvim_create_user_command("Useintegrated", function()
         require("mnf.terminal.managed").use_integrated()
-        -- Only not default
-      end, { desc = "Use the integrated terminal instead of kitty." })
+        -- Default is set in mnf.terminal.managed
+      end, { desc = "(Recommended) Use the integrated terminal instead of kitty." })
     end,
     opts = {},
     lazy = false,

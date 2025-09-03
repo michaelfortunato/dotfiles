@@ -20,6 +20,7 @@ local function paste()
 end
 
 vim.keymap.set({ "n" }, "<leader>cR", "<CMD>LspRestart<CR>", { desc = "Restart All LSPs" })
+del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
 vim.keymap.set(
   { "n" },
   "<leader><leader>",
@@ -31,6 +32,13 @@ vim.keymap.set(
   "<Tab>",
   "<CMD>tab split<CR>",
   { desc = "Open buffer in new tab", noremap = true, silent = true }
+)
+
+vim.keymap.set(
+  { "n" },
+  "f<Tab>",
+  "<CMD>Telescope telescope-tabs list_tabs<CR>",
+  { desc = "Search open tabs", noremap = true, silent = true }
 )
 
 --- FIXME: Eh not great and a little slow?
