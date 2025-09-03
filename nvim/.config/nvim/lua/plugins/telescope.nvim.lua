@@ -1,12 +1,36 @@
 return {
-  "LukasPietzschmann/telescope-tabs",
-  config = function()
-    require("telescope").load_extension("telescope-tabs")
-    require("telescope-tabs").setup({
-      -- Your custom config :^)
-    })
-  end,
-  dependencies = { "nvim-telescope/telescope.nvim" },
+  -- Tabs extension remains as-is
+  {
+    "LukasPietzschmann/telescope-tabs",
+    config = function()
+      require("telescope").load_extension("telescope-tabs")
+      require("telescope-tabs").setup({
+        -- Your custom config :^)
+      })
+    end,
+    dependencies = { "nvim-telescope/telescope.nvim" },
+  },
+
+  -- Global mapping for buffers picker: D in normal mode deletes buffer
+  {
+    "nvim-telescope/telescope.nvim",
+    ---@param opts table
+    opts = function(_, opts)
+      local actions = require("telescope.actions")
+      opts = opts or {}
+      opts.pickers = opts.pickers or {}
+      local existing = opts.pickers.buffers or {}
+      local existing_mappings = (existing and existing.mappings) or {}
+      local existing_normal = existing_mappings.n or {}
+
+      existing_normal["D"] = actions.delete_buffer
+
+      existing_mappings.n = existing_normal
+      existing.mappings = existing_mappings
+      opts.pickers.buffers = existing
+      return opts
+    end,
+  },
 }
 -- return {
 --   "nvim-telescope/telescope.nvim",

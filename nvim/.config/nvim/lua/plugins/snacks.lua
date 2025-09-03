@@ -12,7 +12,14 @@ return {
         -- When using a function, the `items` argument are the default keymaps.
         ---@type snacks.dashboard.Item[]
         keys = {
-          { icon = " ", key = "f", desc = "Find File", action = ":lua require('fff').find_files()" },
+          -- Enable once fff gets better?
+          -- { icon = " ", key = "f", desc = "Find File", action = ":lua require('fff').find_files()" },
+          {
+            icon = " ",
+            key = "f",
+            desc = "Find File",
+            action = ":Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true",
+          },
           { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
           { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
           { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },

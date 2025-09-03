@@ -19,6 +19,14 @@ local function paste()
   end
 end
 
+-- This is so fucking key
+vim.keymap.set({ "n", "x" }, "<C-e>", function()
+  return (vim.v.count1 * 5) .. "<C-e>"
+end, { expr = true, silent = true, desc = "Scroll down faster" })
+vim.keymap.set({ "n", "x" }, "<C-y>", function()
+  return (vim.v.count1 * 5) .. "<C-y>"
+end, { expr = true, silent = true, desc = "Scroll up faster" })
+
 vim.keymap.set({ "n" }, "<leader>cR", "<CMD>LspRestart<CR>", { desc = "Restart All LSPs" })
 del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
 vim.keymap.set(
@@ -26,6 +34,12 @@ vim.keymap.set(
   "<leader><leader>",
   "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
   { desc = "Buffers" }
+)
+vim.keymap.set(
+  { "n" },
+  "ff",
+  "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
+  { desc = "Find files (Cwd dir)" }
 )
 vim.keymap.set(
   { "n" },
