@@ -527,16 +527,6 @@ return {
     dependencies = {
       {
         "folke/snacks.nvim",
-        opts = {
-          image = {
-            enabled = true,
-            doc = {
-              enabled = true,
-              max_width = 300,
-              max_height = 300,
-            },
-          },
-        },
       },
       --   {
       --     "3rd/image.nvim",

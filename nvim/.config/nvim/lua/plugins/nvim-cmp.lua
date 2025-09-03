@@ -44,7 +44,10 @@ return {
     -- If the command/function returns false or nil, the next command/function will be run.
     keymap = {
       preset = "default",
-      ["<C-space>"] = { "show", "hide", "show_documentation", "hide_documentation" },
+      -- ["<C-space>"] = { "show", "hide", "show_documentation", "hide_documentation" },
+      -- FIXME: Some tom foolery with not being able to use the completion right
+      -- this helps vs. the other toggles I think??
+      ["<C-space>"] = { "show", "hide" },
       ["<C-e>"] = { "hide" },
       ["<C-y>"] = { "select_and_accept" },
 

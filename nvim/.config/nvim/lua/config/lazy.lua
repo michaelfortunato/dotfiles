@@ -29,7 +29,7 @@ require("lazy").setup({
     autocmds = true, -- lazyvim.config.autocmds
     keymaps = true, -- lazyvim.config.keymaps
   },
-  install = { colorscheme = { "tokyonight", "habamax" } },
+  install = { colorscheme = { "catppuccin", "tokyonight" } },
   checker = { enabled = true, notify = false, frequency = 86400 }, -- automatically check for plugin updates, DO NOT notify. I hate that
   performance = {
     rtp = {

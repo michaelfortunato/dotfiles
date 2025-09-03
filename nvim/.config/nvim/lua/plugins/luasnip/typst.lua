@@ -601,6 +601,9 @@ supplement: <>,
   s({ trig = "floor", snippetType = "autosnippet" }, t("floor.l"), { condition = in_mathzone }),
   s({ trig = "subseteq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
   s({ trig = "sseq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
+  s({ trig = "concat", snippetType = "autosnippet" }, t("plus.circle"), { condition = in_mathzone }),
+  s({ trig = "directsum", snippetType = "autosnippet" }, t("plus.circle.big"), { condition = in_mathzone }),
+  s({ trig = "tensorprod", snippetType = "autosnippet" }, t("times.circle.big"), { condition = in_mathzone }),
   -- s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = in_mathzone }),
   -- NOTE: \to is not supprted in typst
   -- NOTE: Everything else is shorthand supported!

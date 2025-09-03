@@ -20,8 +20,21 @@ local function paste()
 end
 
 vim.keymap.set({ "n" }, "<leader>cR", "<CMD>LspRestart<CR>", { desc = "Restart All LSPs" })
---- FIXME: Eh not great
-map("n", "p", paste, { noremap = true, silent = true })
+vim.keymap.set(
+  { "n" },
+  "<leader><leader>",
+  "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
+  { desc = "Buffers" }
+)
+vim.keymap.set(
+  { "n" },
+  "<Tab>",
+  "<CMD>tab split<CR>",
+  { desc = "Open buffer in new tab", noremap = true, silent = true }
+)
+
+--- FIXME: Eh not great and a little slow?
+-- map("n", "p", paste, { noremap = true, silent = true })
 -- map("i", "<C-v>", paste, { noremap = true, silent = true })
 -- map("i", "<M-v>", paste, { noremap = true, silent = true })
 
@@ -191,35 +204,3 @@ map({ "n", "t" }, "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase
 -- LazyVim.ui.maximize():map("<C-S-Space>")
 -- map({ "n", "t", "v" }, "<C-S-l>", "<C-w>R", { desc = "Toggle Maximize Window" })
 -- map({ "n", "t", "v" }, "<C-S-h>", "<C-w>r", { desc = "Toggle Maximize Window" })
-
-if vim.g.neovide then
-  vim.keymap.set("n", "<D-s>", ":w<CR>") -- Save
-  vim.keymap.set("v", "<D-c>", '"+y') -- Copy
-  vim.keymap.set("n", "<D-v>", '"+P') -- Paste normal mode
-  vim.keymap.set("v", "<D-v>", '"+P') -- Paste visual mode
-  vim.keymap.set("c", "<D-v>", "<C-R>+") -- Paste command mode
-  vim.keymap.set("i", "<D-v>", '<ESC>l"+Pli') -- Paste insert mode
-
-  vim.api.nvim_set_keymap("", "<D-v>", "+p<CR>", { noremap = true, silent = true })
-  vim.api.nvim_set_keymap("!", "<D-v>", "<C-R>+", { noremap = true, silent = true })
-  vim.api.nvim_set_keymap("t", "<D-v>", "<C-R>+", { noremap = true, silent = true })
-  vim.api.nvim_set_keymap("v", "<D-v>", "<C-R>+", { noremap = true, silent = true })
-
-  vim.g.neovide_scale_factor = 1.0
-  local change_scale_factor = function(delta)
-    vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
-  end
-  vim.keymap.set("n", "<D-=>", function()
-    change_scale_factor(1.25)
-  end)
-  vim.keymap.set("n", "<D-->", function()
-    change_scale_factor(1 / 1.25)
-  end)
-
-  map("n", "<C-/>", function()
-    Snacks.terminal(nil, { cwd = LazyVim.root() })
-  end, { desc = "Terminal (Root Dir)" })
-  map("t", "<C-/>", "<cmd>close<cr>", { desc = "Hide Terminal" })
-  vim.g.neovide_cursor_trail_size = 0.0
-  vim.g.neovide_cursor_animation_length = 0.0
-end

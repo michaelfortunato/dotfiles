@@ -54,6 +54,7 @@ return {
     -- FIXME: Doesn't really work lol
     "declancm/maximize.nvim",
     config = true,
+    lazy = false,
     keys = {
       {
 
