@@ -304,6 +304,7 @@ bfs . $HOME -color -mindepth 1  \
     -or -name "dist" \
     -or -name "__pycache__"  \)
 EOF
+# NOTE: Consider adding --ignore-case, though probably best per command
 export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
 export FZF_ALT_C_OPTS="
@@ -371,7 +372,7 @@ cdj() {
     -or -name "build" \
     -or -name "dist" \
     -or -name "__pycache__"  \) -type d \
-    2>/dev/null | fzf --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
     --cycle \
     --bind 'ctrl-y:accept' \
@@ -403,7 +404,7 @@ cdi() {
     -or -name "build" \
     -or -name "dist" \
     -or -name "__pycache__"  \) -type f \
-    2>/dev/null | fzf --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
     --cycle \
     --bind 'ctrl-y:accept' \
@@ -434,29 +435,44 @@ mani() {
 
 # Custom cd function to integrate fzf
 cd() {
-  # If no arguments are provided, use fzf to select a directory
-  if [[ $# -eq 0 ]]; then
-    # Find directories and pipe to fzf, then cd into the selected one
-    local dir
-    dir=$(fd --type d \
-    --hidden --follow \
-    --exclude ".git" \
-    --exclude "node_modules" \
-    --exclude "target/debug" \
-    --exclude "target/release" \
-    --exclude "obj" \
-    --exclude "build" \
-    --exclude "dist" \
-    --exclude "__pycache__" \
-    2>/dev/null | fzf --walker-skip .git,node_modules,target,obj,build,dist \
-    --preview 'tree -C {}' \
-    --cycle \
-    --bind 'ctrl-/:change-preview-window(down|hidden|)'
-) && builtin cd "$dir"
-  else
-    # Otherwise, pass arguments to the built-in cd
+  # If arguments provided, use normal cd
+  if [[ $# -ne 0 ]]; then
     builtin cd "$@"
+    return $?
   fi
+  
+  # Set up search directories
+  local search_dirs
+  if [[ "$PWD" != "$HOME" ]]; then
+    search_dirs=("$PWD" "$HOME")
+  else
+    search_dirs=("$HOME")
+  fi
+  
+  # Use fzf to select directory
+  local dir
+  dir=$(bfs "${search_dirs[@]}" -color -mindepth 1 \
+    -exclude \( \
+      -name ".git" \
+      -or -name "node_modules" \
+      -or -name "target/debug" \
+      -or -name "target/release" \
+      -or -name "obj" \
+      -or -name "build" \
+      -or -name "dist" \
+      -or -name "__pycache__" \
+    \) -type d 2>/dev/null | \
+    fzf --scheme=path \
+        --tiebreak='pathname,length,end' \
+        --ansi \
+        --walker-skip .git,node_modules,target,obj,build,dist \
+        --preview 'tree -C {}' \
+        --cycle \
+        --bind 'ctrl-y:accept' \
+        --bind 'ctrl-/:change-preview-window(down|hidden|)')
+  
+  # Only cd if a directory was selected (fzf wasn't cancelled)
+  [[ -n "$dir" ]] && builtin cd "$dir"
 }
 
 
