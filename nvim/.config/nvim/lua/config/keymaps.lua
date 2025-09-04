@@ -41,12 +41,13 @@ vim.keymap.set(
   "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
   { desc = "Find files (Cwd dir)" }
 )
-vim.keymap.set(
-  { "n" },
-  "<Tab>",
-  "<CMD>tab split<CR>",
-  { desc = "Open buffer in new tab", noremap = true, silent = true }
-)
+-- This is causing a ton of tabs to be created
+-- vim.keymap.set(
+--   { "n" },
+--   "<Tab>",
+--   "<CMD>tab split<CR>",
+--   { desc = "Open buffer in new tab", noremap = true, silent = true }
+-- )
 
 vim.keymap.set(
   { "n" },
