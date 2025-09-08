@@ -35,6 +35,7 @@ vim.keymap.set(
   "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
   { desc = "Buffers" }
 )
+vim.keymap.del({ "n" }, "f")
 vim.keymap.set(
   { "n" },
   "ff",

@@ -285,10 +285,8 @@ function M.start_job(id, use_terminal, cmd, silent, external_terminal)
         nowait = true,
       })
 
-      -- Reduce timeout for this buffer to minimize cd .. lag
-      vim.api.nvim_buf_call(buf, function()
-        vim.opt_local.timeoutlen = 100 -- Much shorter timeout (default is usually 1000ms)
-      end)
+      -- NOTE: Its possible that this would work now. Not sure
+      -- vim.opt_local.timeoutlen = 100 -- Much shorter timeout (default is usually 1000ms)
     else
       -- Add Ctrl-C mapping to kill the job in non-interactive buffers
       vim.keymap.set("n", "<C-c>", function()
@@ -339,10 +337,8 @@ function M.start_job(id, use_terminal, cmd, silent, external_terminal)
         nowait = true,
       })
 
-      -- Reduce timeout for this buffer to minimize lag
-      vim.api.nvim_buf_call(buf, function()
-        vim.opt_local.timeoutlen = 100 -- Much shorter timeout (default is usually 1000ms)
-      end)
+      -- NOTE: Its possible that this would work now. Not sure
+      -- vim.opt_local.timeoutlen = 100 -- Much shorter timeout (default is usually 1000ms)
 
       -- Output capture buffer - non-interactive
       vim.bo.buftype = "nofile"
