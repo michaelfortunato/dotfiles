@@ -155,7 +155,8 @@ return {
         return false
       end
 
-      local function molten_output_visible()
+      -- Is a molten output window currently attached (visible in any window)?
+      local function is_molten_output_window_attached()
         for _, w in ipairs(vim.api.nvim_list_wins()) do
           local b = vim.api.nvim_win_get_buf(w)
           if vim.bo[b].filetype == "molten_output" then
@@ -171,6 +172,9 @@ return {
         if vim.bo.filetype == "quarto" or vim.bo.filetype == "qmd" then
           local opts = { buffer = true, silent = true }
           local runner = require("quarto.runner")
+
+          -- Treesitter helpers and cell utilities are defined below; keymaps that depend on
+          -- them are placed after their definitions to avoid forward references.
 
           -- Quarto/Molten integration keymaps
           vim.keymap.set({ "v", "n" }, "<S-Enter>", function()
@@ -192,7 +196,7 @@ return {
             expand_fence("python")
           end, vim.tbl_extend("force", opts, { desc = "run cell" }))
           vim.keymap.set("n", "<Esc>", function()
-            if not in_fenced_cell() or not molten_output_visible() then
+            if not in_fenced_cell() or not is_molten_output_window_attached() then
               return "<Esc>"
             end
             -- FIXME: This command is broken if I am outside the buffer
@@ -229,20 +233,8 @@ return {
           -- From the Molten docs doubling enter will enter the the output
           -- which is what we want, requires this variable to be set though.
           -- | `g:molten_enter_output_behavior`
-          -- | (`"open_then_enter"`) \| `"open_and_enter"` \| `"no_open"`  |
-          -- The behavior of [MoltenEnterOutput](#moltenenteroutput) |
-          vim.keymap.set("n", "<Enter>", function()
-            if not in_fenced_cell() then
-              return "<Enter>"
-            end
-            return "<CMD>:noautocmd MoltenEnterOutput<CR>"
-          end, {
-            buffer = true,
-            expr = true,
-            noremap = true, -- ensures returned <Esc> is *not* remapped; default behavior runs
-            silent = true,
-            desc = "Molten: show output if visible; else normal <Esc>",
-          })
+          -- | ("open_then_enter") | "open_and_enter" | "no_open" |
+          -- The behavior of MoltenEnterOutput is used later after helpers are defined.
 
           -- Additional useful keymaps for Quarto files
           -- vim.keymap.set("n", "<leader>qr", function()
@@ -400,6 +392,9 @@ return {
             if where == "inside" then
               return cs
             end
+            if where == "end" then
+              return ce - 1
+            end
             -- middle of content region; ce is exclusive, so last content row is ce-1
             local last = math.max(cs, ce - 1)
             return math.floor((cs + last) / 2)
@@ -468,14 +463,14 @@ return {
             jump_cell("prev", { where = "middle", wrap = true })
           end, { buffer = true, desc = "Previous code cell (middle of content)" })
           vim.keymap.set("n", "[[", function()
-            jump_cell("prev", { where = "middle", wrap = true })
+            jump_cell("prev", { where = "end", wrap = true })
           end, { buffer = true, desc = "Previous code cell (middle of content)" })
 
           vim.keymap.set("n", "]c", function()
             jump_cell("next", { where = "middle", wrap = true })
           end, { buffer = true, desc = "Next code cell (middle of content)" })
           vim.keymap.set("n", "]]", function()
-            jump_cell("next", { where = "middle", wrap = true })
+            jump_cell("next", { where = "end", wrap = true })
           end, { buffer = true, desc = "Next code cell (middle of content)" })
 
           -- -- (Optional) Variants that land on first content line or fence line:
@@ -499,6 +494,87 @@ return {
             end
             vim.notify("Cursor is not in a code cell", vim.log.levels.INFO, { title = "Quarto cells" })
           end, { buffer = true, desc = "Current cell info" }) --
+
+          -- Locate molten output window in current tabpage
+          local function current_tab_molten_win()
+            local curtab = vim.api.nvim_get_current_tabpage()
+            for _, w in ipairs(vim.api.nvim_list_wins()) do
+              if vim.api.nvim_win_get_tabpage(w) == curtab then
+                local b = vim.api.nvim_win_get_buf(w)
+                if vim.bo[b].filetype == "molten_output" then
+                  return w
+                end
+              end
+            end
+          end
+
+          -- Compute the screen row of the bottom of a window (approximate)
+          local function molten_output_bottom_on_screen(winid)
+            if not winid then
+              return nil
+            end
+            local pos = vim.fn.win_screenpos(winid)
+            local top = type(pos) == "table" and pos[1] or nil
+            if not top or top <= 0 then
+              return nil
+            end
+            local h = vim.fn.winheight(winid)
+            return top + math.max(0, h - 1)
+          end
+
+          -- Enter behavior: smart-scroll around Molten output
+          vim.keymap.set("n", "<Enter>", function()
+            if not in_fenced_cell() then
+              return "<Enter>"
+            end
+            -- Helper: find current cell and its bottom line (0/1-based)
+            local function current_cell_and_bottom()
+              local row0 = vim.api.nvim_win_get_cursor(0)[1] - 1
+              local cells = collect_cells(0)
+              local cell
+              for i = #cells, 1, -1 do
+                local c = cells[i]
+                if c.srow <= row0 and row0 < c.erow then
+                  cell = c
+                  break
+                end
+              end
+              if not cell then
+                return nil
+              end
+              local bottom0 = (cell.ce and (cell.ce - 1)) or (cell.erow - 1)
+              if bottom0 < cell.srow then
+                bottom0 = cell.srow
+              end
+              return cell, bottom0, bottom0 + 1
+            end
+
+            local output_visible = is_molten_output_window_attached()
+            if vim.bo.filetype == "molten_output" then
+              print("HOUSTON WE HAVE A PROBLEM, WHY ARE WE IN THE OUTPUT??")
+            end
+
+            if not output_visible then
+              -- Case A: Output not visible; move to cell bottom ONLY if it's not in view, then open.
+              local _, _, bottom1 = current_cell_and_bottom()
+              if bottom1 then
+                local top1 = vim.fn.line("w0")
+                local bot1 = vim.fn.line("w$")
+                local in_view = (top1 <= bottom1) and (bottom1 <= bot1)
+                if not in_view then
+                  return string.format("<Cmd>%d<CR><Cmd>noautocmd MoltenEnterOutput<CR>", bottom1)
+                end
+              end
+              return "<Cmd>noautocmd MoltenEnterOutput<CR>"
+            else
+              return "<Cmd>noautocmd MoltenEnterOutput<CR>"
+            end
+          end, {
+            buffer = true,
+            expr = true,
+            silent = true,
+            desc = "Molten: open/enter output with viewport smart-scroll",
+          })
         end
       end
 
@@ -555,6 +631,8 @@ return {
       vim.g.molten_auto_open_output = false
       -- See our comment in quarto plugin spec
       vim.g.molten_enter_output_behavior = "open_then_enter"
+      --- See if this helps with the focusing ???
+      vim.g.molten_output_virt_lines = true
       -- vim.g.molten_output_win_zindex = 1 -- I want lsp to cover it
       -- vim.g.molten_tick_rate = 500 -- be careful with this
       -- shows the number of extra lines in the buffer  if any
