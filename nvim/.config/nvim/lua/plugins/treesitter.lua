@@ -3,6 +3,7 @@ return {
   {
     ---@module "nvim-treesitter/nvim-treesitter"
     "nvim-treesitter/nvim-treesitter",
+    lazy = false,
     opts = {
       indent = {
         enable = true,

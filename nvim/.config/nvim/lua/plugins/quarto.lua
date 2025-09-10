@@ -5,6 +5,16 @@ return {
       "jmbuhr/otter.nvim",
       "nvim-treesitter/nvim-treesitter",
       { "benlubas/molten-nvim", commit = "4e1c999" },
+      -- Maybe....
+      -- {
+      --   "MeanderingProgrammer/render-markdown.nvim",
+      --   -- dependencies = { "nvim-treesitter/nvim-treesitter" }, -- if you use the mini.nvim suite
+      --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-mini/mini.icons' }, -- if you use standalone mini plugins
+      --   dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" }, -- if you prefer nvim-web-devicons
+      --   ---@module 'render-markdown'
+      --   ---@type render.md.UserConfig
+      --   opts = {},
+      -- },
     },
     ft = { "quarto", "markdown", "qmd" }, -- Load for these filetypes
     config = function()
@@ -575,8 +585,8 @@ return {
             silent = true,
             desc = "Molten: open/enter output with viewport smart-scroll",
           })
-          local scheduled = false
 
+          local scheduled = false
           -- Trigger on insert changes (after a character is inserted).
           -- Only act if we're in a fenced cell and an output window is visible.
           vim.api.nvim_create_autocmd({ "InsertEnter" }, {
@@ -603,6 +613,16 @@ return {
         callback = function()
           setup_quarto_keymaps()
           vim.opt_local.conceallevel = 0
+
+          -- TODO: Maybe we want to add some highlights in the future?
+          -- markdown vs. quarto hacks ideas from
+          -- https://github.com/jmbuhr/nvim-config/blob/main/ftplugin/quarto.lua
+          -- local ns = vim.api.nvim_create_namespace("QuartoHighlight")
+          -- vim.api.nvim_win_set_hl_ns(0, ns)
+          -- -- vim.api.nvim_set_hl(0, '@markup.codecell', { bg = '#000055' })
+          -- vim.api.nvim_set_hl(0, "@markup.codecell", {
+          --   link = "CursorLine",
+          -- })
         end,
       })
       vim.api.nvim_create_autocmd("FileType", {
