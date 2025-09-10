@@ -55,6 +55,7 @@ vim.api.nvim_create_user_command(
   'restart lua require("persistence").load({ last = true })',
   { desc = "Restart Neovim and reload last session on reopen" }
 )
+vim.api.nvim_create_user_command("R", "Restart", { desc = "(Alias) Restart Neovim and reload last session on reopen" })
 
 -- Make sure we RE-enter terminal mode when focusing back on terminal
 vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
