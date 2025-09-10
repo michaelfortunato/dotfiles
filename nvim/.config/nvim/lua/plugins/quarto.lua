@@ -575,6 +575,25 @@ return {
             silent = true,
             desc = "Molten: open/enter output with viewport smart-scroll",
           })
+          local scheduled = false
+
+          -- Trigger on insert changes (after a character is inserted).
+          -- Only act if we're in a fenced cell and an output window is visible.
+          vim.api.nvim_create_autocmd({ "InsertEnter" }, {
+            buffer = 0,
+            callback = function()
+              -- Only hide if we're actually in a code cell and an output window is visible.
+              if scheduled or not in_fenced_cell() or not is_molten_output_window_attached() then
+                return
+              end
+              -- Call immediately; no scheduling.
+              vim.schedule(function()
+                vim.cmd("MoltenEnterOutput")
+                scheduled = false
+              end)
+              scheduled = true
+            end,
+          })
         end
       end
 
