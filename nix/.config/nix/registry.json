@@ -26,20 +26,33 @@
     },
     {
       "from": {
-        "id": "nixpkgs",
-        "ref": "24",
+        "id": "ns",
         "type": "indirect"
       },
       "to": {
         "owner": "NixOS",
-        "ref": "nixos-24.05",
+        "ref": "nixos-25.05",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     {
       "from": {
-        "id": "ns",
+        "id": "nixpkgs",
+        "ref": "25",
+        "type": "indirect"
+      },
+      "to": {
+        "owner": "NixOS",
+        "ref": "nixos-25.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    {
+      "from": {
+        "id": "nixpkgs",
+        "ref": "24",
         "type": "indirect"
       },
       "to": {
@@ -63,3 +76,4 @@
   ],
   "version": 2
 }
+

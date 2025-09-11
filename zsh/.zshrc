@@ -19,6 +19,8 @@ if [[ $MNF_OS = "Darwin" ]]; then
   FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
 fi
 
+
+
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -88,15 +90,40 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-#export NVM_LAZY_LOAD=true # nvm is slow, see here: https://armno.in.th/blog/zsh-startup-time/
 plugins=(git gpg-agent fzf-tab)
-# NOTE: Because I use the fzf-tab plugin zsh tabs do work without this add
-# not portable though
-# Doing setopt globdots will make cd <Tab> show dotfiles
-zstyle ':fzf-tab:*' fzf-bindings 'ctrl-y:accept'
-
-
 source $ZSH/oh-my-zsh.sh
+
+# setopt settings -- putting it here because oh-my-zsh.sh plugings may override them 
+# otherwise 
+# -----------------------------------------------------------------------------
+# 1) Make globs and (most) completion include dotfiles by default
+setopt GLOB_DOTS
+# 2) Hide "." and ".." in completion menus
+zstyle ':completion:*' special-dirs false
+# 3) Sort by last accessed time
+zstyle ':completion:*' file-sort modification
+# Separate non‑dot and dot directories into different tags ??
+# Generate two tags This does not work 
+# zstyle ':completion:*:cd:*' file-patterns \
+#   '*(/):directories' \
+#   '.*(/):dot-dirs'
+# # Hide dot entries from the first tag explicitly
+# zstyle ':completion:*:cd:*:directories' ignored-patterns '.*'
+# # Order: non-dot first, then dot
+# zstyle ':completion:*:cd:*' tag-order dot-dirs
+
+# I like this, it mimicks ctrl-y in blink.cmp
+## NOTE: fzf-tab does not follow FZF_DEFAULT_OPTS by default
+# This is necessarily because fzf-tab hijacks native tab completion in zsh
+# Note I could have it use the default ops with zstyle ':fzf-tab:*' use-fzf-default-opts yes
+# fzf-bindindgs need to be done all at once
+zstyle ':fzf-tab:*' fzf-bindings 'ctrl-y:accept,ctrl-b:preview-page-up,ctrl-f:preview-page-down,ctrl-u:half-page-up,ctrl-d:half-page-down'
+# fzf flags cannot handle more than one flag it seems, no matter if
+# I use spaces commas or add them speratresly (gets overriden them)
+zstyle ':fzf-tab:*' fzf-flags '--ansi' #could add --bind-ctrl-y:accept here but the quotest get me
+# See https://github.com/Aloxaf/fzf-tab/wiki/Preview for info about $word etc.
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'tree -C $word' # remember to use single quote here!!!
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'bat -n --color=always $word' # remember to use single quote here!!!
 
 # keybindings to be like bash
 ## ^U in bash is ^W on zsh, I want to stick with bash
@@ -278,7 +305,7 @@ _fzf_compgen_path() {
     --exclude ".git" . "$1"
 }
 
-# Use fd to generate the list for directory completion
+# Use bfs to generate the list for directory completion
 _fzf_compgen_dir() {
   bfs . "$1" -color -mindepth 1  \
      -exclude \( \
@@ -305,7 +332,7 @@ bfs . $HOME -color -mindepth 1  \
     -or -name "__pycache__"  \)
 EOF
 # NOTE: Consider adding --ignore-case, though probably best per command
-export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept'"
+export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept' --bind 'ctrl-b:preview-page-up' --bind 'ctrl-f:preview-page-down' --bind 'ctrl-d:half-page-down' --bind 'ctrl-u:half-page-up'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
 export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
@@ -478,6 +505,7 @@ cd() {
 
 eval "$(fzf --zsh)"
 eval "$(uv generate-shell-completion zsh)"
+
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
