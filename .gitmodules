@@ -25,3 +25,8 @@
 	path = scripts/personal/mnf-cli
 	url = https://github.com/michaelfortunato/mnf-cli
 	branch = main
+[submodule "fonts/nerd-fonts"]
+	path = fonts/nerd-fonts
+	url = https://github.com/ryanoasis/nerd-fonts.git
+	branch = master
+	shallow = true
