@@ -111,7 +111,7 @@ zstyle ':completion:*' file-sort modification
 # zstyle ':completion:*:cd:*:directories' ignored-patterns '.*'
 # # Order: non-dot first, then dot
 # zstyle ':completion:*:cd:*' tag-order dot-dirs
-
+#
 # I like this, it mimicks ctrl-y in blink.cmp
 ## NOTE: fzf-tab does not follow FZF_DEFAULT_OPTS by default
 # This is necessarily because fzf-tab hijacks native tab completion in zsh
@@ -122,8 +122,8 @@ zstyle ':fzf-tab:*' fzf-bindings 'ctrl-y:accept,ctrl-b:preview-page-up,ctrl-f:pr
 # I use spaces commas or add them speratresly (gets overriden them)
 zstyle ':fzf-tab:*' fzf-flags '--ansi' #could add --bind-ctrl-y:accept here but the quotest get me
 # See https://github.com/Aloxaf/fzf-tab/wiki/Preview for info about $word etc.
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'tree -C $word' # remember to use single quote here!!!
-zstyle ':fzf-tab:complete:ls:*' fzf-preview 'bat -n --color=always $word' # remember to use single quote here!!!
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'tree -C $word'
+zstyle ':fzf-tab:complete:ls:*' fzf-preview 'bat -n --color=always $word'
 
 # keybindings to be like bash
 ## ^U in bash is ^W on zsh, I want to stick with bash
@@ -288,21 +288,18 @@ fi
 
 # ** FZF Block **
 # Only applies to `**<Tab>` sequence `cd <Tab>` is entirely different.
-# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
-# - The first argument to the function ($1) is the base path to start traversal
-# - See the source code (completion.{bash,zsh}) for the details.
 _fzf_compgen_path() {
-  fd --hidden --follow  --full-path \
-    --exclude "node_modules" \
-    --exclude "target/debug" \
-    --exclude "target/release" \
-    --exclude "obj" \
-    --exclude "build" \
-    --exclude "*.o" \
-    --exclude "*.obj" \
-    --exclude "dist" \
-    --exclude "__pycache__" \
-    --exclude ".git" . "$1"
+  bfs . "$1" -color -mindepth 1  \
+     -exclude \( \
+    -name ".git" \
+    -or -name "node_modules" \
+    -or -name "target/debug" \
+    -or -name "target/release" \
+    -or -name "obj" \
+    -or -name "build" \
+    -or -name "dist" \
+    -or -name "__pycache__"  \) -type f \
+    -unique
 }
 
 # Use bfs to generate the list for directory completion
