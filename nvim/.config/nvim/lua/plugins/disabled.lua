@@ -13,4 +13,6 @@ return {
   },
   { "akinsho/bufferline.nvim", enabled = false },
   { "hrsh7th/nvim-cmp", enabled = false },
+  -- Swapped for shortcuts/no-neck-pain.nvim
+  { "folke/zen-mode.nvim", enabled = false },
 }
