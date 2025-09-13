@@ -6,6 +6,8 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(vim.env.LAZY or lazypath)
 
+-- TODO: Seems I should maybe move the neovide, but where?
+require("config.neovide").setup()
 require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
