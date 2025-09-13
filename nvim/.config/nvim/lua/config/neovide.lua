@@ -1,5 +1,5 @@
 local M = {}
-
+--- See if we can fix this https://github.com/catppuccin/nvim/issues/491
 local function set_options()
   vim.g.neovide_macos_simple_fullscreen = true
   vim.g.neovide_show_border = false
@@ -13,7 +13,7 @@ local function set_options()
     vim.g.neovide_cursor_trail_size = 0.0
     vim.g.neovide_cursor_animation_length = 0.0
     vim.g.neovide_scroll_animation_length = 0.00
-    vim.g.neovide_scroll_animation_far_lines = 0 --
+    vim.g.neovide_scroll_animation_far_lines = 0
     vim.g.neovide_scroll_animation_length = 0.00
   end
 

@@ -195,6 +195,11 @@ map("x", "<S-Tab>", "<gv", { silent = true })
 vim.keymap.set("v", "H", "J") -- Map H to Join lines to J can be used below
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true }) -- Shift visual selected line down
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true }) -- Shift visual selected line up
+vim.keymap.set({ "n" }, "<leader>si", function()
+  require("telescope.builtin").lsp_dynamic_workspace_symbols({
+    symbols = LazyVim.config.get_kind_filter(),
+  })
+end, { desc = "Goto Symbol (Workspace)" })
 
 wk.add({
   { "<leader>t", group = "Task" }, -- group
