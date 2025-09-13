@@ -7,6 +7,7 @@ return {
     opts = {
       indent = {
         enable = true,
+        -- FIXME: Adjust python's """ so it doesn't indent on it.
       },
       textobjects = {
         move = {
