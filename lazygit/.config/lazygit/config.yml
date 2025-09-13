@@ -20,3 +20,18 @@ keybinding:
   stash:
     # frees up g
     popStash: <disabled>
+customCommands:
+  - key: "<C-k>"
+    context: "files"
+    command: "lumen draft | tee >(pbcopy)"
+    loadingText: "Generating message..."
+    output: popup
+  - key: "<C-l>"
+    context: "files"
+    command: "lumen draft -c {{.Form.Context | quote}} | tee >(pbcopy)"
+    loadingText: "Generating message..."
+    prompts:
+      - type: "input"
+        title: "Context"
+        key: "Context"
+    output: popup
