@@ -99,3 +99,18 @@ vim.api.nvim_create_autocmd("FileType", {
     )
   end,
 })
+
+-- Auto-trust local config files on save (Neovim 0.12+)
+-- Neovim maintainer was mean to my comment on the PR adding this security
+-- feature--well at least I fixed it now.
+local grp = vim.api.nvim_create_augroup("AutoTrustLocalConfigs", { clear = true })
+vim.api.nvim_create_autocmd("BufWritePost", {
+  group = grp,
+  pattern = { ".nvim.lua", ".lazy.lua" },
+  desc = "Trust local .nvim.lua/.lazy.lua on save",
+  callback = function(args)
+    if vim.fn.exists(":trust") == 2 then
+      vim.cmd("trust " .. vim.fn.fnameescape(args.file))
+    end
+  end,
+})
