@@ -284,12 +284,14 @@ return {
 % Optional Packages
 % \usepackage{csquotes}
 %
+% Theorems
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
+%
 % Math Operators
 \DeclareMathOperator*{\argmax}{arg\,max} % \DeclareMathOperator*{\argmin}{arg\,min}
 %% Absolute values \abs and \norm
@@ -313,6 +315,7 @@ return {
 \newcommand{\ddx}[1]{\frac{d}{d#1}}
 \newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
 \newcommand{\ppx}[1]{\frac{\partial}{\partial#1}}
+%
 % bibliography
 % Usage: \cite{keyword}
 % See here: https://www.overleaf.com/learn/latex/Bibliography_management_with_biblatex
@@ -531,7 +534,7 @@ sorting=ynt
   s({ trig = "notin", snippetType = "autosnippet" }, t("\\notin"), { condition = in_mathzone }),
   s({ trig = "nil", snippetType = "autosnippet" }, t("\\emptyset"), { condition = in_mathzone }),
   s({ trig = "null", snippetType = "autosnippet" }, t("\\emptyset"), { condition = in_mathzone }),
-  s({ trig = "setminus", snippetType = "autosnippet" }, t("backslash"), { condition = in_mathzone }),
+  s({ trig = "setminus", snippetType = "autosnippet" }, t("\\setminus"), { condition = in_mathzone }),
   s({ trig = "bigcup", snippetType = "autosnippet" }, t("union.big"), { condition = in_mathzone }),
   s({ trig = "bigcap", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
   s({ trig = "langle", snippetType = "autosnippet" }, t("angle.l"), { condition = in_mathzone }),
@@ -547,6 +550,8 @@ sorting=ynt
   s({ trig = "normalsubgroup", snippetType = "autosnippet" }, t("\\trianglelefteq"), { condition = tex.in_mathzone }),
   s({ trig = "normalpsubgroup", snippetType = "autosnippet" }, t("\\triangleleft"), { condition = tex.in_mathzone }),
   s({ trig = "quad", snippetType = "autosnippet" }, t("\\quad"), { condition = tex.in_mathzone }),
+  s({ trig = "hquad", snippetType = "autosnippet" }, t("\\hquad"), { condition = tex.in_mathzone }),
+  s({ trig = "space", snippetType = "autosnippet" }, t("\\quad"), { condition = in_mathzone }),
   -- Operators
   s(
     { trig = "||", snippetType = "autosnippet" },
@@ -1266,6 +1271,38 @@ sorting=ynt
       { d(1, generate_vector) }
     ),
     { condition = tex.in_mathzone }
+  ),
+  s(
+    {
+      trig = "#itemize",
+      name = "itemize environment",
+      desc = "Create itemize environment",
+      snippetType = "autosnippet",
+    },
+    fmta(
+      [[
+    \begin{itemize}
+    \item <>
+    \end{itemize}<>
+    ]],
+      { i(1), i(0) }
+    )
+  ),
+  s(
+    {
+      trig = "#enumerate",
+      name = "enumerate environment",
+      desc = "Create enumerate environment",
+      snippetType = "autosnippet",
+    },
+    fmta(
+      [[
+    \begin{enumerate}
+    \item <>
+    \end{enumerate}<>
+    ]],
+      { i(1), i(0) }
+    )
   ),
   -- s(
   --   { trig = "-", name = "item", desc = "\\item in itemize environment", snippetType = "autosnippet" },
