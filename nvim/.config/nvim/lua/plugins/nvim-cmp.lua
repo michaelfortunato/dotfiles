@@ -14,7 +14,20 @@ return {
   -- optional: provides snippets for the snippet source
   -- WARN: I am using latest but the docs say to use
   -- dependencies = { "L3MON4D3/LuaSnip", version = "2.*" },
-  dependencies = { "L3MON4D3/LuaSnip" },
+  dependencies = {
+    "L3MON4D3/LuaSnip",
+    {
+      "micangl/cmp-vimtex",
+      dependencies = {
+        {
+          "saghen/blink.compat",
+          version = "*",
+          lazy = false,
+          opts = {},
+        },
+      },
+    },
+  },
 
   -- use a release tag to download pre-built binaries
   version = "1.*",
@@ -187,6 +200,10 @@ return {
     -- elsewhere in your config, without redefining it, due to `opts_extend`
     sources = {
       default = { "snippets", "lazydev", "lsp", "path", "buffer" },
+      per_filetype = {
+        -- optionally inherit from the `default` sources
+        tex = { inherit_defaults = true, "vimtex" },
+      },
       --- Custom providers
       providers = {
         lazydev = {
@@ -194,6 +211,15 @@ return {
           module = "lazydev.integrations.blink",
           -- make lazydev completions top priority (see `:h blink.cmp`)
           score_offset = 100,
+        },
+        -- add vimtex source
+        -- ref: https://github.com/micangl/cmp-vimtex/issues/30
+        -- ref: https://www.reddit.com/r/neovim/comments/1invqwg/comment/mcgttl5/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+        vimtex = {
+          name = "vimtex",
+          min_keyword_length = 2,
+          module = "blink.compat.source",
+          score_offset = 80,
         },
       },
       --- Function to use when transforming the items before they're returned for all providers
