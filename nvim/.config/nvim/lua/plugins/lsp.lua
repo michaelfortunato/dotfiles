@@ -145,7 +145,15 @@ return {
     "nvimtools/none-ls.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "danymat/neogen",
+
+      {
+        "danymat/neogen",
+        enabled = true,
+        -- Neogen requires explicit call to its setup(), hence the call to opts
+        opts = {
+          enabled = true,
+        },
+      },
     },
     config = function()
       local null_ls = require("null-ls")

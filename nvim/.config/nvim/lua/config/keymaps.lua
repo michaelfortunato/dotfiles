@@ -19,6 +19,8 @@ local function paste()
   end
 end
 
+vim.keymap.set("i", "<C-BS>", "<C-w>")
+vim.keymap.set("i", "<M-BS>", "<C-w>")
 -- This is so fucking key
 vim.keymap.set({ "n", "x" }, "<C-e>", function()
   return (vim.v.count1 * 5) .. "<C-e>"

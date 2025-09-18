@@ -109,8 +109,6 @@ vim.api.nvim_create_autocmd("BufWritePost", {
   pattern = { ".nvim.lua", ".lazy.lua" },
   desc = "Trust local .nvim.lua/.lazy.lua on save",
   callback = function(args)
-    if vim.fn.exists(":trust") == 2 then
-      vim.cmd("trust " .. vim.fn.fnameescape(args.file))
-    end
+    vim.cmd("trust")
   end,
 })

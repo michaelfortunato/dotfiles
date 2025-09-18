@@ -14,6 +14,17 @@ return {
       --- NOTE: This does not with luasnip 2.3, so if you use
       --- that use opts.store_selection_keys
       opts.cut_selection_keys = "<BS>"
+      -- NOTE: If you want injected languages, consider this
+      --opts.load_ft_func = function()
+      --  -- See help luasnip-extras-filetype-functions we need
+      --  -- this extend_load_ft because we call lazy_load above
+      --  require("luasnip.extras.filetype_functions").extend_load_ft({
+      --     python = {"typst", "markdown" }, -- might want rST here to
+      --     markdown = {"typst"}
+      --     rust = {"markdown", "typst"}
+      --  })
+      --  return require("luasnip.extras.filetype_functions").from_cursor_pos()
+      --  end
       return opts
     end,
     keys = {

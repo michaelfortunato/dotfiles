@@ -48,7 +48,13 @@ return {
     -- I am pinning to v1.10.0, and not v1.11.0 out of paranoia, though my change
     -- this
     tag = "v1.10.0",
-    opts = {},
+    opts = {
+      -- For neovide, I was really hoping to keep neovide
+      -- contained but it leaks here and I do not have time to fix it now
+      -- Hopefully this is fine. I do not see me being able to add this to
+      -- the neovide plugin
+      term_colors = vim.g.neovide,
+    },
   },
   {
     -- FIXME: Doesn't really work lol
