@@ -11,6 +11,8 @@ vim.keymap.set({ "i", "s" }, "<C-L>", function()
 end, { silent = true })
 return {
   "saghen/blink.cmp",
+
+  tag = "v1.6.0",
   -- optional: provides snippets for the snippet source
   -- WARN: I am using latest but the docs say to use
   -- dependencies = { "L3MON4D3/LuaSnip", version = "2.*" },
