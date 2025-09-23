@@ -20,7 +20,12 @@ local M = {}
 
 ---@type fun(opts: table, on_confirm: fun(input: string?)): nil
 M.input = Snacks.input.input or vim.ui.input
-
+vim.api.nvim_create_autocmd("BufWriteCmd", {
+  pattern = "[Scratch:*",
+  callback = function()
+    vim.notify("Scratch buffers cannot be saved", vim.log.levels.WARN)
+  end,
+})
 -- State management
 ---@type table<string, ScratchBuffer>
 M.scratch_buffers = {}
@@ -159,11 +164,10 @@ function M.get_or_create_scratch(config)
     return M.scratch_buffers[id]
   end
 
-  -- Create new buffer
   local buf = vim.api.nvim_create_buf(false, true)
 
   -- Set buffer options for scratch buffer
-  vim.bo[buf].buftype = "nofile"
+  vim.bo[buf].buftype = ""
   vim.bo[buf].bufhidden = "hide"
   vim.bo[buf].swapfile = false
   vim.bo[buf].buflisted = false
@@ -380,72 +384,6 @@ function M.copy_to_scratch(scratch_name)
 
   M.show_scratch(scratch_name, { split = "vsplit" })
   vim.notify("Copied " .. #lines .. " lines to scratch buffer '" .. scratch_name .. "'")
-end
-
--- Setup keymaps and commands
----@return nil
-function M.setup()
-  -- Quick access to numbered scratch buffers
-  -- for i = 1, 9 do
-  --   vim.keymap.set("n", "'" .. i, function()
-  --     M.scratch_number(i)
-  --   end, { desc = "Open scratch buffer " .. i })
-  -- end
-  vim.keymap.set("n", "'1", function()
-    M.scratch_number(1, "lua")
-  end, { desc = "Open scratch buffer 1 (lua)" })
-  vim.keymap.set("n", "'2", function()
-    M.scratch_number(1, "python")
-  end, { desc = "Open scratch buffer 2 (python)" })
-  vim.keymap.set("n", "'3", function()
-    M.scratch_number(1, "typst")
-  end, { desc = "Open scratch buffer 2 (typst)" })
-  -- Main scratch operations
-  vim.keymap.set("n", "'g", M.list_scratches, { desc = "List scratch buffers" })
-  -- Commands
-  vim.api.nvim_create_user_command("ScratchList", M.list_scratches, { desc = "List scratch buffers" })
-  vim.api.nvim_create_user_command("ScratchToggle", M.toggle_scratch, { desc = "Toggle scratch buffer" })
-  vim.api.nvim_create_user_command("ScratchNew", function(opts)
-    print(opts.args)
-    local args = vim.split(opts.args, "%s+")
-    local name = args[1] or nil
-    local filetype = args[2] or name or nil
-    M.create_named_scratch(name, filetype)
-  end, {
-    desc = "Create named scratch buffer",
-    nargs = "*",
-    complete = function(_, _, _)
-      return vim.tbl_keys(M.extension_to_filetype)
-    end,
-  })
-
-  vim.api.nvim_create_user_command("ScratchCopy", function(opts)
-    M.copy_to_scratch(opts.args ~= "" and opts.args or nil)
-  end, {
-    desc = "Copy current buffer to scratch",
-    nargs = "?",
-  })
-
-  -- Filetype-specific shortcuts
-  vim.keymap.set("n", "'py", function()
-    M.show_scratch("python", { filetype = "python" })
-  end, { desc = "Python scratch buffer" })
-
-  vim.keymap.set("n", "'js", function()
-    M.show_scratch("javascript", { filetype = "javascript" })
-  end, { desc = "JavaScript scratch buffer" })
-
-  vim.keymap.set("n", "'lua", function()
-    M.show_scratch("lua", { filetype = "lua" })
-  end, { desc = "Lua scratch buffer" })
-
-  vim.keymap.set("n", "'md", function()
-    M.show_scratch("markdown", { filetype = "markdown" })
-  end, { desc = "Markdown scratch buffer" })
-
-  vim.keymap.set("n", "'sql", function()
-    M.show_scratch("sql", { filetype = "sql" })
-  end, { desc = "SQL scratch buffer" })
 end
 
 return M

@@ -64,20 +64,35 @@ local function set_options()
     vim.g.neovide_scroll_animation_length = 0.00
   end
 
+  -- you are crazy for ths one!
+  vim.opt.guifont = "NewComputerModernMono10"
   animation_profile4()
 end
 
 local function set_keymaps()
-  vim.keymap.set("n", "<D-s>", ":w<CR>", { noremap = true, silent = true }) -- Save
-  vim.keymap.set("v", "<D-c>", '"+y', { noremap = true, silent = true }) -- Copy
-  vim.keymap.set("n", "<D-v>", '"+p', { noremap = true, silent = true }) -- Paste normal mode
-  vim.keymap.set("v", "<D-v>", '"+p', { noremap = true, silent = true }) -- Paste visual mode
-  -- TODO: !
-  -- BROKEN
-  -- vim.keymap.set("c", "<D-v>", "<C-R>+", { noremap = true, silent = true }) -- Paste command mode
-  -- vim.keymap.set("!", "<D-v>", "<C-R>+", { noremap = true, silent = true }) -- Paste command mode
-  -- Partially broken
-  vim.keymap.set("i", "<D-v>", '<ESC>l"+Pli', { noremap = true, silent = true }) -- Paste insert mode
+  -- vim.keymap.set("n", "<D-s>", ":w<CR>", { noremap = true, silent = true }) -- Save
+  -- vim.keymap.set("v", "<D-c>", '"+y', { noremap = true, silent = true }) -- Copy
+  -- vim.keymap.set("n", "<D-v>", '"+p', { noremap = true, silent = true }) -- Paste normal mode
+  -- vim.keymap.set("v", "<D-v>", '"+p', { noremap = true, silent = true }) -- Paste visual mode
+  -- -- TODO: !
+  -- -- BROKEN
+  -- -- vim.keymap.set("c", "<D-v>", "<C-R>+", { noremap = true, silent = true }) -- Paste command mode
+  -- -- vim.keymap.set("!", "<D-v>", "<C-R>+", { noremap = true, silent = true }) -- Paste command mode
+  -- -- Partially broken
+  -- vim.keymap.set("i", "<D-v>", '<ESC>l"+Pli', { noremap = true, silent = true }) -- Paste insert mode
+
+  --  Lets see if the below is better
+  vim.keymap.set("n", "<D-s>", ":w<CR>") -- Save
+  vim.keymap.set("v", "<D-c>", '"+y') -- Copy
+  vim.keymap.set("n", "<D-v>", '"+P') -- Paste normal mode
+  vim.keymap.set("v", "<D-v>", '"+P') -- Paste visual mode
+  vim.keymap.set("c", "<D-v>", "<C-R>+") -- Paste command mode
+  vim.keymap.set("i", "<D-v>", '<ESC>l"+Pli') -- Paste insert mode
+  -- Allow clipboard copy paste in neovim
+  vim.api.nvim_set_keymap("", "<D-v>", "+p<CR>", { noremap = true, silent = true })
+  vim.api.nvim_set_keymap("!", "<D-v>", "<C-R>+", { noremap = true, silent = true })
+  vim.api.nvim_set_keymap("t", "<D-v>", "<C-R>+", { noremap = true, silent = true })
+  vim.api.nvim_set_keymap("v", "<D-v>", "<C-R>+", { noremap = true, silent = true })
 
   local change_scale_factor = function(delta)
     vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta

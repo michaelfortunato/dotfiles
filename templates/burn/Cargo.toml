@@ -8,4 +8,4 @@ name = "notebook"
 path = "notebook.qmd.otter.rs"
 
 [dependencies]
-burn = {version = "*", features=["wgpu"]}
+burn = { version = "*", features = ["wgpu"] }

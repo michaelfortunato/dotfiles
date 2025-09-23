@@ -112,3 +112,40 @@ vim.api.nvim_create_autocmd("BufWritePost", {
     vim.cmd("trust")
   end,
 })
+
+vim.api.nvim_create_user_command("PrintPath", function(opts)
+  local arg = opts.args
+  local path
+
+  if arg == "rel" or arg == "cwd" then
+    -- relative to current working directory
+    path = vim.fn.expand("%:.")
+  elseif arg == "rootdir" then
+    -- relative to LSP root dir (or current cwd if no LSP)
+    local clients = vim.lsp.get_clients({ bufnr = 0 })
+    local root
+    for _, client in ipairs(clients) do
+      if client.config.root_dir then
+        root = client.config.root_dir
+        break
+      end
+    end
+    if root then
+      local fullpath = vim.fn.expand("%:p")
+      path = vim.fn.fnamemodify(fullpath, ":." .. root)
+    else
+      path = vim.fn.expand("%:.")
+    end
+  else
+    -- default: absolute path
+    path = vim.fn.expand("%:p")
+  end
+
+  print(path)
+end, {
+  nargs = "?",
+  complete = function(_, _, _)
+    return { "rel", "cwd", "rootdir" }
+  end,
+  desc = "Print current buffer path (abs by default, or rel/cwd/rootdir)",
+})

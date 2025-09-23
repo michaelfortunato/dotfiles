@@ -167,14 +167,17 @@ fi
 ## Set personal environment variables
 export MNF_NOTES_DIR=$HOME/notes
 export MNF_BIN_DIR=$HOME/bin
-export MNF_TEMPLATE_DIR=$HOME/dotfiles/templates #TODO: should be $HOME/.templates
+export MNF_TEMPLATE_DIR=$HOME/dotfiles/templates #TODO: should be $HOME/.templates via symlink
 export MNF_BIB_DIR=$HOME/.local/share/zotero/bib
 export BIBINPUTS=$MNF_BIB_DIR
 
 
 ############# PATH ############
 # NOTE: Only set path here!
-export PATH=$PATH:$MNF_BIN_DIR:$HOME/.local/bin
+# 1. MNF_BIN_DIR is my directory for personal scripts
+# 2. `$HOME/.local/bin` is the XDG's recommendation for personal scripts might oneday merge with MNF_BIN_DIR
+# 3. `$HOME/.local/share/nvim/mason/bin` is the directory holding all lsps managed by mason.nvim--sometimes I like seeing their CLI features!
+export PATH=$PATH:$MNF_BIN_DIR:$HOME/.local/bin:$HOME/.local/share/nvim/mason/bin
 if [[ $MNF_OS != "Darwin" ]]; then
   export PATH=/usr/local/cuda-12.8/bin${PATH:+:${PATH}}
   export LD_LIBRARY_PATH="/usr/local/cuda-12.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
@@ -395,6 +398,9 @@ cdj() {
     -or -name "obj" \
     -or -name "build" \
     -or -name "dist" \
+    -or -name ".cache" \
+    -or -name ".Trash" \
+    -or -name "$HOME/Library/Caches" \
     -or -name "__pycache__"  \) -type d \
     2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \
@@ -427,6 +433,9 @@ cdi() {
     -or -name "obj" \
     -or -name "build" \
     -or -name "dist" \
+    -or -name ".cache" \
+    -or -name ".Trash" \
+    -or -name "$HOME/Library/Caches" \
     -or -name "__pycache__"  \) -type f \
     2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
     --preview 'tree -C {}' \

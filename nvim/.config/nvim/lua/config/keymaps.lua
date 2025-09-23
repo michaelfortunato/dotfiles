@@ -19,8 +19,18 @@ local function paste()
   end
 end
 
+-- The "n" is necesasry to continue the keymap
+vim.keymap.set({ "t", "n" }, "<C-S-Up>", [[<C-\><C-n>5<C-y>]], { silent = true })
+vim.keymap.set({ "t", "n" }, "<C-S-Down>", [[<C-\><C-n>5<C-e>]], { silent = true })
+
+-- maybe...
+vim.keymap.set("n", "<C-u>", "<C-u>zz")
+vim.keymap.set("n", "<C-d>", "<C-d>zz")
+
+-- like the shell
 vim.keymap.set("i", "<C-BS>", "<C-w>")
 vim.keymap.set("i", "<M-BS>", "<C-w>")
+
 -- This is so fucking key
 vim.keymap.set({ "n", "x" }, "<C-e>", function()
   return (vim.v.count1 * 5) .. "<C-e>"

@@ -510,6 +510,9 @@ sorting=ynt
   s({ trig = "ZZ", snippetType = "autosnippet" }, t("\\mathbb{Z}"), { condition = tex.in_mathzone }),
   s({ trig = "SS", snippetType = "autosnippet" }, t("\\mathbb{S}"), { condition = tex.in_mathzone }),
   --- Relations
+  s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = tex.in_mathzone }),
+  s({ trig = "equiv", snippetType = "autosnippet" }, t("\\equiv"), { condition = tex.in_mathzone }),
+  s({ trig = "===", snippetType = "autosnippet" }, t("\\equiv"), { condition = tex.in_mathzone }),
   s({
     trig = "=",
     name = "_insert_equal_sign_as_text_node",
@@ -517,7 +520,6 @@ sorting=ynt
     hidden = true,
     snippetType = "autosnippet",
   }, t("="), { condition = tex.in_mathzone }),
-  s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = tex.in_mathzone }),
   s({ trig = "->", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
   s({ trig = "to", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
   s({ trig = ":->", snippetType = "autosnippet" }, t("\\mapsto"), { condition = tex.in_mathzone }),
@@ -1301,6 +1303,35 @@ sorting=ynt
     \item <>
     \end{enumerate}<>
     ]],
+      { i(1), i(0) }
+    )
+  ),
+  s(
+    {
+      trig = "#table",
+      name = "Table environment",
+      desc = "Add a table",
+      snippetType = "autosnippet",
+    },
+    fmta(
+      [[
+\begin{table}
+  \caption{<>}
+  \label{sample-table}
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    \multicolumn{2}{c}{Part}                   \\
+    \cmidrule(r){1-2}
+    Name     & Description     & Size ($\mu$m) \\
+    \midrule
+    Dendrite & Input terminal  & $\sim$100     \\
+    Axon     & Output terminal & $\sim$10      \\
+    Soma     & Cell body       & up to $10^6$  \\
+    \bottomrule
+  \end{tabular}
+\end{table}<>
+]],
       { i(1), i(0) }
     )
   ),

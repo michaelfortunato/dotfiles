@@ -1,9 +1,33 @@
 -- FIXME: Python LSP servers only! LSP rename fails with "change_annotations must be provided for annotated text edits"
 --- Includes lsp, linting, and formatter configurations
 vim.lsp.set_log_level("ERROR")
--- NOTE: This config is grreat but lazy vim is overriding it.
+-- NOTE: vim.lsp.config does not start the lsp server. Simply configures it.
+-- no need to call vim.lsp.config if we are good with their defaults
 vim.lsp.enable("pyrefly")
 vim.lsp.enable("ruff")
+-- NOTE: Because I am using LazyVim, but now know about LSPs, mason is doing
+-- a few hidden things that might prove bothersome for some of my lsps
+-- I want to manage manually. mason-lsp-config is likely responsible for both
+-- of the following
+-- 1. For a server, mason will automaticaly install it.
+--  1.a. To prevent this, add servers = {<server> = {mason = false}}
+-- 2. mason-lsp-config autostarts lsps servers.
+vim.lsp.config("tombi", {
+  cmd = { "tombi", "lsp" },
+})
+vim.lsp.enable("tombi")
+vim.lsp.config("tinymist", {
+  settings = {
+    -- do not fallb back to lsp formatting, as tinymist
+    -- runs its own fork of typstyle (I believe this is still true)
+    -- which confuses me. Might as well manage it myself anyhow
+    -- formatterMode = "typstyle",
+    -- formatterPrintWidth = 80,
+    formatterMode = "",
+    lint = { enabled = true },
+  },
+})
+vim.lsp.enable("tinymist")
 return {
   {
     -- LSP Configuration, note that some LSPs do formatting. It is
@@ -30,7 +54,7 @@ return {
     end,
     ---@class PluginLspOpts
     opts = {
-      -- NOTE, we still have to use this old API as LazyVim uses
+      -- TODO: we still have to use this old API as LazyVim uses
       -- it. Note that vim.diagnostic.config({}) would be preferable.
       diagnostics = {
         virtual_text = false, -- no inline text
@@ -81,28 +105,19 @@ return {
             },
           },
         },
-        tinymist = {
-          settings = {
-            formatterMode = "",
-            -- formatterMode = "typstfmt",
-            -- do not fallb back to lsp formatting, as tinymist
-            -- runs its own fork of typstyle which confuses me
-            -- formatterMode = "typstyle",
-            -- formatterPrintWidth = 80,
-            -- TODO: Does this use typststyle?
-            lint = { enabled = true },
-          },
-        },
       },
     },
   },
   -- Formatting Configuration
   {
+    ---@module "conform"
     "stevearc/conform.nvim",
+    ---@type conform.setupOpts
     opts = {
       formatters_by_ft = {
         typst = { "typstyle" },
         tex = { "tex-fmt" },
+        toml = { "tombi" },
         python = {
           -- To fix auto-fixable lint errors.
           "ruff_fix",
@@ -120,6 +135,12 @@ return {
         },
         ["tex-fmt"] = {
           prepend_args = { "--wraplen", "79" },
+        },
+        tombi = {
+          command = "tombi format",
+          -- So interesting this does not work
+          -- Clearly, I misunderstand unix args
+          -- prepend_args = { "format" },
         },
         injected = {
           options = {
@@ -181,4 +202,14 @@ return {
       })
     end,
   },
+  {
+    ---@module "mason"
+    "mason-org/mason.nvim",
+    version = "^1.0.0",
+    ---@type MasonSettings
+    opts = {
+      PATH = "skip",
+    },
+  },
+  { "mason-org/mason-lspconfig.nvim", version = "^1.0.0", opts = { automatic_installation = false } },
 }
