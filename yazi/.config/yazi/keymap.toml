@@ -4,42 +4,42 @@
 
 [mgr]
 prepend_keymap = [
-	{ on = "<Enter>",   run="plugin smart-enter",                       desc = "Enter the child directory" },
-	{ on = "<S-Enter>",  run = ["enter", "quit"], desc = "Quit and cd to the selected directory" },
+  { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory" },
+  { on = "<S-Enter>", run = ["enter", "quit"], desc = "Quit and cd to the selected directory" },
 ]
 append_keymap = [
-	{ on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
-	{ on = "<C-n>", run = "arrow 1",  desc = "Move cursor down" },
-	{ on = "<Enter>",   run="plugin smart-enter",                       desc = "Enter the child directory" },
-	{ on = "<Backspace>",  run = "leave", desc = "Go back to the parent directory" },
+  { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
+  { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
+  { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory" },
+  { on = "<Backspace>", run = "leave", desc = "Go back to the parent directory" },
 ]
 
 [spot]
 append_keymap = [
-	{ on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
-	{ on = "<C-n>", run = "arrow 1",  desc = "Move cursor down" },
+  { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
+  { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
 ]
 
 [pick]
 append_keymap = [
-	{ on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
-	{ on = "<C-n>", run = "arrow 1",  desc = "Move cursor down" },
+  { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
+  { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
 ]
 
 [confirm]
 append_keymap = [
-	{ on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
-	{ on = "<C-n>", run = "arrow 1",  desc = "Move cursor down" },
+  { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
+  { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
 ]
 
 [cmp]
 append_keymap = [
-	{ on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
-	{ on = "<C-n>", run = "arrow 1",  desc = "Move cursor down" },
+  { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
+  { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
 ]
 
 [help]
 append_keymap = [
-	{ on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
-	{ on = "<C-n>", run = "arrow 1",  desc = "Move cursor down" },
+  { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
+  { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
 ]
