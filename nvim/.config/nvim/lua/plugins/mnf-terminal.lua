@@ -13,7 +13,7 @@ return {
       -- end
       -- del("x", ";")
       -- del("o", ";")
-      for i = 1, 3 do
+      for i = 1, 9 do
         vim.keymap.set({ "n", "t" }, ";" .. i, function()
           local mnf_terminal = require("mnf.terminal.managed")
           mnf_terminal.toggle_terminal(i)

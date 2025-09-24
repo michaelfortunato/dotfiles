@@ -73,6 +73,7 @@ return {
     },
   },
   {
+    ---@module "lualine"
     "nvim-lualine/lualine.nvim",
     -- TODO: Add maximize status to the lualine
     dependencies = { "michaelfortunato/LazyVim", "declancm/maximize.nvim" },
@@ -119,7 +120,47 @@ return {
 
         opts.options.theme = custom_theme
       end
+      local icons = LazyVim.config.icons
 
+      opts.sections.lualine_c = {
+        LazyVim.lualine.root_dir(),
+        {
+          "diagnostics",
+          symbols = {
+            error = icons.diagnostics.Error,
+            warn = icons.diagnostics.Warn,
+            info = icons.diagnostics.Info,
+            hint = icons.diagnostics.Hint,
+          },
+        },
+        { "filetype", icon_only = true, separator = "", padding = { left = 1, right = 0 } },
+        { "filename", path = 2 },
+      }
+      opts.sections.lualine_z = {
+        function()
+          local bufnum = vim.api.nvim_get_current_buf()
+          return "Buf: " .. bufnum
+        end,
+      }
+      -- TOOD: Do this for my other plugins
+      table.insert(opts.sections.lualine_x, {
+        function()
+          -- if not already loaded, do not load this as lualine is not Lazy
+          local curr = require("mnf.terminal.managed").get_current()
+          local count = require("mnf.terminal.managed").count()
+          local label
+          if curr ~= nil then
+            label = curr .. "/" .. count
+          else
+            label = count
+          end
+          -- print(label)
+          return "📺 " .. label
+        end,
+        cond = function()
+          return package.loaded["mnf.terminal.managed"] and require("mnf.terminal.managed").count() > 0
+        end,
+      })
       -- Add a minimal winbar component rendered by lualine (top-right)
       -- Shows "MAX" and/or the tab count when > 1
       -- FIXME: Uncomment whne you get the tabline to actually go away

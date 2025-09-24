@@ -180,6 +180,14 @@ function M.use_integrated()
   use_external_kitty = false
 end
 
+function M.count()
+  return #M.terminal_state.buffers
+end
+
+function M.get_current()
+  return M.terminal_state.current
+end
+
 -- Get or create terminal buffer (or kitty window)
 ---@param id integer
 ---@return integer

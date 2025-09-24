@@ -12,12 +12,13 @@ end
 local ui_input = Snacks.input or vim.ui.input
 local ui_notify = Snacks.notify or print
 
-local function paste()
-  local pasted = require("img-clip").paste_image()
-  if not pasted then
-    vim.cmd("normal! p")
-  end
-end
+-- TODO: Get proper pasting in
+-- local function paste()
+--   local pasted = require("img-clip").paste_image()
+--   if not pasted then
+--     vim.cmd("normal! p")
+--   end
+-- end
 
 ---
 vim.keymap.set({ "c" }, "<C-a>", "<Home>")
@@ -27,6 +28,8 @@ vim.keymap.set({ "c" }, "<C-a>", "<Home>")
 vim.keymap.set({ "c" }, "<C-e>", "<End>")
 vim.keymap.set({ "c" }, "<C-Left>", "<S-Left>")
 vim.keymap.set({ "c" }, "<C-Right>", "<S-Right>")
+vim.keymap.set({ "c" }, "<A-Left>", "<S-Right>")
+vim.keymap.set({ "c" }, "<A-Right>", "<S-Right>")
 
 vim.keymap.set({ "n" }, "q", "<Nop>", {
   desc = [[I do not like this for entering macro 
@@ -36,16 +39,22 @@ vim.keymap.set({ "n" }, "q", "<Nop>", {
 })
 -- If you ever want to set q again vim.keymap.set('n', '<leader>q', 'q', { remap = true })
 
--- makes it nice to navigate
-vim.keymap.set({ "n", "o", "v", "x" }, "e", "E", { desc = "e -> E (WORD end)" })
-
 -- The "n" is necesasry to continue the keymap
 vim.keymap.set({ "t", "n" }, "<C-S-Up>", [[<C-\><C-n>5<C-y>]], { silent = true })
 vim.keymap.set({ "t", "n" }, "<C-S-Down>", [[<C-\><C-n>5<C-e>]], { silent = true })
 
--- maybe...
 vim.keymap.set("n", "<C-u>", "<C-u>zz")
 vim.keymap.set("n", "<C-d>", "<C-d>zz")
+-- vim.keymap.set("n", "<C-d>", function()
+--   local lines = math.max(1, math.floor(vim.fn.winheight(0) / 3))
+--   local raw = string.format("%d<C-e>zz", lines)
+--   return vim.api.nvim_replace_termcodes(raw, true, false, true)
+-- end, { expr = true, silent = true, desc = "Scroll down 1/3 page" })
+-- vim.keymap.set("n", "<C-u>", function()
+--   local lines = math.max(1, math.floor(vim.fn.winheight(0) / 3))
+--   local raw = string.format("%d<C-y>zz", lines)
+--   return vim.api.nvim_replace_termcodes(raw, true, false, true)
+-- end, { expr = true, silent = true, desc = "Scroll up 1/3 page" })
 
 -- like the shell
 vim.keymap.set("i", "<C-BS>", "<C-w>")
