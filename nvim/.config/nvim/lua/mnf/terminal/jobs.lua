@@ -40,6 +40,14 @@ M.state = {
   jobs = {}, -- job_id -> job_info
 }
 
+function M.count()
+  return #M.state.jobs
+end
+
+function M.get_current()
+  return M.state.current_job_id
+end
+
 -- Layout functions
 ---@type table<string, fun(buf: integer, title: string): integer>
 local layout_functions = {

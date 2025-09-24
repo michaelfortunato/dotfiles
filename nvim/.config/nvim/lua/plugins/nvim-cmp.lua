@@ -29,6 +29,8 @@ return {
         },
       },
     },
+    "ribru17/blink-cmp-spell",
+    "hrsh7th/cmp-emoji",
   },
 
   -- use a release tag to download pre-built binaries
@@ -201,10 +203,12 @@ return {
     -- Default list of enabled providers defined so that you can extend it
     -- elsewhere in your config, without redefining it, due to `opts_extend`
     sources = {
-      default = { "snippets", "lsp", "path", "buffer" },
+      default = { "snippets", "lsp", "path", "buffer", "emoji" },
+
       per_filetype = {
         -- optionally inherit from the `default` sources
-        tex = { inherit_defaults = true, "vimtex" },
+        tex = { inherit_defaults = true, "vimtex", "spell" },
+        typst = { inherit_defaults = true, "spell" },
         lua = { inherit_defaults = true, "lazydev" },
       },
       --- Custom providers
@@ -224,6 +228,31 @@ return {
           module = "blink.compat.source",
           score_offset = 80,
         },
+        spell = {
+          name = "Spell",
+          module = "blink-cmp-spell",
+          opts = {
+            -- EXAMPLE: Only enable source in `@spell` captures, and disable it
+            -- in `@nospell` captures.
+            enable_in_context = function()
+              local curpos = vim.api.nvim_win_get_cursor(0)
+              local captures = vim.treesitter.get_captures_at_pos(0, curpos[1] - 1, curpos[2] - 1)
+              local in_spell_capture = false
+              for _, cap in ipairs(captures) do
+                if cap.capture == "spell" then
+                  in_spell_capture = true
+                elseif cap.capture == "nospell" then
+                  return false
+                end
+              end
+              return in_spell_capture
+            end,
+          },
+        },
+        emoji = {
+          module = "blink.compat.source",
+          name = "emoji",
+        },
       },
       --- Function to use when transforming the items before they're returned for all providers
       -- The default will lower the score for snippets to sort them lower in the list
@@ -239,6 +268,13 @@ return {
       implementation = "prefer_rust_with_warning",
       -- https://cmp.saghen.dev/configuration/fuzzy.html#sorting-priority-and-tie-breaking
       sorts = {
+        -- This might slow things down not sure
+        function(a, b)
+          if a.source_id == "spell" and b.source_id == "spell" then
+            local sort = require("blink.cmp.fuzzy.sort")
+            return sort.label(a, b)
+          end
+        end,
         "score", -- Primary sort: by fuzzy matching score
         "sort_text", -- Secondary sort: by sortText field if scores are equal
         "kind", -- Kind is better than label for pyrefly
