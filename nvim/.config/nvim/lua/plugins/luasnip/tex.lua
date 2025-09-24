@@ -553,7 +553,8 @@ sorting=ynt
   s({ trig = "normalpsubgroup", snippetType = "autosnippet" }, t("\\triangleleft"), { condition = tex.in_mathzone }),
   s({ trig = "quad", snippetType = "autosnippet" }, t("\\quad"), { condition = tex.in_mathzone }),
   s({ trig = "hquad", snippetType = "autosnippet" }, t("\\hquad"), { condition = tex.in_mathzone }),
-  s({ trig = "space", snippetType = "autosnippet" }, t("\\quad"), { condition = in_mathzone }),
+  s({ trig = "space", snippetType = "autosnippet" }, t("\\enspace"), { condition = in_mathzone }),
+  s({ trig = "enspace", snippetType = "autosnippet" }, t("\\enspace"), { condition = in_mathzone }),
   -- Operators
   s(
     { trig = "||", snippetType = "autosnippet" },

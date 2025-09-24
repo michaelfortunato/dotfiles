@@ -7,6 +7,12 @@ return {
     dir = vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "mnf", "terminal"),
     dependencies = { "folke/which-key.nvim", "folke/snacks.nvim" },
     init = function()
+      -- TODO: makes me safe and fix the operator pending issue
+      -- local del = function(...)
+      --   return pcall(vim.keymap.del, ...)
+      -- end
+      -- del("x", ";")
+      -- del("o", ";")
       for i = 1, 3 do
         vim.keymap.set({ "n", "t" }, ";" .. i, function()
           local mnf_terminal = require("mnf.terminal.managed")

@@ -122,30 +122,22 @@ return {
 
       -- Add a minimal winbar component rendered by lualine (top-right)
       -- Shows "MAX" and/or the tab count when > 1
-      local function winbar_status()
-        local parts = {}
-        if vim.t.maximized then
-          table.insert(parts, "MAX")
-        end
-        local tabs = #vim.api.nvim_list_tabpages()
-        if tabs > 1 then
-          table.insert(parts, tostring(tabs))
-        end
-        return table.concat(parts, " ")
-      end
-
-      opts.tabline = {}
-      opts.tabline.lualine_z = opts.tabline.lualine_z or {}
-      table.insert(opts.tabline.lualine_z, {
-        winbar_status,
-        cond = function()
-          return vim.t.maximized or #vim.api.nvim_list_tabpages() > 1
-        end,
-      })
-
-      -- opts.winbar = opts.winbar or {}
-      -- opts.winbar.lualine_z = opts.winbar.lualine_z or {}
-      -- table.insert(opts.winbar.lualine_z, {
+      -- FIXME: Uncomment whne you get the tabline to actually go away
+      -- when tab1 and there is no flash at startup
+      -- local function winbar_status()
+      --   local parts = {}
+      --   if vim.t.maximized then
+      --     table.insert(parts, "MAX")
+      --   end
+      --   local tabs = #vim.api.nvim_list_tabpages()
+      --   if tabs > 1 then
+      --     table.insert(parts, tostring(tabs))
+      --   end
+      --   return table.concat(parts, " ")
+      -- end
+      -- opts.tabline = {}
+      -- opts.tabline.lualine_z = opts.tabline.lualine_z or {}
+      -- table.insert(opts.tabline.lualine_z, {
       --   winbar_status,
       --   cond = function()
       --     return vim.t.maximized or #vim.api.nvim_list_tabpages() > 1

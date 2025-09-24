@@ -19,6 +19,9 @@ local function paste()
   end
 end
 
+-- makes it nice to navigate
+vim.keymap.set({ "n", "o", "v", "x" }, "e", "E", { desc = "e -> E (WORD end)" })
+
 -- The "n" is necesasry to continue the keymap
 vim.keymap.set({ "t", "n" }, "<C-S-Up>", [[<C-\><C-n>5<C-y>]], { silent = true })
 vim.keymap.set({ "t", "n" }, "<C-S-Down>", [[<C-\><C-n>5<C-e>]], { silent = true })

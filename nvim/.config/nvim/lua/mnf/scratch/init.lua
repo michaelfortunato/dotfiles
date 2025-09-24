@@ -121,6 +121,25 @@ M.extension_to_filetype = {
   nix = "nix",
 }
 
+---@type table<string, string>
+local filetype_to_extension = {
+  python = "py",
+  javascript = "js",
+  typescript = "ts",
+  lua = "lua",
+  rust = "rs",
+  go = "go",
+  c = "c",
+  cpp = "cpp",
+  markdown = "md",
+  tex = "tex",
+  sh = "sh",
+  bash = "sh",
+  zsh = "zsh",
+  yaml = "yml",
+  json = "json",
+}
+
 -- Detect filetype from content
 ---@param lines string[]
 ---@return string?
@@ -155,25 +174,32 @@ end
 ---@param config ScratchConfig
 ---@return ScratchBuffer
 function M.get_or_create_scratch(config)
+  --FIXME:  This id/name logic is broken still. Usuable but the buffer
+  -- name looks weird
   config = config or {}
-  local name = config.name or "scratch"
-  local id = name
+  local name = config.name
+  local id = config.name
 
   -- If buffer exists and is valid, return it
-  if M.scratch_buffers[id] and vim.api.nvim_buf_is_valid(M.scratch_buffers[id].buffer) then
+  if id ~= nil and M.scratch_buffers[id] and vim.api.nvim_buf_is_valid(M.scratch_buffers[id].buffer) then
     return M.scratch_buffers[id]
   end
 
   local buf = vim.api.nvim_create_buf(false, true)
+  if id == nil then
+    id = buf
+  end
+  if name ~= nil then
+    name = id .. "|" .. name
+  else
+    name = id
+  end
 
   -- Set buffer options for scratch buffer
   vim.bo[buf].buftype = ""
   vim.bo[buf].bufhidden = "hide"
   vim.bo[buf].swapfile = false
   vim.bo[buf].buflisted = false
-
-  -- Set buffer name
-  vim.api.nvim_buf_set_name(buf, "[Scratch: " .. name .. "]")
 
   -- Detect filetype
   local filetype = config.filetype
@@ -189,6 +215,9 @@ function M.get_or_create_scratch(config)
   if not filetype and config.content then
     filetype = detect_filetype_from_content(config.content)
   end
+
+  -- Set buffer name
+  vim.api.nvim_buf_set_name(buf, "[Scratch: " .. name .. "]" .. "." .. filetype_to_extension[filetype])
 
   -- Set filetype if detected
   if filetype then
