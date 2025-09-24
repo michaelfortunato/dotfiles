@@ -11,7 +11,11 @@ require("config.neovide").setup()
 require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
-    { "LazyVim/LazyVim", tag = "v13.9.1", import = "lazyvim.plugins" },
+    {
+      "michaelfortunato/LazyVim",
+      dir = vim.fn.expand("~/projects/neovim-plugins/LazyVim"),
+      import = "lazyvim.plugins",
+    },
     -- import any extras modules here
     -- { import = "lazyvim.plugins.extras.lang.typescript" },
     -- { import = "lazyvim.plugins.extras.lang.json" },

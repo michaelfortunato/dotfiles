@@ -32,7 +32,7 @@ return {
     enabled = false,
   },
   {
-    "LazyVim/LazyVim",
+    "michaelfortunato/LazyVim",
     opts = {
       -- colorscheme = "tokyonight-night",
       -- colorscheme = "default",
@@ -75,7 +75,7 @@ return {
   {
     "nvim-lualine/lualine.nvim",
     -- TODO: Add maximize status to the lualine
-    dependencies = { "LazyVim/LazyVim", "declancm/maximize.nvim" },
+    dependencies = { "michaelfortunato/LazyVim", "declancm/maximize.nvim" },
     event = "VeryLazy",
     opts = function(_, opts)
       -- Get current colorscheme
