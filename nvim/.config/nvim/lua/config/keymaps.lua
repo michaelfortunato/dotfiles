@@ -19,6 +19,23 @@ local function paste()
   end
 end
 
+---
+vim.keymap.set({ "c" }, "<C-a>", "<Home>")
+-- NOTE: blink overrides it with cmap <c-e> but should handle fallback
+-- if it doesnt, add this explicilty { 'cancel', 'fallback' } to the new
+-- entry in your nvim-cmp.lua
+vim.keymap.set({ "c" }, "<C-e>", "<End>")
+vim.keymap.set({ "c" }, "<C-Left>", "<S-Left>")
+vim.keymap.set({ "c" }, "<C-Right>", "<S-Right>")
+
+vim.keymap.set({ "n" }, "q", "<Nop>", {
+  desc = [[I do not like this for entering macro 
+    recording mode as I often hit q by accident with tab 
+  ]],
+  silent = true,
+})
+-- If you ever want to set q again vim.keymap.set('n', '<leader>q', 'q', { remap = true })
+
 -- makes it nice to navigate
 vim.keymap.set({ "n", "o", "v", "x" }, "e", "E", { desc = "e -> E (WORD end)" })
 
