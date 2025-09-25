@@ -537,9 +537,12 @@ function M.configure_job(id)
     -- Job exists, show options
     local options = {
       "🔄 Restart job",
-      "⚙️ Reconfigure job",
-      "❌ Cancel",
     }
+    if job_info.status ~= "killed" then
+      table.insert(options, "🔎 View job")
+    end
+    table.insert(options, "⚙️ Reconfigure job")
+    table.insert(options, "❌ Cancel")
 
     vim.ui.select(options, {
       prompt = "Job[" .. id .. "] already exists:",
@@ -586,6 +589,8 @@ function M.configure_job(id)
             vim.log.levels.DEBUG
           )
         end)
+      elseif choice:match("View") then
+        M.show_job(id)
       end
     end)
   else

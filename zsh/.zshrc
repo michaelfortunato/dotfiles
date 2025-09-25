@@ -438,7 +438,7 @@ cdi() {
     -or -name "$HOME/Library/Caches" \
     -or -name "__pycache__"  \) -type f \
     2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
-    --preview 'tree -C {}' \
+    --preview 'bat -n --color=always {}'
     --cycle \
     --bind 'ctrl-y:accept' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
