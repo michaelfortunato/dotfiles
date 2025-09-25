@@ -177,6 +177,12 @@ return {
           return package.loaded["mnf.terminal.managed"] and require("mnf.terminal.managed").count() > 0
         end,
       })
+
+      opts.sections.lualine_y = {
+        -- LazyVim had this, not a fan.
+        -- { "progress", separator = " ", padding = { left = 1, right = 0 } },
+        { "location", padding = { left = 0, right = 1 } },
+      }
       -- Add a minimal winbar component rendered by lualine (top-right)
       -- Shows "MAX" and/or the tab count when > 1
       -- FIXME: Uncomment whne you get the tabline to actually go away
