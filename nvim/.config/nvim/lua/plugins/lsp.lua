@@ -116,6 +116,7 @@ return {
     opts = {
       formatters_by_ft = {
         typst = { "typstyle" },
+        json = { "jq" },
         tex = { "tex-fmt" },
         toml = { "tombi" },
         python = {

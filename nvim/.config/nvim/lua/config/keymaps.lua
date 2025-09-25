@@ -136,7 +136,8 @@ map({ "n", "t", "v" }, "<C-j>", require("smart-splits").move_cursor_down)
 map({ "n", "t", "v" }, "<C-k>", require("smart-splits").move_cursor_up)
 map({ "n", "t", "v" }, "<C-l>", require("smart-splits").move_cursor_right)
 
-map({ "n", "t", "v" }, "<C-q>", "<cmd>qa<cr>", { desc = "Quit All" })
+map({ "n", "t", "v" }, "<C-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsaved)" })
+map({ "n", "t", "v" }, "<D-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsaved)" })
 
 del("n", "m")
 map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })
