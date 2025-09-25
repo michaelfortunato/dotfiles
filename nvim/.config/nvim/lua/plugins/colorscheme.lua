@@ -142,7 +142,23 @@ return {
           return "Buf: " .. bufnum
         end,
       }
-      -- TOOD: Do this for my other plugins
+      table.insert(opts.sections.lualine_x, {
+        function()
+          -- if not already loaded, do not load this as lualine is not Lazy
+          local curr = require("mnf.terminal.jobs").get_current()
+          local count = require("mnf.terminal.jobs").count()
+          local label
+          if curr ~= nil then
+            label = curr .. "/" .. count
+          else
+            label = count
+          end
+          return "👷 " .. label
+        end,
+        cond = function()
+          return package.loaded["mnf.terminal.jobs"] and require("mnf.terminal.jobs").count() > 0
+        end,
+      })
       table.insert(opts.sections.lualine_x, {
         function()
           -- if not already loaded, do not load this as lualine is not Lazy
@@ -159,24 +175,6 @@ return {
         end,
         cond = function()
           return package.loaded["mnf.terminal.managed"] and require("mnf.terminal.managed").count() > 0
-        end,
-      })
-      table.insert(opts.sections.lualine_x, {
-        function()
-          -- if not already loaded, do not load this as lualine is not Lazy
-          local curr = require("mnf.terminal.jobs").get_current()
-          local count = require("mnf.terminal.jobs").count()
-          local label
-          if curr ~= nil then
-            label = curr .. "/" .. count
-          else
-            label = count
-          end
-          -- print(label)
-          return "👷 " .. label
-        end,
-        cond = function()
-          return package.loaded["mnf.terminal.jobs"] and require("mnf.terminal.jobs").count() > 0
         end,
       })
       -- Add a minimal winbar component rendered by lualine (top-right)

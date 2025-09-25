@@ -40,8 +40,17 @@ M.state = {
   jobs = {}, -- job_id -> job_info
 }
 
-function M.count()
-  return #M.state.jobs
+-- TODO: provide option to filter by state
+---@param include_killed boolean
+function M.count(include_killed)
+  local n = 0
+  for job_id, job_info in pairs(M.state.jobs) do
+    if not include_killed and job_info.status == "killed" then
+    else
+      n = n + 1
+    end
+  end
+  return n
 end
 
 function M.get_current()
@@ -175,8 +184,11 @@ local function get_status_icon(job_info)
     else
       return "✗" -- X for any error code (non-zero)
     end
+  elseif job_info.status == "killed" then
+    return "❌" -- Glass/diamond for other states (created, etc.)
   else
-    return "🔶" -- Glass/diamond for other states (created, etc.)
+    -- return "❓" -- Glass/diamond for other states (created, etc.)
+    return job_info.status or "❓"
   end
 end
 
@@ -257,7 +269,6 @@ function M.start_job(id, use_terminal, cmd, silent, external_terminal)
     if use_terminal then
       -- Terminal buffer - always starts with shell, then optionally runs command
       vim.cmd("terminal")
-      --
       -- -- If we have a command, send it to the shell after terminal is ready
       if cmd ~= "" and cmd ~= nil and cmd ~= vim.o.shell then
         -- Wait for terminal to be ready and get valid channel
@@ -416,11 +427,16 @@ function M.start_job(id, use_terminal, cmd, silent, external_terminal)
       -- vim.print(M.state.jobs)
       -- -- Kill job if still running
       local system_job_id = M.state.jobs[id].system_job_id
-      if system_job_id then
+      if system_job_id ~= nil then
         vim.fn.jobstop(system_job_id)
       end
-      -- Remove from jobs list
-      M.state.jobs[id] = nil
+      if M.state.jobs[id].status == "killing" then
+        -- Remove from jobs list
+        M.state.jobs[id].status = "killed"
+      else
+        M.state.jobs[id] = nil
+      end
+
       if M.state.current_job_id == id then
         M.state.current_job_id = nil
       end
@@ -648,7 +664,7 @@ function M.list_jobs()
       is_valid = job_info.buffer and vim.api.nvim_buf_is_valid(job_info.buffer)
     end
 
-    if is_valid then
+    if is_valid or job_info.status == "killed" then
       local status_icon = get_status_icon(job_info)
       local pty_icon = job_info.use_terminal and "🖥️" or "📋"
       local location_icon = job_info.external_terminal and "🌐" or "🏠"
@@ -700,7 +716,11 @@ function M.list_jobs()
     end,
   }, function(choice)
     if choice then
-      M.show_job(choice.job_id)
+      if M.state.jobs[choice.job_id].status == "killed" then
+        M.configure_job(choice.job_id)
+      else
+        M.show_job(choice.job_id)
+      end
     end
   end)
 end
@@ -866,11 +886,7 @@ function M.kill_current_job()
     return
   end
 
-  local job_info = M.state.jobs[M.state.current_job_id]
-  if job_info and job_info.system_job_id then
-    vim.fn.jobstop(job_info.system_job_id)
-    vim.notify_once("Killed job[" .. M.state.current_job_id .. "]")
-  end
+  M.kill_job(M.state.current_job_id)
 end
 
 ---@param id integer
@@ -888,8 +904,9 @@ function M.kill_job(id)
         end
       end
     else
+      job_info.status = "killing"
       -- Kill internal neovim job/buffer
-      if job_info.system_job_id then
+      if job_info.system_job_id ~= nil then
         vim.fn.jobstop(job_info.system_job_id)
         vim.api.nvim_buf_delete(job_info.buffer, { force = true })
       else
