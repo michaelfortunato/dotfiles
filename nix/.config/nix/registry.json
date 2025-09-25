@@ -72,8 +72,19 @@
         "repo": "neovim-nightly-overlay",
         "type": "github"
       }
+    },
+    {
+      "from": {
+        "id": "nm",
+        "type": "indirect"
+      },
+      "to": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
     }
   ],
   "version": 2
 }
-

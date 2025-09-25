@@ -292,8 +292,28 @@ dependency stressors.
 ### How to do this above, _in Rust_
 
 See here <https://github.com/jmbuhr/otter.nvim/issues/208#issuecomment-2682553879>
-and checkout `templates/burn` for the tutorial.
+and checkout `templates/burn` in this repository for the tutorial.
+
+## How To Setup macOS To Always Open Files With Neovim
+
+Make Kitty + Neovim the default handler for common code, config, and markup files:
+
+```bash
+brew install duti
+
+# Kitty’s bundle id (should be net.kovidgoyal.kitty)
+BID=$(osascript -e 'id of app "Kitty"')
+
+# Set Kitty as default app for common file types
+for ext in json py lua rs go c cpp h hpp toml yaml yml ini conf cfg \
+           md rst tex typ qmd csv tsv log txt sh zsh bash fish ps1; do
+  duti -s "$BID" .$ext all
+done
+
+# Ensure Neovim is the editor launched inside Kitty
+echo 'export EDITOR="nvim"' >> ~/.zshrc
 
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
 [3]: https://www.lazyvim.org
+```
