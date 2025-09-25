@@ -113,16 +113,17 @@ def setup_catppuccin_neovim_theme():
             Token.Generic: mocha.text.hex,
             Token.Generic.Deleted: mocha.red.hex,  # deleted lines
             Token.Generic.Emph: f"italic {mocha.text.hex}",  # emphasized
-            Token.Generic.Error: f"bold {mocha.red.hex}",  # error text
+            Token.Generic.Error: f"bg:{mocha.surface1.hex} {mocha.red.hex} bold",  # error text
             Token.Generic.Heading: f"bold {mocha.blue.hex}",  # headings
             Token.Generic.Inserted: mocha.green.hex,  # inserted lines
             Token.Generic.Output: mocha.text.hex,  # program output
             Token.Generic.Prompt: f"bold {mocha.lavender.hex}",  # prompts
             Token.Generic.Strong: f"bold {mocha.text.hex}",  # strong text
             Token.Generic.Subheading: f"bold {mocha.blue.hex}",  # subheadings
-            Token.Generic.Traceback: mocha.red.hex,  # tracebacks
+            Token.Generic.Traceback: "bg:#ff0000 #000000 bold",  # tracebacks
+            Token.Traceback: "bg:#ff0000 #000000 bold",
             # Error tokens
-            Token.Error: f"bold {mocha.red.hex}",  # error tokens
+            Token.Error: "bg:#ff0000 #000000 bold",  # error tokens
             # IPython specific prompt tokens
             Token.Prompt: f"bold {mocha.lavender.hex}",  # In [1]:
             Token.PromptNum: f"bold {mocha.blue.hex}",  # [1]
@@ -132,8 +133,8 @@ def setup_catppuccin_neovim_theme():
             Token.Normal: mocha.text.hex,
             Token.NormalEm: f"bold {mocha.text.hex}",
             Token.Line: mocha.overlay1.hex,
-            Token.TB.Name: mocha.blue.hex,
-            Token.TB.NameEm: f"bold {mocha.blue.hex}",
+            Token.TB.Name: "bg:#ff0000 #000000 bold",
+            Token.TB.NameEm: "bg:#ff0000 #000000 bold",
             Token.Breakpoint: "",
             Token.Breakpoint.Enabled: mocha.green.hex,
             Token.Breakpoint.Disabled: mocha.overlay0.hex,
@@ -161,6 +162,20 @@ def setup_catppuccin_neovim_theme():
             # Set the theme in config
             ip.config.InteractiveShell.colors = "catppuccin-mocha"
             ip.config.TerminalInteractiveShell.true_color = True
+
+            # Force the traceback highlight color used by stack_data/ultratb so
+            # the active frame stands out.
+            try:
+                from IPython.core import ultratb
+
+                highlight = "bg:#ff0000 #000000 bold"
+                ultratb.VerboseTB.tb_highlight = highlight
+                ultratb.FormattedTB.tb_highlight = highlight
+                ultratb.AutoFormattedTB.tb_highlight = highlight
+                if hasattr(ip, "InteractiveTB"):
+                    ip.InteractiveTB.tb_highlight = highlight
+            except Exception as e:
+                mnf_error(f"⚠️  Failed to adjust traceback highlight: {e}")
 
             # Create a custom prompt_toolkit style for the completion menu (Neovim-style)
             completion_style = Style.from_dict(
@@ -191,6 +206,13 @@ def setup_catppuccin_neovim_theme():
                     "arg-toolbar": f"bg:{mocha.surface0.hex} {mocha.text.hex}",
                     "search-toolbar": f"bg:{mocha.surface0.hex} {mocha.text.hex}",
                     "validation-toolbar": f"bg:{mocha.red.hex} {mocha.base.hex}",
+                    # Traceback styling to keep highlighted frames readable
+                    "pygments.generic.traceback": f"bg:{mocha.surface1.hex} {mocha.text.hex}",
+                    "pygments.traceback": f"bg:{mocha.surface1.hex} {mocha.text.hex}",
+                    "pygments.generic.error": f"bg:{mocha.surface1.hex} {mocha.red.hex} bold",
+                    "pygments.error": f"bg:{mocha.surface1.hex} {mocha.red.hex} bold",
+                    "pygments.tb.name": f"bg:{mocha.surface1.hex} {mocha.blue.hex}",
+                    "pygments.tb.nameem": f"bold bg:{mocha.surface1.hex} {mocha.blue.hex}",
                 }
             )
 

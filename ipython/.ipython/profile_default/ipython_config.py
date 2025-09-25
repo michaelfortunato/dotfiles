@@ -29,8 +29,25 @@ except Exception as e:
     #   pass
     pass
 """,
-    "print('💡 Autoreload tip:% `load_ext autoreload; %autoreload 2`. Works with uv pip install -e packages, not with site-packages')",
+    "print('💡 Autoreload tip: `%load_ext autoreload; %autoreload 2`. Works with uv pip install -e packages, not with site-packages')",
 ]
+
+try:
+    from pygments.token import Token
+
+    # Darken traceback/error backgrounds so highlighted frames stay readable
+    c.TerminalInteractiveShell.highlighting_style_overrides = {
+        Token.Generic.Traceback: "bg:#ff0000 #000000 bold",
+        Token.Traceback: "bg:#ff0000 #000000 bold",
+        Token.Generic.Error: "bg:#ff0000 #000000 bold",
+        Token.Error: "bg:#ff0000 #000000 bold",
+        Token.TB.Name: "bg:#ff0000 #000000 bold",
+        Token.TB.NameEm: "bg:#ff0000 #000000 bold",
+    }
+    # Keep this in sync with 03_catppuccin_theme.py highlight string.
+except Exception:
+    # If pygments is unavailable we silently skip these overrides
+    pass
 
 ## Specifies from which source automatic suggestions are provided. Can be set to
 #  ``'NavigableAutoSuggestFromHistory'`` (:kbd:`up` and :kbd:`down` swap
