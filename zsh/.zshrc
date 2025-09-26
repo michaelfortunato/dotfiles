@@ -510,6 +510,7 @@ cd() {
 
 
 eval "$(fzf --zsh)"
+eval "$(codex completion zsh)"
 eval "$(uv generate-shell-completion zsh)"
 
 
