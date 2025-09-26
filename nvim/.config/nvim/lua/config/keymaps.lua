@@ -57,8 +57,8 @@ vim.keymap.set("n", "<C-d>", "<C-d>zz")
 -- end, { expr = true, silent = true, desc = "Scroll up 1/3 page" })
 
 -- like the shell
-vim.keymap.set("i", "<C-BS>", "<C-w>")
-vim.keymap.set("i", "<M-BS>", "<C-w>")
+vim.keymap.set({ "i", "c" }, "<C-BS>", "<C-w>")
+vim.keymap.set({ "i", "c" }, "<M-BS>", "<C-w>")
 
 -- This is so fucking key
 vim.keymap.set({ "n", "x" }, "<C-e>", function()
