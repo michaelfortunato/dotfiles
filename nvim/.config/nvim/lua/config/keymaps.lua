@@ -91,6 +91,9 @@ vim.keymap.set(
 --   { desc = "Open buffer in new tab", noremap = true, silent = true }
 -- )
 
+-- WARN: overloaded a really nice key combo for buffer search not sure how I feel
+-- abt it.
+vim.keymap.set({ "n" }, "fb", "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>")
 vim.keymap.set(
   { "n" },
   "f<Tab>",
@@ -142,6 +145,9 @@ map({ "n", "t", "v" }, "<D-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsa
 del("n", "m")
 map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })
 local wk = require("which-key")
+wk.add({
+  { "<leader>a", group = "Alerts" }, -- group
+})
 wk.add({
   { "<leader>m", group = "personal" }, -- group
 })

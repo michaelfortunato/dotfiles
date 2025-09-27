@@ -28,6 +28,18 @@ return {
       existing_mappings.n = existing_normal
       existing.mappings = existing_mappings
       opts.pickers.buffers = existing
+
+      opts.defaults.mappings.i = vim.tbl_extend("force", opts.defaults.mappings.i or {}, {
+        ["<Esc>"] = actions.close, -- close picker from insert mode
+      })
+      opts.defaults.mappings.n = vim.tbl_extend("force", opts.defaults.mappings.n or {}, {
+        ["<Esc>"] = actions.close, -- close picker from normal mode
+      })
+      -- (Note: a minority of users reported terminals left in insert mode
+      -- after closing; uncommon, but if you ever see it, we can add a
+      -- tiny :stopinsert hook.)
+      -- [oai_citation:1‡GitHub](https://github.com/nvim-telescope/telescope.nvim/issues/2785?utm_source=chatgpt.com)
+
       return opts
     end,
   },
