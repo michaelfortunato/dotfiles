@@ -4,7 +4,9 @@ vim.lsp.set_log_level("ERROR")
 -- NOTE: vim.lsp.config does not start the lsp server. Simply configures it.
 -- no need to call vim.lsp.config if we are good with their defaults
 vim.lsp.enable("pyrefly")
-vim.lsp.enable("ruff")
+-- FIXME: For some reason some program is enabling ruff, mason automatic enable
+-- did not fix it.
+-- vim.lsp.enable("ruff")
 -- NOTE: Because I am using LazyVim, but now know about LSPs, mason is doing
 -- a few hidden things that might prove bothersome for some of my lsps
 -- I want to manage manually. mason-lsp-config is likely responsible for both
@@ -241,5 +243,9 @@ return {
       PATH = "skip",
     },
   },
-  { "mason-org/mason-lspconfig.nvim", version = "^1.0.0", opts = { automatic_installation = false } },
+  {
+    "mason-org/mason-lspconfig.nvim",
+    version = "^1.0.0",
+    opts = { automatic_installation = false, automatic_enable = false },
+  },
 }

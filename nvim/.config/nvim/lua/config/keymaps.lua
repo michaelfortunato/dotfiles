@@ -31,14 +31,58 @@ vim.keymap.set({ "c" }, "<C-Right>", "<S-Right>")
 vim.keymap.set({ "c" }, "<A-Left>", "<S-Right>")
 vim.keymap.set({ "c" }, "<A-Right>", "<S-Right>")
 
-vim.keymap.set({ "n" }, "q", "<Nop>", {
-  desc = [[I do not like this for entering macro 
-    recording mode as I often hit q by accident with tab 
-  ]],
+--- Close quickfix list if open
+vim.keymap.set("n", "q", function()
+  -- Note, wrap it around vim.schedule if you want it an expression mapping
+  -- but honestly this works well.
+  if require("trouble").is_open() then
+    require("trouble").close()
+  end
+  for _, win in ipairs(vim.fn.getwininfo()) do
+    if win.quickfix == 1 then
+      vim.schedule(function()
+        vim.cmd("cclose")
+      end)
+    end
+  end
+end, {
   silent = true,
+  -- Note do not make it an expression mapping unless you want to wrap
+  -- it around vim.schedule
+  desc = [[I do not like this for entering macro
+    recording mode as I often hit q by accident with tab
+  ]],
 })
--- If you ever want to set q again vim.keymap.set('n', '<leader>q', 'q', { remap = true })
 
+vim.keymap.set({ "n" }, "<C-S-[>", function()
+  if require("trouble").is_open() then
+    -- TODO: Would be nice if there was a wraparound behavior or something
+    require("trouble").prev({ skip_groups = true, jump = true })
+  else
+    local ok, err = pcall(vim.cmd.cprev)
+    if not ok then
+      vim.notify(err, vim.log.levels.ERROR)
+    end
+  end
+end, { desc = "Previous Trouble/Quickfix Item" })
+-- WARN: Overriding "<C-]>" might effect goto tag functionality, hence
+-- why I make it an expression and return <C-]>, still I do the
+-- pcall(vim.cmd.cnext) regardless, which might not be ideal.
+-- This might be handleable via an autocmd QuickfixPostCmd
+vim.keymap.set({ "n" }, "<C-]>", function()
+  if require("trouble").is_open() then
+    require("trouble").next({ skip_groups = true, jump = true })
+  else
+    local ok, err = pcall(vim.cmd.cnext)
+    if not ok then
+      return "<C-]>"
+    end
+    -- vim.notify(err, vim.log.levels.ERROR)
+  end
+end, {
+  expr = true,
+  desc = "Next Trouble/Quickfix Item",
+})
 -- The "n" is necesasry to continue the keymap
 vim.keymap.set({ "t", "n" }, "<C-S-Up>", [[<C-\><C-n>5<C-y>]], { silent = true })
 vim.keymap.set({ "t", "n" }, "<C-S-Down>", [[<C-\><C-n>5<C-e>]], { silent = true })
@@ -206,20 +250,6 @@ end, { desc = "Set makeprg" })
 --     vim.notify(err, vim.log.levels.ERROR)
 --   end
 -- end, { desc = "Quickfix List" })
-
-local function close_quickfix_if_open()
-  for _, win in ipairs(vim.fn.getwininfo()) do
-    if win.quickfix == 1 then
-      vim.schedule(function()
-        vim.cmd("cclose")
-      end)
-      return ""
-    end
-  end
-  return "q"
-end
---- Close quickfix list if open
-vim.keymap.set("n", "q", close_quickfix_if_open, { expr = true, silent = true })
 
 --- TODO: Sometimes the UI doesn't return
 
