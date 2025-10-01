@@ -249,7 +249,7 @@ if.app-id = "com.apple.Preview"
 run = "move-node-to-workspace P"  # mnemonics P - Preview
 
 [[on-window-detected]]
-if.app-id = "info.sioyek.siokek"
+if.app-id = "info.sioyek.sioyek"
 run = "move-node-to-workspace P"  # mnemonics P - Preview
 
 [[on-window-detected]]
