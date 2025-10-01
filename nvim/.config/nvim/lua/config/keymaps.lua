@@ -69,15 +69,22 @@ end, { desc = "Previous Trouble/Quickfix Item" })
 -- why I make it an expression and return <C-]>, still I do the
 -- pcall(vim.cmd.cnext) regardless, which might not be ideal.
 -- This might be handleable via an autocmd QuickfixPostCmd
-vim.keymap.set({ "n" }, "<C-]>", function()
-  if require("trouble").is_open() then
-    require("trouble").next({ skip_groups = true, jump = true })
+--
+vim.keymap.set("n", "<C-]>", function()
+  local trouble = require("trouble")
+
+  if trouble.is_open() then
+    -- Trouble handles jump internally, no expr return needed
+    trouble.next({ skip_groups = true, jump = true })
+    return "" -- prevent inserting anything
   else
-    local ok, err = pcall(vim.cmd.cnext)
-    if not ok then
+    if vim.fn.getqflist({ size = 0 }).size > 0 then
+      -- feed `:cnext<CR>` as a key sequence
+      return "<Cmd>cnext<CR>"
+    else
+      -- no quickfix items, fall back to literal <C-]>
       return "<C-]>"
     end
-    -- vim.notify(err, vim.log.levels.ERROR)
   end
 end, {
   expr = true,
@@ -117,15 +124,15 @@ del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
 vim.keymap.set(
   { "n" },
   "<leader><leader>",
-  "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
-  { desc = "Buffers" }
+  "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
+  { desc = "Find files (Cwd dir)" }
 )
 vim.keymap.del({ "n" }, "f")
 vim.keymap.set(
   { "n" },
   "ff",
-  "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
-  { desc = "Find files (Cwd dir)" }
+  "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
+  { desc = "Buffers" }
 )
 -- This is causing a ton of tabs to be created
 -- vim.keymap.set(
