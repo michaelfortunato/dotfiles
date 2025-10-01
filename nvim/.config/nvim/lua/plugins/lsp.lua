@@ -197,8 +197,11 @@ return {
   {
     "nvimtools/none-ls.nvim",
     dependencies = {
+      -- Make nvim-lspconfig ensures that null-ls code actions go
+      -- beneath everything else, which is what I want.
+      -- https://github.com/neovim/neovim/issues/22776
+      "neovim/nvim-lspconfig",
       "nvim-lua/plenary.nvim",
-
       {
         "danymat/neogen",
         enabled = true,
