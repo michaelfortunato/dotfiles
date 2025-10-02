@@ -13,7 +13,7 @@ require("lazy").setup({
     -- add LazyVim and import its plugins
     {
       "michaelfortunato/LazyVim",
-      dir = vim.fn.expand("~/projects/neovim-plugins/LazyVim"),
+      dev = true,
       import = "lazyvim.plugins",
     },
     -- import any extras modules here
@@ -34,6 +34,11 @@ require("lazy").setup({
     -- version = "*", -- try installing the latest stable version for plugins that support semver
     autocmds = true, -- lazyvim.config.autocmds
     keymaps = true, -- lazyvim.config.keymaps
+  },
+  dev = {
+    path = "~/projects/neovim-plugins",
+    patterns = { "michaelfortunato" },
+    fallback = true, -- use remote repo when the local checkout is missing
   },
   install = { colorscheme = { "catppuccin", "tokyonight" } },
   checker = { enabled = true, notify = false, frequency = 86400 }, -- automatically check for plugin updates, DO NOT notify. I hate that
