@@ -566,7 +566,7 @@ sorting=ynt
   s({ trig = "| ", snippetType = "autosnippet" }, t("\\mid "), { condition = tex.in_mathzone }),
   s(
     { trig = "|([^%s][^|]*)|", regTrig = true, snippetType = "autosnippet" },
-    fmta("\\norm{<>}<>", { f(function(_, snip)
+    fmta("\\abs{<>}<>", { f(function(_, snip)
       return snip.captures[1]
     end), i(0) }),
     { condition = in_mathzone }
@@ -709,8 +709,8 @@ sorting=ynt
   }, {
     c(1, {
       { t("\\citep{"), i(1), t("}") },
-      { t("\\cref{"), i(1), t("}") },
       { t("\\citet{"), i(1), t("}") },
+      { t("\\cref{"), i(1), t("}") },
       { t("\\autoref{"), i(1), t("}") },
     }),
   }),

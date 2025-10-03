@@ -33,8 +33,11 @@ return {
   },
   {
     "michaelfortunato/LazyVim",
+    dependencies = {
+      { "projekt0n/github-nvim-theme", name = "github-theme" },
+    },
     opts = {
-      colorscheme = "github_dark_default",
+      colorscheme = "github_dark_high_contrast",
       -- colorscheme = "catppuccin-mocha",
       -- colorscheme = "tokyonight-night",
       -- colorscheme = "default",
