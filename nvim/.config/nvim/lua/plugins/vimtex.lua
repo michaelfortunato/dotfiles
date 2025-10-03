@@ -7,6 +7,7 @@ return {
   init = function()
     vim.g.vimtex_mappings_disable = { ["n"] = { "K" } } -- disable `K` as it conflicts with LSP hover
     vim.g.vimtex_view_method = "sioyek"
+    vim.g.vimtex_view_sioyek_exe = vim.fn.expand("/Applications/sioyek.app/Contents/MacOS/sioyek")
     vim.g.vimtex_quickfix_method = vim.fn.executable("pplatex") == 1 and "pplatex" or "latexlog"
 
     -- vim.opt_local.spell = true
@@ -64,23 +65,25 @@ return {
     vim.g.vimtex_doc_handlers = { "vimtex#doc#handlers#texdoc" }
 
     vim.g.vimtex_compiler_method = "latexmk"
-
     vim.g.vimtex_compiler_latexmk = {
       callback = true,
-      continuous = true,
+      continuous = false,
+      build_dir = "target",
+      out_dir = "target/bin",
+      aux_dir = "target/obj",
       executable = "latexmk",
       options = {
-        "-verbose",
-        "-file-line-error",
-        "-synctex=1",
+        "-pdf",
         "-interaction=nonstopmode",
-        "-shell-escape",
+        "-file-line-error", -- lets quickfix jump to file:line
+        "-halt-on-error", -- fail fast
+        "-synctex=1",
+        "-silent",
+        "-aux-directory=target/obj",
+        "-output-directory=target/bin",
       },
     }
-
-    vim.g.vimtex_compiler_generic = {
-      command = "cmake --build ../build",
-    }
+    vim.g.vimtex_root_markers = { "paper/Justfile", "paper/main.tex" }
 
     vim.g.vimtex_mappings_enabled = false
     local augroup = vim.api.nvim_create_augroup("vimtexConfig", {})
@@ -88,6 +91,7 @@ return {
       pattern = { "tex" },
       group = augroup,
       callback = function(ev)
+        vim.keymap.set({ "n" }, "mm", "<CMD>VimtexCompile<CR>", { buffer = ev.buf })
         local wk = require("which-key")
         wk.add({
           buffer = ev.buf,
@@ -137,8 +141,14 @@ return {
               desc = "Log",
               icon = { icon = "", color = "purple" },
             },
+            -- {
+            --   "<localleader>lv",
+            --   "<plug>(vimtex-view)",
+            --   desc = "View",
+            --   icon = { icon = "", color = "green" },
+            -- },
             {
-              "<localleader>lv",
+              "<localleader>v",
               "<plug>(vimtex-view)",
               desc = "View",
               icon = { icon = "", color = "green" },

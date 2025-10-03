@@ -509,6 +509,7 @@ sorting=ynt
   s({ trig = "NN", snippetType = "autosnippet" }, t("\\mathbb{N}"), { condition = tex.in_mathzone }),
   s({ trig = "ZZ", snippetType = "autosnippet" }, t("\\mathbb{Z}"), { condition = tex.in_mathzone }),
   s({ trig = "SS", snippetType = "autosnippet" }, t("\\mathbb{S}"), { condition = tex.in_mathzone }),
+  s({ trig = "EE", snippetType = "autosnippet" }, t("\\mathbb{E}"), { condition = tex.in_mathzone }),
   --- Relations
   s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = tex.in_mathzone }),
   s({ trig = "equiv", snippetType = "autosnippet" }, t("\\equiv"), { condition = tex.in_mathzone }),
@@ -707,8 +708,9 @@ sorting=ynt
     wordTrig = false, -- allows triggering even when not at word boundary
   }, {
     c(1, {
-      { t("\\cite{"), i(1), t("}") },
+      { t("\\citep{"), i(1), t("}") },
       { t("\\cref{"), i(1), t("}") },
+      { t("\\citet{"), i(1), t("}") },
       { t("\\autoref{"), i(1), t("}") },
     }),
   }),
