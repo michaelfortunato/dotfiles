@@ -14,6 +14,7 @@ return {
       --- NOTE: This does not with luasnip 2.3, so if you use
       --- that use opts.store_selection_keys
       opts.cut_selection_keys = "<BS>"
+      opts.store_selection_keys = "<BS>"
       -- NOTE: If you want injected languages, consider this
       --opts.load_ft_func = function()
       --  -- See help luasnip-extras-filetype-functions we need
