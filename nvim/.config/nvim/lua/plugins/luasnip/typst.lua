@@ -276,6 +276,8 @@ local function sanitize_label(s)
     :gsub("%^", "")
 end
 
+local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
+
 return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype

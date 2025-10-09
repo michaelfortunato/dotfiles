@@ -254,6 +254,9 @@ local iv = function(i, ...)
   return d(i, get_visual, ...)
 end
 
+---@diagnostic disable-next-line: param-type-mismatch
+local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
+
 return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
