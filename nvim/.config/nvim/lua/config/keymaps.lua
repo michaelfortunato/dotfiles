@@ -184,11 +184,26 @@ del("n", "<leader><tab>[", { desc = "Previous Tab" })
 
 map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Other Buffer" })
 
---- kitty splits
+--- kitty section
+--- -- Kitty Splits
 map({ "n", "t", "v" }, "<C-h>", require("smart-splits").move_cursor_left)
 map({ "n", "t", "v" }, "<C-j>", require("smart-splits").move_cursor_down)
 map({ "n", "t", "v" }, "<C-k>", require("smart-splits").move_cursor_up)
 map({ "n", "t", "v" }, "<C-l>", require("smart-splits").move_cursor_right)
+
+-- --- Kitty like layout rotation keybindings
+vim.keymap.set({ "n", "i", "v" }, "<C-S-h>", "<C-w>R", { desc = "Rotate windows forward", silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<C-S-l>", "<C-w>r", { desc = "Rotate windows backward", silent = true })
+
+-- Rotate windows forward (like <C-w>r) while staying in terminal mode
+vim.keymap.set("t", "<C-S-l>", function()
+  vim.cmd("silent! wincmd r")
+end, { silent = true, desc = "Rotate windows forward (terminal)" })
+
+-- Optional: rotate backward (like <C-w>R)
+vim.keymap.set("t", "<C-S-h>", function()
+  vim.cmd("silent! wincmd R")
+end, { silent = true, desc = "Rotate windows backward (terminal)" })
 
 map({ "n", "t", "v" }, "<C-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsaved)" })
 map({ "n", "t", "v" }, "<D-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsaved)" })
