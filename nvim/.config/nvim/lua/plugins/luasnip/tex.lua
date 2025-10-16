@@ -517,6 +517,7 @@ sorting=ynt
   s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = tex.in_mathzone }),
   s({ trig = "equiv", snippetType = "autosnippet" }, t("\\equiv"), { condition = tex.in_mathzone }),
   s({ trig = "===", snippetType = "autosnippet" }, t("\\equiv"), { condition = tex.in_mathzone }),
+  s({ trig = "neq", snippetType = "autosnippet" }, t("\\neq"), { condition = tex.in_mathzone }),
   s({
     trig = "=",
     name = "_insert_equal_sign_as_text_node",
@@ -560,6 +561,7 @@ sorting=ynt
   s({ trig = "space", snippetType = "autosnippet" }, t("\\enspace"), { condition = in_mathzone }),
   s({ trig = "enspace", snippetType = "autosnippet" }, t("\\enspace"), { condition = in_mathzone }),
   -- Operators
+  s({ trig = "op", snippetType = "autosnippet" }, fmta("\\mathrm{<>}<>", { i(1), i(0) }), { condition = in_mathzone }),
   s(
     { trig = "||", snippetType = "autosnippet" },
     fmta("\\norm{<>}<>", { i(1), i(0) }),
