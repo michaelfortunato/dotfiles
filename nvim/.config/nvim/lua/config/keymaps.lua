@@ -23,6 +23,7 @@ vim.keymap.set("x", "P", "p")
 --   end
 -- end
 
+vim.keymap.set("n", "<Enter>", "za", { desc = "Toggle fold under cursor" })
 ---
 vim.keymap.set({ "c" }, "<C-a>", "<Home>")
 -- NOTE: blink overrides it with cmap <c-e> but should handle fallback
