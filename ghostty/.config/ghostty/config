@@ -1,0 +1,54 @@
+# Ghostty config ported from Kitty on 2025-10-13
+
+# Appearance -------------------------------------------------------------
+theme = github-dark-high-contrast
+font-family = "MesloLGS NF"
+font-size = 10
+cursor-style = block
+shell-integration-features = no-cursor
+confirm-close-surface = false
+window-vsync = true
+macos-titlebar-style = hidden
+
+# Clipboard behaviour matches `clipboard_control write-clipboard write-primary ...`
+clipboard-read = allow
+clipboard-write = allow
+
+# Window/tab actions -----------------------------------------------------
+window-inherit-working-directory = true
+bell-features = no-attention,no-title,no-audio,no-system
+
+# Key mappings -----------------------------------------------------------
+# `ctrl+/` toggled a scratch terminal via a Kitty kitten; map to Ghostty's quick terminal.
+keybind = ctrl+/=toggle_quick_terminal
+keybind = ctrl+shift+enter=new_window
+keybind = cmd+enter=new_window
+keybind = ctrl+shift+q=close_tab
+keybind = cmd+w=close_tab
+
+keybind = ctrl+1=goto_tab:1
+keybind = ctrl+2=goto_tab:2
+keybind = ctrl+3=goto_tab:3
+keybind = ctrl+4=goto_tab:4
+keybind = ctrl+5=goto_tab:5
+keybind = ctrl+6=goto_tab:6
+keybind = ctrl+7=goto_tab:7
+keybind = ctrl+8=goto_tab:8
+keybind = ctrl+9=goto_tab:9
+
+keybind = cmd+1=goto_tab:1
+keybind = cmd+2=goto_tab:2
+keybind = cmd+3=goto_tab:3
+keybind = cmd+4=goto_tab:4
+keybind = cmd+5=goto_tab:5
+keybind = cmd+6=goto_tab:6
+keybind = cmd+7=goto_tab:7
+keybind = cmd+8=goto_tab:8
+keybind = cmd+9=goto_tab:9
+
+keybind = ctrl+shift+0=reload_config
+keybind = ctrl+shift+arrow_left=previous_tab
+keybind = ctrl+shift+arrow_right=next_tab
+
+# Match Kitty's `send_key ctrl+shift+[` by sending the CSI-u sequence directly.
+keybind = ctrl+[=csi:91;6u
