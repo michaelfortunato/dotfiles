@@ -12,6 +12,9 @@ end
 local ui_input = Snacks.input or vim.ui.input
 local ui_notify = Snacks.notify or print
 
+--- Pretty high level stuff, careful this goes against vim's sacred defaults!
+vim.keymap.set("x", "p", "P")
+vim.keymap.set("x", "P", "p")
 -- TODO: Get proper pasting in
 -- local function paste()
 --   local pasted = require("img-clip").paste_image()
@@ -186,11 +189,35 @@ map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Othe
 
 --- kitty section
 --- -- Kitty Splits
-map({ "n", "t", "v" }, "<C-h>", require("smart-splits").move_cursor_left)
-map({ "n", "t", "v" }, "<C-j>", require("smart-splits").move_cursor_down)
-map({ "n", "t", "v" }, "<C-k>", require("smart-splits").move_cursor_up)
-map({ "n", "t", "v" }, "<C-l>", require("smart-splits").move_cursor_right)
-
+map({ "n", "v" }, "<C-h>", function()
+  require("smart-splits").move_cursor_left()
+end)
+map({ "n", "v" }, "<C-j>", function()
+  require("smart-splits").move_cursor_down()
+end)
+map({ "n", "v" }, "<C-k>", function()
+  require("smart-splits").move_cursor_up()
+end)
+map({ "n", "v" }, "<C-l>", function(e)
+  require("smart-splits").move_cursor_right()
+end)
+--- The splits in insert mode
+map({ "i", "t" }, "<C-h>", function()
+  vim.cmd("stopinsert")
+  require("smart-splits").move_cursor_left()
+end)
+map({ "t", "i" }, "<C-j>", function()
+  vim.cmd("stopinsert")
+  require("smart-splits").move_cursor_down()
+end)
+map({ "t", "i" }, "<C-k>", function()
+  vim.cmd("stopinsert")
+  require("smart-splits").move_cursor_up()
+end)
+map({ "t", "i" }, "<C-l>", function(e)
+  vim.cmd("stopinsert")
+  require("smart-splits").move_cursor_right()
+end)
 -- --- Kitty like layout rotation keybindings
 vim.keymap.set({ "n", "i", "v" }, "<C-S-h>", "<C-w>R", { desc = "Rotate windows forward", silent = true })
 vim.keymap.set({ "n", "i", "v" }, "<C-S-l>", "<C-w>r", { desc = "Rotate windows backward", silent = true })
