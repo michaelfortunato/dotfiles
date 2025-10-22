@@ -11,7 +11,7 @@ vim.opt.cursorline = false -- disable current-line highlight; comment out to res
 --- Prepare for lazyvim v14 if I ever decide to go with it.
 vim.g.snacks_animate = false
 
---- SSH things
+--- SSH things START
 --- "+y$
 --- vim.opt.clipboard = vim.env.SSH_TTY and "" or "unnamedplus" -- Sync with system clipboard
 if vim.env.SSH_TTY then
@@ -44,7 +44,11 @@ vim.ui.open = (function(original_open)
     end
   end
 end)(vim.ui.open)
---- SSH things
+--- SSH things END
+vim.opt.fillchars:append({
+  foldclose = "›", -- or "▸", "⯈", "»", etc.
+  foldopen = "⌄", -- pick a matching opener if you like
+})
 
 vim.o.exrc = true
 -- LazyVim root dir detection

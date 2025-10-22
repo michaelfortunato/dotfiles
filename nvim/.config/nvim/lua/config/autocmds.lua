@@ -57,14 +57,41 @@ vim.api.nvim_create_user_command(
 )
 vim.api.nvim_create_user_command("R", "Restart", { desc = "(Alias) Restart Neovim and reload last session on reopen" })
 
--- Make sure we RE-enter terminal mode when focusing back on terminal
-vim.api.nvim_create_autocmd({ "BufEnter", "TermOpen" }, {
-  callback = function()
-    vim.cmd("startinsert")
-    vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { buffer = true, desc = "Exit terminal mode" })
+--- Get the particular terminal to remember its last mode
+local term_group = vim.api.nvim_create_augroup("MNF_TermGroup", { clear = true })
+vim.api.nvim_create_autocmd("ModeChanged", {
+  group = term_group,
+  callback = function(ev)
+    local buf = ev.buf
+    if not buf or vim.bo[buf].buftype ~= "terminal" then
+      return
+    end
+    vim.b[buf].mnf_term_last_mode = vim.fn.mode()
   end,
+})
+vim.api.nvim_create_autocmd("TermOpen", {
+  group = term_group,
   pattern = { "term://*" },
-  group = vim.api.nvim_create_augroup("TermGroup", { clear = true }),
+  callback = function(ev)
+    vim.b[ev.buf].mnf_term_last_mode = "terminal"
+    vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
+    -- This is so insert mode gets hit if the pattern matches
+    vim.cmd("startinsert")
+  end,
+})
+vim.api.nvim_create_autocmd("BufEnter", {
+  group = term_group,
+  pattern = { "term://*" },
+  callback = function(ev)
+    if vim.bo[ev.buf].buftype ~= "terminal" then
+      return
+    end
+    local last_mode = vim.b[ev.buf].mnf_term_last_mode
+    last_mode = last_mode and last_mode:sub(1, 1) or "t"
+    if last_mode == "t" or last_mode == "i" then
+      vim.cmd("startinsert")
+    end
+  end,
 })
 
 vim.api.nvim_create_autocmd("FileType", {
