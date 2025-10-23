@@ -74,7 +74,7 @@ vim.api.nvim_create_autocmd("TermOpen", {
   pattern = { "term://*" },
   callback = function(ev)
     vim.b[ev.buf].mnf_term_last_mode = "terminal"
-    vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
+    vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
     -- This is so insert mode gets hit if the pattern matches
     vim.cmd("startinsert")
   end,
