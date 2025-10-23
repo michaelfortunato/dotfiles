@@ -23,7 +23,7 @@ M.input = Snacks.input.input or vim.ui.input
 vim.api.nvim_create_autocmd("BufWriteCmd", {
   pattern = "[Scratch:*",
   callback = function()
-    vim.notify("Scratch buffers cannot be saved", vim.log.levels.WARN)
+    vim.notify_once("Scratch buffers cannot be saved", vim.log.levels.WARN)
   end,
 })
 -- State management
