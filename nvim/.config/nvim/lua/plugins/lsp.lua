@@ -1,3 +1,5 @@
+-- FIXME: Try to gut LazyVim from this, it does too many hidden things,
+-- such as starting the server
 -- FIXME: Python LSP servers only! LSP rename fails with "change_annotations must be provided for annotated text edits"
 --- Includes lsp, linting, and formatter configurations
 vim.lsp.set_log_level("ERROR")
@@ -6,7 +8,8 @@ vim.lsp.set_log_level("ERROR")
 vim.lsp.enable("pyrefly")
 -- FIXME: For some reason some program is enabling ruff, mason automatic enable
 -- did not fix it.
--- vim.lsp.enable("ruff")
+-- vim.lsp.enable("ruff") UPDATE: its LazyVim's fault. Please see tinymist
+-- enabled = false. you can see it here: https://www.lazyvim.org/plugins/lsp,
 -- NOTE: Because I am using LazyVim, but now know about LSPs, mason is doing
 -- a few hidden things that might prove bothersome for some of my lsps
 -- I want to manage manually. mason-lsp-config is likely responsible for both
@@ -102,6 +105,10 @@ return {
       --- Get that shi out of here!
       inlay_hints = { enabled = false },
       servers = {
+        tinymist = {
+          enabled = false,
+        },
+        tombi = { enabled = false },
         texlab = {
           settings = {
             texlab = {
@@ -249,6 +256,7 @@ return {
   {
     "mason-org/mason-lspconfig.nvim",
     version = "^1.0.0",
+    -- LazyVim overrides this ugh!
     opts = { automatic_installation = false, automatic_enable = false },
   },
 }
