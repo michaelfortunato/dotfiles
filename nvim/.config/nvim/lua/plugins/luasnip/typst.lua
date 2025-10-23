@@ -621,6 +621,14 @@ supplement: <>,
     snippetType = "autosnippet",
   }, t("="), { condition = in_mathzone }),
   --- For now going to make this a snippet
+  s(
+    { trig = "sqrt", snippetType = "autosnippet" },
+    fmta([[sqrt(<>)<>]], {
+      iv(1),
+      i(0),
+    }),
+    { condition = in_mathzone }
+  ),
   s({ trig = "implies", snippetType = "autosnippet" }, t("==>"), { condition = in_mathzone }),
   s({ trig = "neq", snippetType = "autosnippet" }, t("!="), { condition = in_mathzone }),
   s({ trig = "leq", snippetType = "autosnippet" }, t("<="), { condition = in_mathzone }),
@@ -954,7 +962,7 @@ $<>]],
   -- FRACTION
   s(
     { trig = "ff", wordTrig = false, snippetType = "autosnippet" },
-    fmta("frac(<>,<>)<>", {
+    fmta("(<>)/(<>)<>", {
       d(1, get_visual),
       i(2),
       i(0),
@@ -1261,7 +1269,14 @@ $<>]],
   ),
   -- TODO: Alias this with bte
   s(
-    { trig = "#[tT][hH][eE][oO][rR][eE][mM]", regTrig = true, snippetType = "autosnippet" },
+    {
+      -- trig = "#[tT][hH][eE][oO][rR][eE][mM]",
+      --- Comment in and out at will if you for some reason have a
+      --- conflciting fucntion, for instance
+      trig = "#[tT][hH][eE]",
+      regTrig = true,
+      snippetType = "autosnippet",
+    },
     fmta(
       [[
 #theorem(name: [<>])[
@@ -1279,7 +1294,12 @@ $<>]],
   ),
   --TODO: alias this with `bde`
   s(
-    { trig = "#[dD][eE][fF][iI][nN][iI][tT][iI][oO][nN]", regTrig = true, snippetType = "autosnippet" },
+    { -- trig = "#[dD][eE][fF][iI][nN][iI][tT][iI][oO][nN]",
+      --- Comment in and out at will
+      trig = "#[dD][eE][fF]",
+      regTrig = true,
+      snippetType = "autosnippet",
+    },
     fmta(
       [[
 #definition(name: [<>])[

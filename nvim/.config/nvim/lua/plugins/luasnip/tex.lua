@@ -253,9 +253,18 @@ end
 local iv = function(i, ...)
   return d(i, get_visual, ...)
 end
+ls.expand_auto()
 
 ---@diagnostic disable-next-line: param-type-mismatch
 local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
+
+-- Adds a new undo point
+-- See https://github.com/L3MON4D3/LuaSnip/issues/830
+local snip_expand = require("luasnip").snip_expand
+require("luasnip").snip_expand = function(...)
+  vim.o.ul = vim.o.ul
+  snip_expand(...)
+end
 
 return {
   -- NOTE: Remove auto snippet in the future,
@@ -1221,6 +1230,26 @@ sorting=ynt
         i(1),
         d(2, get_visual),
         rep(1),
+      }
+    ),
+    { condition = line_begin }
+  ),
+  s(
+    { trig = "#[eE][qQ][uU]", regTrig = true, snippetType = "autosnippet" },
+    fmta(
+      [[
+\begin{equation}[<>]
+\begin{aligned}
+<>
+\end{aligned}
+\label{eq:<>}
+\end{equation}<>
+      ]],
+      {
+        i(1),
+        l(sanitize_label(l._1), 1),
+        iv(2),
+        i(0),
       }
     ),
     { condition = line_begin }
