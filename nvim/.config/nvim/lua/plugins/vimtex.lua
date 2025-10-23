@@ -77,7 +77,7 @@ return {
         "-interaction=nonstopmode",
         "-file-line-error", -- lets quickfix jump to file:line
         "-halt-on-error", -- fail fast
-        "-synctex=1",
+        "-synctex=0", -- Syntex works but I do not want it I think it slows down my computer
         "-silent",
         "-aux-directory=target/obj",
         "-output-directory=target/bin",

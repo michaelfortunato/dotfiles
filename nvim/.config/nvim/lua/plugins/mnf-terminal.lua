@@ -231,6 +231,11 @@ return {
         local M = require("mnf.scratch")
         M.show_scratch("sql", { filetype = "sql" })
       end, { desc = "SQL scratch buffer" })
+
+      vim.keymap.set("n", "'sh", function()
+        local M = require("mnf.scratch")
+        M.show_scratch("sh", { filetype = "sh" })
+      end, { desc = "Shell scratch buffer" })
     end,
     opts = {},
   },
