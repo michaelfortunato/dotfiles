@@ -202,49 +202,6 @@ return {
     },
   },
   {
-    "nvimtools/none-ls.nvim",
-    dependencies = {
-      -- Make nvim-lspconfig ensures that null-ls code actions go
-      -- beneath everything else, which is what I want.
-      -- https://github.com/neovim/neovim/issues/22776
-      "neovim/nvim-lspconfig",
-      "nvim-lua/plenary.nvim",
-      {
-        "danymat/neogen",
-        enabled = true,
-        -- Neogen requires explicit call to its setup(), hence the call to opts
-        opts = {
-          enabled = true,
-        },
-      },
-    },
-    config = function()
-      local null_ls = require("null-ls")
-      null_ls.setup({
-        sources = {
-          -- NeoGen Code Action
-          {
-            name = "neogen", -- Custom name instead of "null-ls"
-            method = null_ls.methods.CODE_ACTION,
-            filetypes = { "lua", "python", "javascript", "typescript", "go", "rust", "java", "c", "cpp" },
-            generator = {
-              fn = function(params)
-                return {
-                  {
-                    title = "Generate Documentation",
-                    action = function()
-                      require("neogen").generate()
-                    end,
-                  },
-                }
-              end,
-            },
-          },
-        },
-      })
-    end,
-  },
-  {
     ---@module "mason"
     "mason-org/mason.nvim",
     version = "^1.0.0",
