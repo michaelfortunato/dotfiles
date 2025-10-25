@@ -25,15 +25,15 @@ vim.keymap.set("x", "P", "p")
 
 vim.keymap.set("n", "<Enter>", "za", { desc = "Toggle fold under cursor" })
 ---
-vim.keymap.set({ "c" }, "<C-a>", "<Home>")
+vim.keymap.set({ "c", "i" }, "<C-a>", "<Home>")
 -- NOTE: blink overrides it with cmap <c-e> but should handle fallback
 -- if it doesnt, add this explicilty { 'cancel', 'fallback' } to the new
 -- entry in your nvim-cmp.lua
-vim.keymap.set({ "c" }, "<C-e>", "<End>")
-vim.keymap.set({ "c" }, "<C-Left>", "<S-Left>")
-vim.keymap.set({ "c" }, "<C-Right>", "<S-Right>")
-vim.keymap.set({ "c" }, "<A-Left>", "<S-Right>")
-vim.keymap.set({ "c" }, "<A-Right>", "<S-Right>")
+vim.keymap.set({ "c", "i" }, "<C-e>", "<End>")
+vim.keymap.set({ "c", "i" }, "<C-Left>", "<S-Left>")
+vim.keymap.set({ "c", "i" }, "<C-Right>", "<S-Right>")
+vim.keymap.set({ "c", "i" }, "<A-Left>", "<S-Right>")
+vim.keymap.set({ "c", "i" }, "<A-Right>", "<S-Right>")
 
 --- Close quickfix list if open
 vim.keymap.set("n", "q", function()
@@ -128,16 +128,13 @@ del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
 vim.keymap.set(
   { "n" },
   "<leader><leader>",
-  "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
+  -- "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
+  function()
+    Snacks.picker.smart()
+  end,
   { desc = "Find files (Cwd dir)" }
 )
 vim.keymap.del({ "n" }, "f")
-vim.keymap.set(
-  { "n" },
-  "ff",
-  "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
-  { desc = "Buffers" }
-)
 -- This is causing a ton of tabs to be created
 -- vim.keymap.set(
 --   { "n" },
@@ -234,7 +231,6 @@ vim.keymap.set("t", "<C-S-h>", function()
 end, { silent = true, desc = "Rotate windows backward (terminal)" })
 
 map({ "n", "t", "v" }, "<C-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsaved)" })
-map({ "n", "t", "v" }, "<D-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsaved)" })
 
 del("n", "m")
 map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })
