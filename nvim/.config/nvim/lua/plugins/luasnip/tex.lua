@@ -553,8 +553,8 @@ sorting=ynt
   s({ trig = "setminus", snippetType = "autosnippet" }, t("\\setminus"), { condition = in_mathzone }),
   s({ trig = "bigcup", snippetType = "autosnippet" }, t("union.big"), { condition = in_mathzone }),
   s({ trig = "bigcap", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
-  s({ trig = "langle", snippetType = "autosnippet" }, t("angle.l"), { condition = in_mathzone }),
-  s({ trig = "rangle", snippetType = "autosnippet" }, t("angle.r"), { condition = in_mathzone }),
+  s({ trig = "langle", snippetType = "autosnippet" }, t("\\langle"), { condition = in_mathzone }),
+  s({ trig = "rangle", snippetType = "autosnippet" }, t("\\rangle"), { condition = in_mathzone }),
   -- TODO: can I prioritize lciel and rceil to keep old behavior?
   s({ trig = "lceil", snippetType = "autosnippet" }, t("ceil.l"), { condition = in_mathzone }),
   s({ trig = "rceil", snippetType = "autosnippet" }, t("ceil.r"), { condition = in_mathzone }),
