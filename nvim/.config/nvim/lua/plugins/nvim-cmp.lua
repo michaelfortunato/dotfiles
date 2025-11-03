@@ -2,13 +2,6 @@
 -- pcall(vim.keymap.del({ "i", "s" }, "<Tab>"))
 vim.g.mnf_auto_show_comp_menu = false
 vim.g.mnf_auto_show_ghost_text = false
-
-vim.keymap.set({ "i", "s" }, "<C-L>", function()
-  local ls = require("luasnip")
-  if ls.choice_active() then
-    ls.change_choice(1)
-  end
-end, { silent = true })
 return {
   "saghen/blink.cmp",
 
@@ -67,6 +60,19 @@ return {
       ["<C-space>"] = { "show", "hide" },
       ["<C-e>"] = { "hide" },
       ["<C-y>"] = { "select_and_accept" },
+      --  NOTE: This is handled in keymaps.lua
+      -- ["<C-l>"] = {
+      --   function()
+      --     local ls = require("luasnip")
+      --     if ls.choice_active() then
+      --       ls.change_choice(1)
+      --       return true
+      --     end
+      --   end, {
+      --
+      --   }
+      --   "fallback_to_mappings",
+      -- },
 
       ["<Up>"] = { "select_prev", "fallback" },
       ["<Down>"] = { "select_next", "fallback" },
@@ -194,7 +200,13 @@ return {
           return vim.g.mnf_auto_show_comp_menu
         end,
       },
-      documentation = { auto_show = false },
+      documentation = {
+        -- They should make a PR for this
+        -- auto_show = function(context, items)
+        --   return vim.g.mnf_auto_show_comp_documentation
+        -- end,
+        auto_show = false,
+      },
       -- -- Maybe
       -- accept = { auto_brackets = { enabled = true } },
     },

@@ -213,6 +213,11 @@ map({ "t", "i" }, "<C-k>", function()
   require("smart-splits").move_cursor_up()
 end)
 map({ "t", "i" }, "<C-l>", function(e)
+  local ls = require("luasnip")
+  if ls.choice_active() then
+    ls.change_choice(1)
+    return true
+  end
   vim.cmd("stopinsert")
   require("smart-splits").move_cursor_right()
 end)
