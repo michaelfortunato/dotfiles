@@ -119,10 +119,12 @@ M.extension_to_filetype = {
   elm = "elm",
   dart = "dart",
   nix = "nix",
+  typ = "typst",
 }
 
 ---@type table<string, string>
 local filetype_to_extension = {
+  typst = "typ",
   python = "py",
   javascript = "js",
   typescript = "ts",
