@@ -304,9 +304,15 @@ return {
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 %
+% HELPFUL TIPS
+======================================================================
+% 	No *  subscript to the side always (inline style)
+% 	With *  subscript below in display math (like \lim or \sum)
+======================================================================
 % Math Operators
 \DeclareMathOperator*{\argmax}{arg\,max} % \DeclareMathOperator*{\argmin}{arg\,min}
-%% Absolute values \abs and \norm
+%% Pair Deleiminter! Lovem 
+%%% Absolute values \abs and \norm
 \DeclarePairedDelimiter\abs{\lvert}{\rvert}%
 \DeclarePairedDelimiter\norm{\lVert}{\rVert}%
 %%% Swap the definition of \abs* and \norm*, so that \abs
@@ -318,6 +324,9 @@ return {
 \let\oldnorm\norm
 \def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
 \makeatother
+%%% Floor and Ceiling, Because I am not smart enough to be a pure math guy!
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 %
 % Commands
 % 3 is the number of args, 2 is the default value of arg1
@@ -537,12 +546,15 @@ sorting=ynt
   s({ trig = "->", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
   s({ trig = "to", snippetType = "autosnippet" }, t("\\to"), { condition = tex.in_mathzone }),
   s({ trig = ":->", snippetType = "autosnippet" }, t("\\mapsto"), { condition = tex.in_mathzone }),
+  s({ trig = "mapsto", snippetType = "autosnippet" }, t("\\mapsto"), { condition = tex.in_mathzone }),
   s({ trig = "=>", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
   --- For now going to make this a snippet
   s({ trig = "implies", snippetType = "autosnippet" }, t("\\implies"), { condition = tex.in_mathzone }),
   s({ trig = "-->", snippetType = "autosnippet" }, t("\\longrightarrow"), { condition = tex.in_mathzone }),
   s({ trig = ">=", snippetType = "autosnippet" }, t("\\geq"), { condition = tex.in_mathzone }),
   s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = tex.in_mathzone }),
+  s({ trig = "leq", snippetType = "autosnippet" }, t("\\leq"), { condition = tex.in_mathzone }),
+  s({ trig = "geq", snippetType = "autosnippet" }, t("\\geq"), { condition = tex.in_mathzone }),
   s({ trig = "~~", snippetType = "autosnippet" }, t("\\sim"), { condition = tex.in_mathzone }),
   s({ trig = "sim", snippetType = "autosnippet" }, t("\\sim"), { condition = tex.in_mathzone }),
   s({ trig = "cup", snippetType = "autosnippet" }, t("\\cup"), { condition = in_mathzone }),
@@ -551,14 +563,22 @@ sorting=ynt
   s({ trig = "nil", snippetType = "autosnippet" }, t("\\emptyset"), { condition = in_mathzone }),
   s({ trig = "null", snippetType = "autosnippet" }, t("\\emptyset"), { condition = in_mathzone }),
   s({ trig = "setminus", snippetType = "autosnippet" }, t("\\setminus"), { condition = in_mathzone }),
-  s({ trig = "bigcup", snippetType = "autosnippet" }, t("union.big"), { condition = in_mathzone }),
-  s({ trig = "bigcap", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
+  s({ trig = "bigcup", snippetType = "autosnippet" }, t("\\bigcup"), { condition = in_mathzone }),
+  s({ trig = "bigcap", snippetType = "autosnippet" }, t("\\bigcap"), { condition = in_mathzone }),
   s({ trig = "langle", snippetType = "autosnippet" }, t("\\langle"), { condition = in_mathzone }),
   s({ trig = "rangle", snippetType = "autosnippet" }, t("\\rangle"), { condition = in_mathzone }),
   -- TODO: can I prioritize lciel and rceil to keep old behavior?
-  s({ trig = "lceil", snippetType = "autosnippet" }, t("ceil.l"), { condition = in_mathzone }),
-  s({ trig = "rceil", snippetType = "autosnippet" }, t("ceil.r"), { condition = in_mathzone }),
-  s({ trig = "floor", snippetType = "autosnippet" }, t("floor.l"), { condition = in_mathzone }),
+  s({ trig = "lceil", snippetType = "autosnippet" }, t("\\lceil"), { condition = in_mathzone }),
+  s({ trig = "rceil", snippetType = "autosnippet" }, t("\\rceil"), { condition = in_mathzone }),
+  s({ trig = "ceil", snippetType = "autosnippet" }, { t("\\ceil{"), i(1), t("}"), i(0) }, { condition = in_mathzone }),
+  s({ trig = "lfloor", snippetType = "autosnippet" }, t("\\lfloor"), { condition = in_mathzone }),
+  s({ trig = "rfloor", snippetType = "autosnippet" }, t("\\rfloor"), { condition = in_mathzone }),
+  s(
+    { trig = "floor", snippetType = "autosnippet" },
+    { t("\\floor{"), i(1), t("}"), i(0) },
+    { condition = in_mathzone }
+  ),
+  s({ trig = "compliment", snippetType = "autosnippet" }, t("\\complement"), { condition = in_mathzone }),
   s({ trig = "subseteq", snippetType = "autosnippet" }, t("\\subseteq"), { condition = in_mathzone }),
   --- TODO: See if I actually use these
   s({ trig = "<|", snippetType = "autosnippet" }, t("\\triangleleft"), { condition = tex.in_mathzone }),
