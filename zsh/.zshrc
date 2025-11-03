@@ -193,6 +193,7 @@ alias n="nvim" # This one is aggressive!
 alias e="nvim" # This one is aggressive!
 alias c="clear"
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
+alias l='ls -lht'  #long list,human readable,sorted by date
 alias py="ipython" # better python shell
 alias ipy="ipython" # better python shell
 alias lg="lazygit" # lazygit
@@ -225,6 +226,8 @@ alias yazi="y" #TODO: Do we need to make this smarter?
 alias help='run-help'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
+
+unalias gap
 
 
 git_ignore_local() {
@@ -423,8 +426,8 @@ cdi() {
   fi
   # If no arguments are provided, use fzf to select a directory
     # Find directories and pipe to fzf, then cd into the selected one
-    local dir
-    dir=$(bfs "${search_dirs[@]}" -color -mindepth 1  \
+    local file
+    file=$(bfs "${search_dirs[@]}" -color -mindepth 1  \
      -exclude \( \
     -name ".git" \
     -or -name "node_modules" \
@@ -442,7 +445,10 @@ cdi() {
     --cycle \
     --bind 'ctrl-y:accept' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
-) && $EDITOR "$dir"
+) || return $?
+  local dir=${file:h}
+  builtin cd -- $dir
+  $EDITOR "$file"
 # not sure if I want that&& builtin cd "$dir"
 }
 
