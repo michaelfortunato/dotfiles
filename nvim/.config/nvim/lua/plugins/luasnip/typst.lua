@@ -278,6 +278,14 @@ end
 
 local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
 
+-- Adds a new undo point
+-- See https://github.com/L3MON4D3/LuaSnip/issues/830
+local snip_expand = require("luasnip").snip_expand
+require("luasnip").snip_expand = function(...)
+  vim.o.ul = vim.o.ul
+  snip_expand(...)
+end
+
 return {
   -- NOTE: Remove auto snippet in the future,
   -- we keep auto until we create another template snippet for this filetype
@@ -604,7 +612,11 @@ supplement: <>,
   s({ trig = "subseteq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
   s({ trig = "sseq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
   s({ trig = "concat", snippetType = "autosnippet" }, t("plus.circle"), { condition = in_mathzone }),
-  s({ trig = "directsum", snippetType = "autosnippet" }, t("plus.circle.big"), { condition = in_mathzone }),
+  s(
+    { trig = "directsum", snippetType = "autosnippet" },
+    { c(1, { { t("plus.circle.big"), i(0) }, { t("plus.circle"), i(0) } }) },
+    { condition = in_mathzone }
+  ),
   s({ trig = "tensorprod", snippetType = "autosnippet" }, t("times.circle.big"), { condition = in_mathzone }),
   -- s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = in_mathzone }),
   -- NOTE: \to is not supprted in typst
@@ -738,7 +750,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = (in_mathzone + in_codezone) * trigger_does_not_preceed_alpha_char }
+    { condition = in_mathzone * trigger_does_not_preceed_alpha_char }
   ),
   s(
     { trig = "[", wordTrig = false, hidden = true, desc = "Autopairs", snippetType = "autosnippet" },
@@ -746,7 +758,7 @@ supplement: <>,
       iv(1),
       i(0),
     }),
-    { condition = (in_mathzone + in_codezone) * trigger_does_not_preceed_alpha_char }
+    { condition = in_mathzone * trigger_does_not_preceed_alpha_char }
   ),
   -- TODO: Really hink about if you want these ^^^
   s(
