@@ -217,11 +217,15 @@ alias nvimconf="cd $HOME/.config/nvim && nvim"
 alias nvimconfig="cd $HOME/.config/nvim && nvim"
 alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
 alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
+alias termconf-ghostty="cd $HOME/.config/ghostty && nvim config"
+alias termconfig-ghostty="cd $HOME/.config/ghostty && nvim config"
 alias conf="cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim"
 alias dotconfig="cd $HOME/dotfiles && nvim"
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
-alias yazi="y" #TODO: Do we need to make this smarter?
+#TODO: Do we need to make this smarter?
+alias yazi="y"
+alias htop="btm" # You are crazy for this one!
 # be more like bash
 alias help='run-help'
 # Experimental
