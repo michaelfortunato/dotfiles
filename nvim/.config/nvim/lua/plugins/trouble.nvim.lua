@@ -17,6 +17,7 @@ return {
       { "<leader>aA", "<Cmd>Trouble diagnostics toggle<CR>", desc = "Diagnostics (Workspace)" },
       { "<leader>xx", "<Cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Diagnostics (Buffer)" },
       { "<leader>xX", "<Cmd>Trouble diagnostics toggle<CR>", desc = "Diagnostics (Workspace)" },
+      { "<leader>aq", "<Cmd>copen<CR>", desc = "Open Quickfix List" },
     },
   },
 }

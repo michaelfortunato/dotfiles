@@ -66,6 +66,11 @@ vim.o.showtabline = 0
 -- Don't show pending key sequences (e.g. "^Wc", "gj") in statusline
 vim.o.showcmd = false
 
+-- Consider this for C-u c-d nav, a bit more tractable
+vim.o.scroll = 15
+-- or this idk
+-- vim.wo.scroll = 15
+
 -- Note this was all moved the lualine
 -- -- Winbar: right-aligned status showing MAX and/or tab count (>1)
 -- -- Uses declancm/maximize.nvim's vim.t.maximized flag (per-tabpage)

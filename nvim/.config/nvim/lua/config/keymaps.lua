@@ -24,6 +24,7 @@ vim.keymap.set("x", "P", "p")
 -- end
 
 vim.keymap.set("n", "<Enter>", "za", { desc = "Toggle fold under cursor" })
+vim.keymap.set({ "n" }, "ff", "zz", { desc = "Center screen to cursor" })
 ---
 vim.keymap.set({ "c", "i" }, "<C-a>", "<Home>")
 -- NOTE: blink overrides it with cmap <c-e> but should handle fallback
@@ -100,6 +101,8 @@ vim.keymap.set({ "t", "n" }, "<C-S-Down>", [[<C-\><C-n>5<C-e>]], { silent = true
 
 vim.keymap.set("n", "<C-u>", "<C-u>zz")
 vim.keymap.set("n", "<C-d>", "<C-d>zz")
+vim.keymap.set("n", "<C-S-k>", "kzz")
+vim.keymap.set("n", "<C-S-j>", "jzz")
 -- vim.keymap.set("n", "<C-d>", function()
 --   local lines = math.max(1, math.floor(vim.fn.winheight(0) / 3))
 --   local raw = string.format("%d<C-e>zz", lines)
@@ -125,12 +128,25 @@ end, { expr = true, silent = true, desc = "Scroll up faster" })
 
 vim.keymap.set({ "n" }, "<leader>cR", "<CMD>LspRestart<CR>", { desc = "Restart All LSPs" })
 del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
+-- - Files only in your config folder:
+--     - Snacks.picker.smart({ finders = { "files" }, cwd = vim.fn.stdpath("config") })
+-- - Files only under git root’s src:
+--     - Snacks.picker.smart({ finders = { "files" }, cwd = (LazyVim.root() or vim.uv.cwd()) .. "/src" })
 vim.keymap.set(
   { "n" },
   "<leader><leader>",
   -- "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
   function()
     Snacks.picker.smart()
+  end,
+  { desc = "Find files (Cwd dir)" }
+)
+vim.keymap.set(
+  { "n" },
+  "<leader>,",
+  -- "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
+  function()
+    Snacks.picker.buffers()
   end,
   { desc = "Find files (Cwd dir)" }
 )
@@ -319,12 +335,28 @@ end, { desc = "Set makeprg" })
 --
 -- core adds here, you should try to stick with > but still
 -- apprently x makes it so that <Tab> does not done is select mode
+-- From ChatGPT “silent = true” only suppresses Neovim’s echo of the mapping
+-- itself.
+-- The dedent operator (<) still runs exactly as if you typed it by hand,
+-- and it’s the operator—not the mapping—that prints “4 lines <ed 1 time.”
+-- Wrap the action in a silent! normal! call
+--  so the operator runs quietly:
+--
+--  vim.keymap.set("x", "<S-Tab>", function()
+--    vim.cmd("silent! normal! <gv")
+--  end, { desc = "Dedent selection", silent = true })
 map("x", "<Tab>", ">gv", { silent = true })
 map("x", "<S-Tab>", "<gv", { silent = true })
 vim.keymap.set("v", "H", "J") -- Map H to Join lines to J can be used below
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true }) -- Shift visual selected line down
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true }) -- Shift visual selected line up
 vim.keymap.set({ "n" }, "<leader>si", function()
+  -- require("snacks").picker.lsp_workspace_symbols({
+  --   -- filter = {
+  --   --   -- [vim.bo.filetype] = LazyVim.config.get_kind_filter() or true,
+  --   -- },
+  -- })
+  -- These behave a bit differently
   require("telescope.builtin").lsp_dynamic_workspace_symbols({
     symbols = LazyVim.config.get_kind_filter(),
   })

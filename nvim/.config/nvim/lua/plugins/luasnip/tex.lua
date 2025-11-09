@@ -221,7 +221,7 @@ local generate_matrix = function(args, snip)
 end
 
 local generate_vector = function(args, snip)
-  snip.captures[2] = snip.captures[1]
+  snip.captures[2] = snip.captures[1] or 1
   snip.captures[3] = 1
   return generate_matrix(args, snip)
 end
@@ -274,8 +274,12 @@ return {
     fmta(
       [[
 \documentclass[10pt, letterpaper]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts, see https://tex.stackexchange.com/questions/664/why-should-i-use-usepackaget1fontenc
+\usepackage{microtype}      % microtypography
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
@@ -283,27 +287,62 @@ return {
 \usepackage{mathtools}
 \usepackage{hyperref}       % hyperlinks
 \usepackage{url}            % simple URL typesetting
-\usepackage{booktabs}       % professional-quality tables
+\usepackage{booktabs,multirow,makecell}       % professional-quality tables
+\usepackage{siunitx}        % professional-quality number formatting
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
-\usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
 \usepackage{nicematrix} % for matrix/block drawing
-\usepackage{cleveref} % @ref{eq:} will actualy work. use \cref{} instead of \ref
-\crefformat{equation}{(#2#1#3)}
-% @ref: https://tex.stackexchange.com/questions/122174/how-to-strip-eq-from-cleveref
+\usepackage{float} % for [H] exact placement
+\usepackage[capitalize,noabbrev]{cleveref} %  use \cref{} instead of \ref
 
-% Optional Packages
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Optional Packages
 % \usepackage{csquotes}
-%
-% Theorems
+% \usepackage[textsize=tiny]{todonotes} % usage: \todo[inline]{notehere}
+*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Personal Packages
+\usepackage{tailwindcolors} % my custom tailwindcss colors
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                           Theorems/Definitions/etc
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
-%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                               CLEVERREF Configs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\crefname{algorithm}{Algorithm}{Algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
+% Sections
+\Crefname{section}{Section}{Sections}
+% Theorems etc
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\Crefname{lemma}{Lemma}{Lemmas}
+\crefname{remark}{Remark}{Remarks}
+\Crefname{remark}{Remark}{Remarks}
+%def
+\crefname{definition}{Definition}{Definitions}
+\Crefname{definition}{Definition}{Definitions}
+\crefname{boxeddefinition}{Definition}{Definitions}
+\Crefname{boxeddefinition}{Definition}{Definitions}
+%fig
+\crefname{figure}{Fig.}{Figs.}
+\Crefname{figure}{Fig.}{Figs.}
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Table}{Tables}
+% cref formats
+\crefformat{equation}{(#2#1#3)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                               Math Operators
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % HELPFUL TIPS
 ======================================================================
 % 	No *  subscript to the side always (inline style)
@@ -327,8 +366,10 @@ return {
 %%% Floor and Ceiling, Because I am not smart enough to be a pure math guy!
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
-%
-% Commands
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                  Commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 3 is the number of args, 2 is the default value of arg1
 % \newcommand{\plusbinomial}[3][2]{(#2 + #3)^#1}
 % Usage: \plusbinomial[4]{x}{y} becomes (x + y)^4
@@ -562,11 +603,21 @@ sorting=ynt
   s({ trig = "notin", snippetType = "autosnippet" }, t("\\notin"), { condition = in_mathzone }),
   s({ trig = "nil", snippetType = "autosnippet" }, t("\\emptyset"), { condition = in_mathzone }),
   s({ trig = "null", snippetType = "autosnippet" }, t("\\emptyset"), { condition = in_mathzone }),
+  s({ trig = "cong", snippetType = "autosnippet" }, t("\\cong"), { condition = in_mathzone }),
+  s({ trig = "iso", snippetType = "autosnippet" }, t("\\cong"), { condition = in_mathzone }),
+  s({ trig = "restriction", snippetType = "autosnippet" }, t("\\restriction"), { condition = in_mathzone }),
   s({ trig = "setminus", snippetType = "autosnippet" }, t("\\setminus"), { condition = in_mathzone }),
   s({ trig = "bigcup", snippetType = "autosnippet" }, t("\\bigcup"), { condition = in_mathzone }),
   s({ trig = "bigcap", snippetType = "autosnippet" }, t("\\bigcap"), { condition = in_mathzone }),
   s({ trig = "langle", snippetType = "autosnippet" }, t("\\langle"), { condition = in_mathzone }),
+  s({ trig = "complement", snippetType = "autosnippet" }, t("\\complement"), { condition = in_mathzone }),
   s({ trig = "rangle", snippetType = "autosnippet" }, t("\\rangle"), { condition = in_mathzone }),
+  s({ trig = "oplus", snippetType = "autosnippet" }, t("\\oplus"), { condition = in_mathzone }),
+  s({ trig = "directsum", snippetType = "autosnippet" }, t("\\oplus"), { condition = in_mathzone }),
+  s({ trig = "circleplus", snippetType = "autosnippet" }, t("\\oplus"), { condition = in_mathzone }),
+  s({ trig = "bigcircleplus", snippetType = "autosnippet" }, t("\\bigoplus"), { condition = in_mathzone }),
+  s({ trig = "bigdirectsum", snippetType = "autosnippet" }, t("\\bigoplus"), { condition = in_mathzone }),
+  s({ trig = "bigoplus", snippetType = "autosnippet" }, t("\\bigoplus"), { condition = in_mathzone }),
   -- TODO: can I prioritize lciel and rceil to keep old behavior?
   s({ trig = "lceil", snippetType = "autosnippet" }, t("\\lceil"), { condition = in_mathzone }),
   s({ trig = "rceil", snippetType = "autosnippet" }, t("\\rceil"), { condition = in_mathzone }),
@@ -1191,7 +1242,7 @@ sorting=ynt
     { trig = "#[dD][eE][fF][iI][nN][iI][tT][iI][oO][nN]", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
-\begin{definition}[<>]\label{definition:<>}
+\begin{definition}[<>]\label{def:<>}
 <>
 \end{definition}<>
       ]],
@@ -1374,7 +1425,7 @@ sorting=ynt
       [[
 \begin{table}
   \caption{<>}
-  \label{sample-table}
+  \label{table:sample-table}
   \centering
   \begin{tabular}{lll}
     \toprule

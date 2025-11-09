@@ -33,6 +33,7 @@ vim.lsp.config("tinymist", {
   },
 })
 vim.lsp.enable("tinymist")
+vim.lsp.enable("rust-analyzer")
 
 --- AI SLOP completion code
 -- Key mappings for inline completion
@@ -85,6 +86,24 @@ return {
         desc = "Goto Implementation",
       }
       keys[#keys + 1] = { "K", false }
+      keys[#keys + 1] = {
+        "gai",
+        function()
+          ---@diagnostic disable-next-line: undefined-global
+          Snacks.picker.lsp_incoming_calls()
+        end,
+        desc = "C[a]lls Incoming",
+        has = "callHierarchy/incomingCalls",
+      }
+      keys[#keys + 1] = {
+        "gao",
+        function()
+          ---@diagnostic disable-next-line: undefined-global
+          Snacks.picker.lsp_outgoing_calls()
+        end,
+        desc = "C[a]lls Outgoing",
+        has = "callHierarchy/outgoingCalls",
+      }
     end,
     ---@class PluginLspOpts
     opts = {

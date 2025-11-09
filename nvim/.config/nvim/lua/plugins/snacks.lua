@@ -1,5 +1,7 @@
+---@module "snacks"
 return {
   "michaelfortunato/snacks.nvim",
+  ---@type snacks.Config
   opts = {
     dashboard = {
       preset = {
@@ -18,7 +20,10 @@ return {
             icon = " ",
             key = "f",
             desc = "Find File",
-            action = ":Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true",
+            -- action = ":Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true",
+            action = function()
+              Snacks.picker.smart()
+            end,
           },
           { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
           { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
@@ -47,8 +52,35 @@ return {
       },
       math = { enabled = false },
     },
+    --
+    -- Concepts
+    --
+    -- - Finders: sources that produce items. Common ones: files, buffers, recent, git_files, grep, plus LSP pickers.
+    -- - Smart: a convenience wrapper over pickers; by default it aggregates multiple finders (buffers, recent, files) and applies a
+    --   matcher and transform.
+    -- - Filter/matcher/transform:
+    --     - matcher: scoring/heuristics (e.g., cwd_bonus, frecency).
+    --     - filter: prune items (directory, include/exclude, etc.).
+    --     - transform: post-process (e.g., unique_file to dedupe).
     -- image = {},
+    picker = {
+      win = {
+        input = {
+          keys = {
+            ["<Esc>"] = { "close", mode = { "n", "i" } },
+            ["<c-h>"] = { "toggle_hidden", mode = { "i", "n" } },
+            ["<c-y>"] = { "confirm", mode = { "i", "n" } },
+            -- Probably won't work given this is Tab
+            ["<c-i>"] = { "toggle_ignored", mode = { "i", "n" } },
+            ["<c-u>"] = false,
+            ["<c-a>"] = false,
+            ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
+          },
+        },
+      },
+    },
   },
+
   --    -- preset = {
   --    --   header = [[mnf]],
   --    -- },

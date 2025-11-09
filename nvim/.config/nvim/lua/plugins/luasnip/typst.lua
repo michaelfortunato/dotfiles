@@ -391,7 +391,7 @@ return {
     { trig = "DOC", snippetType = "autosnippet" },
     fmta(
       [[
-#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, lemma, proof, example, subpar, scr
+#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, lemma, proof, example, subpar, scr, output_html
 #import "@preview/cetz:0.3.4": canvas, draw
 #import "@preview/cetz-plot:0.1.1": plot
 
@@ -603,8 +603,8 @@ supplement: <>,
   s({ trig = "setminus", snippetType = "autosnippet" }, t("backslash"), { condition = in_mathzone }),
   s({ trig = "bigcup", snippetType = "autosnippet" }, t("union.big"), { condition = in_mathzone }),
   s({ trig = "bigcap", snippetType = "autosnippet" }, t("inter.big"), { condition = in_mathzone }),
-  s({ trig = "langle", snippetType = "autosnippet" }, t("angle.l"), { condition = in_mathzone }),
-  s({ trig = "rangle", snippetType = "autosnippet" }, t("angle.r"), { condition = in_mathzone }),
+  s({ trig = "langle", snippetType = "autosnippet" }, t("chevron.l"), { condition = in_mathzone }),
+  s({ trig = "rangle", snippetType = "autosnippet" }, t("chevron.r"), { condition = in_mathzone }),
   -- TODO: can I prioritize lciel and rceil to keep old behavior?
   s({ trig = "lceil", snippetType = "autosnippet" }, t("ceil.l"), { condition = in_mathzone }),
   s({ trig = "rceil", snippetType = "autosnippet" }, t("ceil.r"), { condition = in_mathzone }),
@@ -641,7 +641,7 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
-  s({ trig = "implies", snippetType = "autosnippet" }, t("==>"), { condition = in_mathzone }),
+  s({ trig = "implies", snippetType = "autosnippet" }, t("=>"), { condition = in_mathzone }),
   s({ trig = "neq", snippetType = "autosnippet" }, t("!="), { condition = in_mathzone }),
   s({ trig = "leq", snippetType = "autosnippet" }, t("<="), { condition = in_mathzone }),
   s({ trig = "geq", snippetType = "autosnippet" }, t(">="), { condition = in_mathzone }),

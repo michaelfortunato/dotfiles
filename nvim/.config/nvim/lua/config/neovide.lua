@@ -14,7 +14,7 @@ local function set_options()
     vim.g.neovide_cursor_animation_length = 0.0
     vim.g.neovide_scroll_animation_far_lines = 1
     vim.g.neovide_scroll_animation_length = 0.5
-    vim.g.neovide_cursor_animation_length = 0.150
+    vim.g.neovide_cursor_animation_length = 0
   end
 
   --- Optoin 2 Moderate
@@ -65,8 +65,9 @@ local function set_options()
   end
 
   -- you are crazy for ths one!
-  vim.opt.guifont = "NewComputerModernMono10"
-  animation_profile4()
+  -- vim.opt.guifont = "NewComputerModernMono10"
+  vim.opt.guifont = "MesloLGS NF"
+  animation_profile1()
 end
 
 local function set_keymaps()

@@ -31,9 +31,11 @@ return {
 
       opts.defaults.mappings.i = vim.tbl_extend("force", opts.defaults.mappings.i or {}, {
         ["<Esc>"] = actions.close, -- close picker from insert mode
+        ["<C-d>"] = actions.delete_buffer, -- close picker from insert mode
       })
       opts.defaults.mappings.n = vim.tbl_extend("force", opts.defaults.mappings.n or {}, {
         ["<Esc>"] = actions.close, -- close picker from normal mode
+        ["<C-d>"] = actions.delete_buffer, -- close picker from insert mode
       })
       -- (Note: a minority of users reported terminals left in insert mode
       -- after closing; uncommon, but if you ever see it, we can add a
