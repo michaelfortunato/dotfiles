@@ -23,6 +23,15 @@ vim.keymap.set("x", "P", "p")
 --   end
 -- end
 
+vim.keymap.set({ "n" }, "<leader>.", function()
+  local bufpath = vim.api.nvim_buf_get_name(0)
+  if bufpath == "" then
+    vim.notify("No file in current buffer", vim.log.levels.WARN)
+    return
+  end
+  local dir = vim.fs.dirname(bufpath)
+  Snacks.picker.files({ cwd = dir })
+end, { desc = "Search files in this buffer's cwd" })
 vim.keymap.set("n", "<Enter>", "za", { desc = "Toggle fold under cursor" })
 vim.keymap.set({ "n" }, "ff", "zz", { desc = "Center screen to cursor" })
 ---
