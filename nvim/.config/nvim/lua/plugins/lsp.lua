@@ -118,7 +118,7 @@ return {
         float = { -- when we open the popup
           border = "rounded",
           source = "if_many",
-          focusable = false,
+          focusable = true,
         },
       },
       --- Get that shi out of here!
