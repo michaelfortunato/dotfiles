@@ -35,6 +35,42 @@ vim.lsp.config("tinymist", {
 vim.lsp.enable("tinymist")
 vim.lsp.enable("rust-analyzer")
 
+vim.lsp.config["rune"] = {
+  cmd = { "rune" },
+  filetypes = { "typst" },
+  -- Use the file's directory as the root; Rune will optionally walk to VAULT.typ
+  root_markers = { "VAULT.typ" },
+  init_options = {
+    vault_marker = "VAULT.typ",
+    default_extension = ".typ",
+    ignore = { ".git", "node_modules", "target", ".cache" },
+
+    completionTriggerCharacters = { '"', "(", "#", "[" },
+  },
+  cmd_env = { RUNE_DEBUG_HTTP = "1" },
+}
+vim.lsp.enable("rune")
+--- @param command lsp.Command
+--- @param context? {bufnr?: integer}
+local function rune_exec(command, context)
+  local clients = vim.lsp.get_clients({ name = "rune", bufnr = 0 })
+  if #clients == 0 then
+    vim.notify("Rune LSP not attached to this buffer", vim.log.levels.WARN)
+    return
+  end
+  local client = clients[1]
+  client:exec_cmd(command, context, function(err, result, ...)
+    if err ~= nil then
+      vim.notify("Failed with" .. err.message)
+    else
+      vim.notify("Sucess with" .. vim.inspect(result))
+    end
+  end)
+end
+vim.api.nvim_create_user_command("RuneDebugViewer", function()
+  rune_exec({ command = "rune.debugViewer.open", title = "Rune Debug Viewer" })
+end, {})
+
 --- AI SLOP completion code
 -- Key mappings for inline completion
 -- Three main mappings:
