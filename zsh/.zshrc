@@ -234,9 +234,78 @@ alias htop="btm" # You are crazy for this one!
 alias help='run-help'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
-
+#---unaliases-------------------------------------------------------------------
 unalias gap
 
+
+git-hooks() {
+  if ! git rev-parse --git-dir &>/dev/null; then
+    echo "git-hooks: not inside a git repository" >&2
+    return 1
+  fi
+
+  local hook_dir template_dir
+  hook_dir="$(git rev-parse --git-path hooks)" || return 1
+  template_dir="$HOME/.config/git/git-templates/default/hooks"
+
+  _git_hooks_add() {
+    local name="$1"
+    if [[ -z "$name" ]]; then
+      echo "usage: git-hooks add <hook-name>" >&2
+      return 1
+    fi
+    local hook_path template_path
+    hook_path="$hook_dir/$name"
+    template_path="$template_dir/$name"
+
+    if [[ -f "$template_path" ]]; then
+      cp "$template_path" "$hook_path"
+    else
+      printf '#!/bin/bash\n\n' >"$hook_path"
+    fi
+    chmod +x "$hook_path"
+    echo "git-hooks: installed $name at $hook_path"
+  }
+
+  case "$1" in
+    list|"")
+      echo "Available templates (${template_dir}):"
+      if [[ -d "$template_dir" ]]; then
+        (cd "$template_dir" && ls)
+      else
+        echo "  <none>"
+      fi
+      echo
+      echo "Active hooks ($(realpath "$hook_dir" 2>/dev/null)):"
+      local active
+      active=$(find "$hook_dir" -maxdepth 1 -type f ! -name '*.sample' -print)
+      if [[ -n "$active" ]]; then
+        sed 's/^/  /' <<<"$active"
+      else
+        echo "  <none>"
+      fi
+      ;;
+    add)
+      shift
+      _git_hooks_add "$1"
+      ;;
+    edit)
+      shift
+      if [[ -z "$1" ]]; then
+        echo "usage: git-hooks edit <hook-name>" >&2
+        return 1
+      fi
+      if [[ ! -f "$hook_dir/$1" ]]; then
+        _git_hooks_add "$1" || return 1
+      fi
+      "${EDITOR:-nvim}" "$hook_dir/$1"
+      ;;
+    *)
+      echo "usage: git-hooks [list|add <hook>|edit <hook>]" >&2
+      return 1
+      ;;
+  esac
+}
 
 git_ignore_local() {
   local git_dir
