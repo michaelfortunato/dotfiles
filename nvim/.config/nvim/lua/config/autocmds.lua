@@ -176,3 +176,21 @@ end, {
   end,
   desc = "Print current buffer path (abs by default, or rel/cwd/rootdir)",
 })
+
+vim.api.nvim_create_user_command("LspLogDelete", function()
+  local log_path = vim.lsp.get_log_path()
+  if vim.fn.filereadable(log_path) == 1 then
+    os.remove(log_path)
+    vim.notify("Deleted LSP log: " .. log_path, vim.log.levels.INFO)
+  else
+    vim.notify("No LSP log found at " .. log_path, vim.log.levels.WARN)
+  end
+end, { desc = "Delete (rotate) the Neovim LSP log file" })
+
+vim.api.nvim_create_user_command("LspInfo", function()
+  vim.cmd("checkhealth vim.lsp")
+end, { force = true, desc = "Alias to `:checkhealth vim.lsp` (no tab)" })
+
+vim.api.nvim_create_user_command("LspLog", function()
+  vim.cmd("edit " .. vim.lsp.get_log_path())
+end, { force = true, desc = "Open LSP log in current window" })

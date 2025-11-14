@@ -172,7 +172,7 @@ export MNF_BIB_DIR=$HOME/.local/share/zotero/bib
 export BIBINPUTS=$MNF_BIB_DIR
 
 
-############# PATH ############
+#==============================================================================
 # NOTE: Only set path here!
 # 1. MNF_BIN_DIR is my directory for personal scripts
 # 2. `$HOME/.local/bin` is the XDG's recommendation for personal scripts might oneday merge with MNF_BIN_DIR
@@ -182,14 +182,14 @@ if [[ $MNF_OS != "Darwin" ]]; then
   export PATH=/usr/local/cuda-12.8/bin${PATH:+:${PATH}}
   export LD_LIBRARY_PATH="/usr/local/cuda-12.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 fi
-###############################
+#==============================================================================
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes.
 # aliases
 alias vi=nvim
 alias vim=nvim
-alias n="nvim" # This one is aggressive!
+alias n="mnf daily" # This one is aggressive!
 alias e="nvim" # This one is aggressive!
 alias c="clear"
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
@@ -208,8 +208,12 @@ alias t2="tree -a -L 2"
 alias t3="tree -a -L 2"
 alias daily="mnf-daily"
 alias gist="mnf-gist"
+#------------------------------------------------------------------------------
 # NOTE: See function git_ignore_local defined here by me
 alias git-ignore-local="git_ignore_local"
+alias glo='git log --pretty=format:"%C(auto)%h %C(blue)%ad %C(auto)%d %Creset%s" --date=format:"%Y-%m-%d %H:%M"'
+alias gcm='git commit -m'
+#------------------------------------------------------------------------------
 alias shconf="nvim $HOME/.zshrc"
 alias shellconf="nvim $HOME/.zshrc"
 alias shellconfig="nvim $HOME/.zshrc"
