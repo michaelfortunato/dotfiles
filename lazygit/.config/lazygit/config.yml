@@ -1,11 +1,12 @@
-# Keybindings
 keybinding:
   universal:
     # should really be gg but this works
     gotoTop-alt: g
     gotoBottom-alt: G
-    scrollUpMain: <c-u>
-    scrollDownMain: <c-d>
+    prevPage: "<c-u>"
+    nextPage: "<c-d>"
+    # scrollUpMain-alt2: '<c-b>'
+    # scrollDownMain-alt2: '<c-f>' Keybindings
     scrollUpMain-alt1: <c-b>
     scrollDownMain-alt1: <c-f>
     # no need for it, swapped pgup with <c-u>
