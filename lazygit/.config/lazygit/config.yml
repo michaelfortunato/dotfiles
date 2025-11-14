@@ -5,6 +5,8 @@ keybinding:
     gotoBottom-alt: G
     prevPage: "<c-u>"
     nextPage: "<c-d>"
+    prevItem: "<c-p>"
+    nextItem: "<c-n>"
     # scrollUpMain-alt2: '<c-b>'
     # scrollDownMain-alt2: '<c-f>' Keybindings
     scrollUpMain-alt1: <c-b>
