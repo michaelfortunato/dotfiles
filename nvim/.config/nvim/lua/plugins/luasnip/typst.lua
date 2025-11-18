@@ -276,6 +276,7 @@ local function sanitize_label(s)
     :gsub("%^", "")
 end
 
+---@diagnostic disable-next-line: param-type-mismatch
 local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
 
 -- Adds a new undo point
@@ -654,6 +655,7 @@ supplement: <>,
   s({ trig = "sim", snippetType = "autosnippet" }, t("tilde.op"), { condition = in_mathzone }),
   s({ trig = "to ", snippetType = "autosnippet" }, t("-> "), { condition = in_mathzone }),
   s({ trig = "too ", snippetType = "autosnippet" }, t("--> "), { condition = in_mathzone }),
+  s({ trig = "infty", snippetType = "autosnippet" }, t("oo"), { condition = in_mathzone }),
   --- TODO: See if I actually use these
   s({ trig = "<|", snippetType = "autosnippet" }, t("lt.tri"), { condition = in_mathzone }),
   s({ trig = "<j", snippetType = "autosnippet" }, t("lt.tri.eq"), { condition = in_mathzone }),
@@ -735,9 +737,12 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
+  ----------------------------------------------------
+  -- AUTOPAIRS
   -- TODO: Really hink about if you want these vvv
+  ----------------------------------------------------
   s(
-    { trig = "(", wordTrig = false, desc = "Autopairs", hidden = true, snippetType = "autosnippet" },
+    { trig = "(", wordTrig = false, hidden = true, snippetType = "autosnippet" },
     fmta("(<>)<>", {
       iv(1),
       i(0),
@@ -760,7 +765,6 @@ supplement: <>,
     }),
     { condition = in_mathzone * trigger_does_not_preceed_alpha_char }
   ),
-  -- TODO: Really hink about if you want these ^^^
   s(
     { trig = [["]], wordTrig = false, snippetType = "autosnippet" },
     fmta([["<>"<>]], {
