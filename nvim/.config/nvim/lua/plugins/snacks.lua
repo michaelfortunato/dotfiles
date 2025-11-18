@@ -70,11 +70,33 @@ return {
             ["<Esc>"] = { "close", mode = { "n", "i" } },
             ["<c-h>"] = { "toggle_hidden", mode = { "i", "n" } },
             ["<c-y>"] = { "confirm", mode = { "i", "n" } },
-            -- Probably won't work given this is Tab
-            ["<c-i>"] = { "toggle_ignored", mode = { "i", "n" } },
+            ["<c-g>i"] = { "toggle_ignored", mode = { "i", "n" } },
+            ["<c-o>"] = { "edit_split", mode = { "i", "n" } },
+            ["<c-o>"] = { "edit_split", mode = { "i", "n" } },
+            ["?"] = { "toggle_help_input", mode = { "i", "n" } },
             ["<c-u>"] = false,
             ["<c-a>"] = false,
             ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
+            ["<c-c>"] = { "yank", mode = { "n", "i" } },
+            ["<c-w>"] = { "cycle_win", mode = { "n", "i" } },
+            ["<D-c>"] = { "yank", mode = { "n", "i" } },
+            ["<D-p>"] = { "paste", mode = { "n", "i" } },
+            -- Probably won't work given this is Tab
+            ["<c-i>"] = { "print_path", mode = { "n", "i" } },
+            ["<c-.>"] = { "cd", mode = { "n", "i" } },
+            ["<c-;>"] = { "terminal", mode = { "n", "i" } },
+          },
+        },
+        list = {
+          keys = {
+            ["?"] = { "toggle_help_list", mode = { "i", "n" } },
+            ["<c-w>"] = { "cycle_win", mode = { "n", "i" } },
+          },
+        },
+        preview = {
+          keys = {
+            ["?"] = { "toggle_help_list", mode = { "i", "n" } },
+            ["<c-w>"] = { "cycle_win", mode = { "n", "i" } },
           },
         },
       },
