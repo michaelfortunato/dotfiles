@@ -98,6 +98,55 @@ vim.keymap.set({ "n" }, "<leader>mi", function()
   vim.notify(("Inline completion: %s"):format(new_state and "Enabled" or "Disabled"))
 end, { desc = "Inline: toggle automatic ghost text" })
 -- AI Slop Completion End
+--
+--Replace the default `gd` with an auto-cleaning version.
+-- vim.keymap.set("n", "gd", function()
+--   local before = vim.api.nvim_get_current_buf()
+--   vim.lsp.buf.definition()
+--
+--   -- If a jump occurred into a different buffer, mark it "transient":
+--   local after = vim.api.nvim_get_current_buf()
+--   if after ~= before then
+--     -- Make it disappear from :ls and auto-wipe on leave:
+--     vim.bo[after].buflisted = false
+--     vim.bo[after].bufhidden = "wipe"
+--
+--     -- Extra safety: if you *do* switch away, delete it once.
+--     vim.api.nvim_create_autocmd("BufLeave", {
+--       buffer = after,
+--       once = true,
+--       callback = function()
+--         if vim.api.nvim_buf_is_valid(after) and not vim.bo[after].modified then
+--           vim.api.nvim_buf_delete(after, { force = true })
+--         end
+--       end,
+--     })
+--   end
+-- end)
+
+vim.api.nvim_create_autocmd("User", {
+  pattern = "LazyLoad",
+  callback = function(event)
+    if event.data ~= "nvim-lspconfig" then
+      return
+    end
+    vim.api.nvim_create_user_command("LspLogDelete", function()
+      local log_path = vim.lsp.get_log_path()
+      if vim.fn.filereadable(log_path) == 1 then
+        os.remove(log_path)
+        vim.notify("Deleted LSP log: " .. log_path, vim.log.levels.INFO)
+      else
+        vim.notify("No LSP log found at " .. log_path, vim.log.levels.WARN)
+      end
+    end, { desc = "Delete (rotate) the Neovim LSP log file" })
+    vim.api.nvim_create_user_command("LspInfo", function()
+      vim.cmd("checkhealth vim.lsp")
+    end, { force = true, desc = "Alias to `:checkhealth vim.lsp` (no tab)" })
+    vim.api.nvim_create_user_command("LspLog", function()
+      vim.cmd("edit " .. vim.lsp.get_log_path())
+    end, { force = true, desc = "Open LSP log in current window" })
+  end,
+})
 
 return {
   {
