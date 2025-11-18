@@ -78,7 +78,7 @@ return {
             ["<c-a>"] = false,
             ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
             ["<c-c>"] = { "yank", mode = { "n", "i" } },
-            ["<c-w>"] = { "cycle_win", mode = { "n", "i" } },
+            ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
             ["<D-c>"] = { "yank", mode = { "n", "i" } },
             ["<D-p>"] = { "paste", mode = { "n", "i" } },
             -- Probably won't work given this is Tab
@@ -90,13 +90,13 @@ return {
         list = {
           keys = {
             ["?"] = { "toggle_help_list", mode = { "i", "n" } },
-            ["<c-w>"] = { "cycle_win", mode = { "n", "i" } },
+            ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
           },
         },
         preview = {
           keys = {
             ["?"] = { "toggle_help_list", mode = { "i", "n" } },
-            ["<c-w>"] = { "cycle_win", mode = { "n", "i" } },
+            ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
           },
         },
       },
