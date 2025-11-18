@@ -73,7 +73,7 @@ local function commit_current_file()
           if code == 0 then
             vim.notify("Committed " .. notify_path(file), vim.log.levels.INFO)
             if next(stdout) then
-              vim.notify(table.concat(stdout, "\n"), vim.log.levels.TRACE)
+              vim.notify(stdout, vim.log.levels.INFO)
             end
           else
             local msg = table.concat(stderr, "\n"):gsub("^%s+", "")
