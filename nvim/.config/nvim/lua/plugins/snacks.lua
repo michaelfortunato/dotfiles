@@ -67,6 +67,18 @@ return {
       win = {
         input = {
           keys = {
+            -- TODO: Theres a way to get <Esc> to close the hlep window
+            -- window if its showing?
+            -- local function close_help_or_picker(picker)
+            --   for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            --     local buf = vim.api.nvim_win_get_buf(win)
+            --     if vim.bo[buf].filetype == "snacks_win_help" then
+            --       picker:action("hide_help")
+            --       return
+            --     end
+            --   end
+            --   picker:action("close")
+            -- end
             ["<Esc>"] = { "close", mode = { "n", "i" } },
             ["<c-h>"] = { "toggle_hidden", mode = { "i", "n" } },
             ["<c-y>"] = { "confirm", mode = { "i", "n" } },
