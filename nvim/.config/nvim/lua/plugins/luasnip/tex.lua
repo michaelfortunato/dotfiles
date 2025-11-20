@@ -253,7 +253,6 @@ end
 local iv = function(i, ...)
   return d(i, get_visual, ...)
 end
-ls.expand_auto()
 
 ---@diagnostic disable-next-line: param-type-mismatch
 local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
@@ -296,10 +295,10 @@ return {
 \usepackage{float} % for [H] exact placement
 \usepackage[capitalize,noabbrev]{cleveref} %  use \cref{} instead of \ref
 
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Optional Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Optional Packages
 % \usepackage{csquotes}
 % \usepackage[textsize=tiny]{todonotes} % usage: \todo[inline]{notehere}
-*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Personal Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Personal Packages
 \usepackage{tailwindcolors} % my custom tailwindcss colors
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -629,6 +628,7 @@ sorting=ynt
     { t("\\floor{"), i(1), t("}"), i(0) },
     { condition = in_mathzone }
   ),
+  s({ trig = "compose", snippetType = "autosnippet" }, t("\\circ"), { condition = in_mathzone }),
   s({ trig = "compliment", snippetType = "autosnippet" }, t("\\complement"), { condition = in_mathzone }),
   s({ trig = "subseteq", snippetType = "autosnippet" }, t("\\subseteq"), { condition = in_mathzone }),
   --- TODO: See if I actually use these
@@ -640,6 +640,25 @@ sorting=ynt
   s({ trig = "hquad", snippetType = "autosnippet" }, t("\\hquad"), { condition = tex.in_mathzone }),
   s({ trig = "space", snippetType = "autosnippet" }, t("\\enspace"), { condition = in_mathzone }),
   s({ trig = "enspace", snippetType = "autosnippet" }, t("\\enspace"), { condition = in_mathzone }),
+  s({ trig = "hspace", snippetType = "autosnippet" }, t("\\,"), { condition = in_mathzone }),
+  -- \!
+  -- negative thin space
+  -- squeeze things together
+  -- \,
+  -- thin space
+  -- \:
+  -- medium space
+  -- more readable than \,
+  -- \;
+  -- thick space
+  -- best for “visual separation”
+  -- \quad
+  -- large
+  -- separate phrases
+  -- \qquad
+  -- larger
+  -- big structural separation
+  -- ---
   -- Operators
   s({ trig = "op", snippetType = "autosnippet" }, fmta("\\mathrm{<>}<>", { i(1), i(0) }), { condition = in_mathzone }),
   s(
@@ -720,14 +739,17 @@ sorting=ynt
     }),
     { condition = tex.in_mathzone }
   ),
-  s(
-    { trig = "(", wordTrig = false, snippetType = "autosnippet" },
-    fmta("(<>)<>", {
-      iv(1),
-      i(0),
-    }),
-    { condition = tex.in_mathzone }
-  ),
+  ---************************************************************
+  -- AUTOPAIRS
+  ----************************************************************
+  -- s(
+  --   { trig = "(", wordTrig = false, snippetType = "autosnippet" },
+  --   fmta("(<>)<>", {
+  --     iv(1),
+  --     i(0),
+  --   }),
+  --   { condition = tex.in_mathzone }
+  -- ),
   s(
     { trig = "{", snippetType = "autosnippet", hidden = true },
     fmta("\\{<>\\}<>", {
@@ -767,8 +789,11 @@ sorting=ynt
     t("\\times"),
   }, { condition = tex.in_mathzone }),
   -- CDOTS, i.e. \cdots
-  s({ trig = "cdots", snippetType = "autosnippet" }, {
-    t("\\cdots"),
+  s({ trig = "cdots ", snippetType = "autosnippet" }, {
+    t("\\cdots "),
+  }, { condition = tex.in_mathzone }),
+  s({ trig = "cdot ", snippetType = "autosnippet" }, {
+    t("\\cdot "),
   }, { condition = tex.in_mathzone }),
   -- LDOTS, i.e. \ldots
   s({ trig = "ldots", snippetType = "autosnippet" }, {
@@ -888,32 +913,118 @@ sorting=ynt
   ),
   s(
     { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
-    fmta(
-      [[
+    c(1, {
+      fmta(
+        [[
 \begin{align}
   <>
 \end{align}<>]],
-      {
-        d(1, get_visual),
-        i(0),
-      }
-    ),
+        {
+          d(1, get_visual),
+          i(0),
+        }
+      ),
+      fmta(
+        [[
+\[
+  <>
+\]<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        }
+      ),
+      fmta(
+        [[
+\begin{equation}
+  <>
+\end{equation}<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        }
+      ),
+      fmta(
+        [[
+\begin{aligned}
+  <>
+\end{aligned}<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        }
+      ),
+    }),
     { condition = line_begin }
   ),
+  --   s(
+  --     { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
+  --     fmta(
+  --       [[
+  --
+  -- \begin{align}
+  --   <>
+  -- \end{align}<>]],
+  --       {
+  --         d(1, get_visual),
+  --         i(0),
+  --       },
+  --       { trim_empty = false }
+  --     ),
+  --     { condition = -line_begin * trigger_does_not_follow_alpha_char }
+  --   ),
   s(
     { trig = "MM", wordTrig = false, regTrig = false, snippetType = "autosnippet" },
-    fmta(
-      [[
+    c(1, {
+      fmta(
+        [[
 
 \begin{align}
   <>
 \end{align}<>]],
-      {
-        d(1, get_visual),
-        i(0),
-      },
-      { trim_empty = false }
-    ),
+        {
+          d(1, get_visual),
+          i(0),
+        },
+        { trim_empty = false }
+      ),
+      fmta(
+        [[
+
+\[
+  <>
+\]<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        },
+        { trim_empty = false }
+      ),
+      fmta(
+        [[
+
+\begin{equation}
+  <>
+\end{equation}<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        },
+        { trim_empty = false }
+      ),
+      fmta(
+        [[
+
+\begin{aligned}
+  <>
+\end{aligned}<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        },
+        { trim_empty = false }
+      ),
+    }),
     { condition = -line_begin * trigger_does_not_follow_alpha_char }
   ),
   --- Enter inline mathmode quickly
@@ -1290,7 +1401,7 @@ sorting=ynt
     { condition = line_begin }
   ),
   s(
-    { trig = "#begin", snippetType = "autosnippet" },
+    { trig = "#begin", regTrig = true, snippetType = "autosnippet" },
     fmta(
       [[
         \begin{<>}
@@ -1417,30 +1528,62 @@ sorting=ynt
   s(
     {
       trig = "#table",
-      name = "Table environment",
-      desc = "Add a table",
+      name = "Booktabs table",
+      desc = "Booktabs-compliant table skeleton with SI/column notes",
       snippetType = "autosnippet",
     },
     fmta(
       [[
-\begin{table}
+% Booktabs guidelines:
+%   - No vertical rules; use whitespace + \cmidrule for logical groups.
+%   - Keep units out of headers (prefer SI-style column formatting).
+%   - Align numbers on decimal/comma via siunitx `S` columns when possible.
+\begin{table}[<>] % placement: h=here, t=top, b=bottom, p=float page
   \caption{<>}
-  \label{table:sample-table}
+  \label{tab:<>}
   \centering
-  \begin{tabular}{lll}
+  % Column spec cheat sheet:
+  %   l / c / r   = left / centered / right text.
+  %   S[...]      = siunitx numeric column (aligns on decimal, handles units).
+  %   p{len}    = fixed-width paragraph column.
+  %   @{}         = suppress default inter-column padding.
+  %   >>{\command} = apply formatting to a column (e.g. \raggedright).
+  \begin{tabular}{
+    l         % column 1: label column, left-aligned text
+    r         % column 2: right-aligned numbers (fallback when not using S)
+    S[        % column 3: siunitx numeric format example
+      table-format = 1.2e2,
+      round-mode = figures,
+      round-precision = 2
+    ]
+    c         % column 4: centered text (e.g. success rate or categorical flag)
+  }
     \toprule
-    \multicolumn{2}{c}{Part}                   \\
-    \cmidrule(r){1-2}
-    Name     & Description     & Size ($\mu$m) \\
+    % Header rows: keep units/symbols in headers minimal.
+    % Use \multicolumn + \cmidrule for grouped headers:
+    % \multicolumn{2}{c}{Group} & ... \\
+    % \cmidrule(lr){1-2}
+    $\abs{\mathcal{D}}$ & $N_{X}$ & {\si{\flop}} & {Success rate} \\
     \midrule
-    Dendrite & Input terminal  & $\sim$100     \\
-    Axon     & Output terminal & $\sim$10      \\
-    Soma     & Cell body       & up to $10^6$  \\
+    % Body rows: \num from siunitx to format numbers consistently.
+    \num{64}   & \num{20} & \num{5.94e12}   & $6/6$ \\
+    \num{3000} & \num{20} & \num{4.48e14}   & $6/6$ \\
+    % Add more rows here…
     \bottomrule
   \end{tabular}
-\end{table}<>
+  % Optional: table notes (avoid footnotes in body)
+  % \begin{tablenotes}[para,flushleft]
+  %   \item Notes go here…
+  % \end{tablenotes}
+\end{table}
+<>
 ]],
-      { i(1), i(0) }
+      {
+        i(1, "t"), -- placement
+        i(2, "Caption text"), -- caption
+        i(3, "sample"), -- label suffix
+        i(0), -- cursor continues here
+      }
     )
   ),
   -- s(
