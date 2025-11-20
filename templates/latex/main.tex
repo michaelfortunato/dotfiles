@@ -17,18 +17,113 @@
 % to avoid loading the natbib package, add option nonatbib:
 %    \usepackage[nonatbib]{neurips_2022}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[utf8]{inputenc} % allow utf-8 input
-\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts, see
+% https://tex.stackexchange.com/questions/664/why-should-i-use-usepackaget1fontenc
+\usepackage{microtype}      % microtypography
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{mathtools}
 \usepackage{hyperref}       % hyperlinks
 \usepackage{url}            % simple URL typesetting
-\usepackage{booktabs}       % professional-quality tables
+\usepackage{booktabs,multirow,makecell}       % professional-quality tables
+\usepackage{siunitx}        % professional-quality number formatting
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
-\usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
+\usepackage{nicematrix} % for matrix/block drawing
+\usepackage{float} % for [H] exact placement
+\usepackage[capitalize,noabbrev]{cleveref} %  use \cref{} instead of \ref
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Optional Packages
+% \usepackage{csquotes}
+% \usepackage[textsize=tiny]{todonotes} % usage: \todo[inline]{notehere}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Personal Packages
+\usepackage{tailwindcolors} % my custom tailwindcss colors
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                           Theorems/Definitions/etc
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                               CLEVERREF Configs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\crefname{algorithm}{Algorithm}{Algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
+% Sections
+\Crefname{section}{Section}{Sections}
+% Theorems etc
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\Crefname{lemma}{Lemma}{Lemmas}
+\crefname{remark}{Remark}{Remarks}
+\Crefname{remark}{Remark}{Remarks}
+%def
+\crefname{definition}{Definition}{Definitions}
+\Crefname{definition}{Definition}{Definitions}
+\crefname{boxeddefinition}{Definition}{Definitions}
+\Crefname{boxeddefinition}{Definition}{Definitions}
+%fig
+\crefname{figure}{Fig.}{Figs.}
+\Crefname{figure}{Fig.}{Figs.}
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Table}{Tables}
+% cref formats
+\crefformat{equation}{(#2#1#3)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                               Math Operators
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HELPFUL TIPS
+%======================================================================
+%   No *  subscript to the side always (inline style)
+%   With *  subscript below in display math (like \lim or \sum)
+%======================================================================
+% Math Operators
+\DeclareMathOperator*{\argmax}{arg\,max} %
+% \DeclareMathOperator*{\argmin}{arg\,min}
+%% Pair Deleiminter! Lovem
+%%% Absolute values \abs and \norm
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+%%% Swap the definition of \abs* and \norm*, so that \abs
+%%% and \norm resizes the size of the brackets, and the
+%%% starred version does not.
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+%%% Floor and Ceiling, Because I am not smart enough to be a pure math guy!
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                  Commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 3 is the number of args, 2 is the default value of arg1
+% \newcommand{\plusbinomial}[3][2]{(#2 + #3)^#1}
+% Usage: \plusbinomial[4]{x}{y} becomes (x + y)^4
+\newcommand{\dxdy}[2]{\frac{d#1}{d#2}}
+\newcommand{\ddx}[1]{\frac{d}{d#1}}
+\newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\ppx}[1]{\frac{\partial}{\partial#1}}
 \newcommand{\new}[1]{{\color{red} #1}}
 
-\title{SymD: Discovering Discrete Local Symmetries In Objects}
+\title{}
 
 % The \author macro works with any number of authors. There are two commands
 % used to separate the names and addresses of multiple authors: \And and \AND.
@@ -39,10 +134,7 @@
 % \AND instead of \And before the third author name.
 
 \author{%
-  Michael Newman Fortunato \thanks{Personal webpage:
-    \texttt{mnf.ai}. Personal email:
-    \texttt{michael.n.fortunato@gmail.com}.
-  } \\
+  Michael Newman Fortunato
   Department of Computer Science\\
   University of Chicago\
   Chicago, IL 60637\\
@@ -75,20 +167,6 @@
 \maketitle
 
 \begin{abstract}
-  A symmetry of an object is often localized to just a region on that object.
-  In other words, and this is especially true for objects in nature,
-  objects are usually not entirely symmetrical. Instead the symmetries occurn
-  \textit{within} the object. We call these symmetries,
-  \textit{local symmetries}. Because local symmetries are the most prevalent
-  in nature, we wish to, given an object, automatically discover
-  local symmetries. Using the group theory, we formalize the notion of local
-  symmetry, develop a methodology for discovering discete local symmetries in
-  objects, and present results showing the effectivness of our system.
-  The code for this paper is publicly available at
-  \texttt{github.com/michaelfortunato/SymD}.
-  The experiments are entirely reproducible, and setups are given for multiple
-  platforms. View the project's README at
-  \texttt{github.com/michaelfortunato/SymD/blob/main/README.typ}.
 \end{abstract}
 \noindent Please create a copy of this template for your write-up.
 Follow the format instructions in Section \ref{gen_inst} to write
