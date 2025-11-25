@@ -201,6 +201,14 @@ local in_codezone = cond_obj.make_condition(function()
   return false
 end)
 
+--- FIXME: In typst for custom math fucntions, when I write the argument
+--- autsnippets do not expand
+--- ```typst
+--- #let orb(x) = op("Orb")(#x)
+--- $ orb(x^ $
+--- ```
+--- does not subscript expand when I type jj.
+--- Nor does #orb work btw
 local in_mathzone = cond_obj.make_condition(function()
   local node = vim.treesitter.get_node({ ignore_injections = false })
   while node do
@@ -442,7 +450,7 @@ supplement: <>,
   ),
   s(
     {
-      trig = "([%w%)%]%}|])jj",
+      trig = "([%w%)%]%}|'])jj",
       desc = "Subscript(no ambiguity)",
       wordTrig = false,
       regTrig = true,
@@ -458,7 +466,7 @@ supplement: <>,
   ),
   s(
     {
-      trig = "([%w%)%]%}|])j([ijknmtvd])",
+      trig = "([%w%)%]%}|'])j([ijknmtvd])",
       wordTrig = false,
       desc = "subscript",
       regTrig = true,
@@ -476,7 +484,7 @@ supplement: <>,
     { condition = in_mathzone }
   ),
   s(
-    { trig = "([%w%)%]%}|])j(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    { trig = "([%w%)%]%}|'])j(%d+)", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
     fmta("<>_(<>)<>", {
       f(function(_, snip)
         return snip.captures[1]
@@ -490,7 +498,7 @@ supplement: <>,
   ),
   s(
     {
-      trig = "([%w%)%]%}|])J",
+      trig = "([%w%)%]%}|'])J",
       desc = "Subscript(no ambiguity)",
       wordTrig = false,
       regTrig = true,
@@ -615,7 +623,7 @@ supplement: <>,
   s({ trig = "concat", snippetType = "autosnippet" }, t("plus.circle"), { condition = in_mathzone }),
   s(
     { trig = "directsum", snippetType = "autosnippet" },
-    { c(1, { { t("plus.circle.big"), i(0) }, { t("plus.circle"), i(0) } }) },
+    c(1, { { t("plus.o") }, { t("plus.o.big") } }),
     { condition = in_mathzone }
   ),
   s({ trig = "tensorprod", snippetType = "autosnippet" }, t("times.circle.big"), { condition = in_mathzone }),
@@ -643,6 +651,7 @@ supplement: <>,
     { condition = in_mathzone }
   ),
   s({ trig = "implies", snippetType = "autosnippet" }, t("=>"), { condition = in_mathzone }),
+  s({ trig = "iff", snippetType = "autosnippet" }, t("<=>"), { condition = in_mathzone }),
   s({ trig = "neq", snippetType = "autosnippet" }, t("!="), { condition = in_mathzone }),
   s({ trig = "leq", snippetType = "autosnippet" }, t("<="), { condition = in_mathzone }),
   s({ trig = "geq", snippetType = "autosnippet" }, t(">="), { condition = in_mathzone }),
@@ -663,6 +672,7 @@ supplement: <>,
   -- s({ trig = "lt.tri", snippetType = "autosnippet" }, t("lt.tri "), { condition = in_mathzone }),
   s({ trig = "normalsubgroup", snippetType = "autosnippet" }, t("lt.tri.eq"), { condition = in_mathzone }),
   s({ trig = "normalpsubgroup", snippetType = "autosnippet" }, t("lt.tri"), { condition = in_mathzone }),
+  s({ trig = "/", snippetType = "autosnippet" }, c(1, { { t("/") }, { t("slash") } }), { condition = in_mathzone }),
   -- Operators
   s({ trig = "||", snippetType = "autosnippet" }, fmta("norm(<>)<>", { i(1), i(0) }), { condition = in_mathzone }),
   --- FIXME: This one is tricky, I think this works though smoothly so long as I put the space back `\mid `
@@ -676,9 +686,9 @@ supplement: <>,
     { condition = in_mathzone }
   ),
   -- --- Let "@" namespace operators
-  s({ trig = "@g", snippetType = "autosnippet" }, t("nabla"), { condition = in_mathzone }),
-  s({ trig = "@p", snippetType = "autosnippet" }, t("partial"), { condition = in_mathzone }),
-  s({ trig = "@c", snippetType = "autosnippet" }, t("compose"), { condition = in_mathzone }),
+  s({ trig = "'g", snippetType = "autosnippet" }, t("nabla"), { condition = in_mathzone }),
+  s({ trig = "'p", snippetType = "autosnippet" }, t("partial"), { condition = in_mathzone }),
+  s({ trig = "'c", snippetType = "autosnippet" }, t("compose"), { condition = in_mathzone }),
   s(
     { trig = "dxdy", snippetType = "autosnippet" },
     fmta([[frac((d <>,d <>)<>]], {
@@ -741,38 +751,38 @@ supplement: <>,
   -- AUTOPAIRS
   -- TODO: Really hink about if you want these vvv
   ----------------------------------------------------
-  s(
-    { trig = "(", wordTrig = false, hidden = true, snippetType = "autosnippet" },
-    fmta("(<>)<>", {
-      iv(1),
-      i(0),
-    }),
-    { condition = -in_textzone * trigger_does_not_preceed_alpha_char * (in_mathzone + in_codezone) }
-  ),
-  s(
-    { trig = "{", desc = "Autopairs", hidden = true, snippetType = "autosnippet" },
-    fmta("{<>}<>", {
-      iv(1),
-      i(0),
-    }),
-    { condition = in_mathzone * trigger_does_not_preceed_alpha_char }
-  ),
-  s(
-    { trig = "[", wordTrig = false, hidden = true, desc = "Autopairs", snippetType = "autosnippet" },
-    fmta("[<>]<>", {
-      iv(1),
-      i(0),
-    }),
-    { condition = in_mathzone * trigger_does_not_preceed_alpha_char }
-  ),
-  s(
-    { trig = [["]], wordTrig = false, snippetType = "autosnippet" },
-    fmta([["<>"<>]], {
-      iv(1),
-      i(0),
-    }),
-    { condition = trigger_does_not_follow_alpha_char * (in_mathzone + in_codezone) }
-  ),
+  -- s(
+  --   { trig = "(", wordTrig = false, hidden = true, snippetType = "autosnippet" },
+  --   fmta("(<>)<>", {
+  --     iv(1),
+  --     i(0),
+  --   }),
+  --   { condition = -in_textzone * trigger_does_not_preceed_alpha_char * (in_mathzone + in_codezone) }
+  -- ),
+  -- s(
+  --   { trig = "{", desc = "Autopairs", hidden = true, snippetType = "autosnippet" },
+  --   fmta("{<>}<>", {
+  --     iv(1),
+  --     i(0),
+  --   }),
+  --   { condition = in_mathzone * trigger_does_not_preceed_alpha_char }
+  -- ),
+  -- s(
+  --   { trig = "[", wordTrig = false, hidden = true, desc = "Autopairs", snippetType = "autosnippet" },
+  --   fmta("[<>]<>", {
+  --     iv(1),
+  --     i(0),
+  --   }),
+  --   { condition = in_mathzone * trigger_does_not_preceed_alpha_char }
+  -- ),
+  -- s(
+  --   { trig = [["]], wordTrig = false, snippetType = "autosnippet" },
+  --   fmta([["<>"<>]], {
+  --     iv(1),
+  --     i(0),
+  --   }),
+  --   { condition = trigger_does_not_follow_alpha_char * (in_mathzone + in_codezone) }
+  -- ),
   -- s(
   --   { trig = "`", wordTrig = false, snippetType = "autosnippet" },
   --   fmta("`<>`<>", {
@@ -1210,7 +1220,7 @@ $<>]],
     t("tau"),
   }),
   s({ trig = ";f", wordTrig = false, snippetType = "autosnippet" }, {
-    t("phi"),
+    t("phi.alt"),
   }),
   s({ trig = ";vf", wordTrig = false, snippetType = "autosnippet" }, {
     t("varphi"),
