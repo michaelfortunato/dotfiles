@@ -1,8 +1,12 @@
-*.
-!.git
-!.gitignore
+# OS
+.DS_Store
+.AppleDouble
+*~
+*.swp
+
+# Local tool caches
+.rune/
 .luarc.json
 # Ignore any files whose parent is 'automatic_backups' and whose grandparent 
 # or great grandparanet is 'karabiner'
 karabiner/**/automatic_backups/*
-.rune/
