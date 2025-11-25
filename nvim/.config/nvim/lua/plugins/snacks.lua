@@ -1,6 +1,12 @@
 ---@module "snacks"
+---@type LazyPluginSpec
 return {
   "michaelfortunato/snacks.nvim",
+  -- I had this because I was paranoid the snacks updates made it slower
+  -- but I do not think it actually did so I will remove it after a bit
+  -- more usage.
+  branch = "mnf-snacks-pre-update",
+  dev = false,
   ---@type snacks.Config
   opts = {
     dashboard = {
@@ -51,6 +57,23 @@ return {
         max_height = 300,
       },
       math = { enabled = false },
+    },
+    zen = {
+      toggles = {
+        dim = false, -- no twilight-style dim at all
+      },
+      show = {
+        statusline = false,
+        tabline = false,
+      },
+      win = {
+        width = 0.6, -- or a fixed column count (e.g. 120)
+        backdrop = {
+          transparent = false,
+          -- 99 ~= match current buffer bg; you can tweak between 90–99
+          blend = 99,
+        },
+      },
     },
     --
     -- Concepts
