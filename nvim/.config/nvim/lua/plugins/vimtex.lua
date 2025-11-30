@@ -88,6 +88,11 @@ return {
     vim.g.vimtex_doc_handlers = { "vimtex#doc#handlers#texdoc" }
     vim.g.vimtex_root_markers = { "main.tex", "paper/main.tex" }
 
+    -- NOTE: There WAS a lag with # and it goes away when I disable
+    -- vimtex imaps of course! I found it had many mappings involving #
+    -- For future me, if there is a laggy key entry in insert mode, do
+    -- `:imaps` and then grep the buffer.
+    vim.g.vimtex_imaps_enabled = false
     vim.g.vimtex_mappings_enabled = false
     local augroup = vim.api.nvim_create_augroup("vimtexConfig", {})
     vim.api.nvim_create_autocmd("FileType", {
@@ -101,151 +106,6 @@ return {
           { "<localleader>l", group = "VimTeX", icon = { icon = "", color = "green" }, mode = "nx" },
           {
             mode = "n",
-            {
-              "<localleader>ll",
-              "<plug>(vimtex-compile)",
-              desc = "Compile",
-              icon = { icon = "", color = "green" },
-            },
-            {
-              "<localleader>lL",
-              "<plug>(vimtex-compile-selected)",
-              desc = "Compile selected",
-              icon = { icon = "", color = "green" },
-              mode = "nx",
-            },
-            {
-              "<localleader>li",
-              "<plug>(vimtex-info)",
-              desc = "Information",
-              icon = { icon = "", color = "purple" },
-            },
-            {
-              "<localleader>lI",
-              "<plug>(vimtex-info-full)",
-              desc = "Full information",
-              icon = { icon = "󰙎", color = "purple" },
-            },
-            {
-              "<localleader>lt",
-              "<plug>(vimtex-toc-open)",
-              desc = "Table of Contents",
-              icon = { icon = "󰠶", color = "purple" },
-            },
-            {
-              "<localleader>lT",
-              "<plug>(vimtex-toc-toggle)",
-              desc = "Toggle table of Contents",
-              icon = { icon = "󰠶", color = "purple" },
-            },
-            {
-              "<localleader>lq",
-              "<plug>(vimtex-log)",
-              desc = "Log",
-              icon = { icon = "", color = "purple" },
-            },
-            -- {
-            --   "<localleader>lv",
-            --   "<plug>(vimtex-view)",
-            --   desc = "View",
-            --   icon = { icon = "", color = "green" },
-            -- },
-            {
-              "<localleader>v",
-              "<plug>(vimtex-view)",
-              desc = "View",
-              icon = { icon = "", color = "green" },
-            },
-            {
-              "<localleader>lr",
-              "<plug>(vimtex-reverse-search)",
-              desc = "Reverse search",
-              icon = { icon = "", color = "purple" },
-            },
-            {
-              "<localleader>lk",
-              "<plug>(vimtex-stop)",
-              desc = "Stop",
-              icon = { icon = "", color = "red" },
-            },
-            {
-              "<localleader>lK",
-              "<plug>(vimtex-stop-all)",
-              desc = "Stop all",
-              icon = { icon = "󰓛", color = "red" },
-            },
-            {
-              "<localleader>le",
-              "<plug>(vimtex-errors)",
-              desc = "Errors",
-              icon = { icon = "", color = "red" },
-            },
-            {
-              "<localleader>lo",
-              "<plug>(vimtex-compile-output)",
-              desc = "Compile output",
-              icon = { icon = "", color = "purple" },
-            },
-            {
-              "<localleader>lg",
-              "<plug>(vimtex-status)",
-              desc = "Status",
-              icon = { icon = "󱖫", color = "purple" },
-            },
-            {
-              "<localleader>lG",
-              "<plug>(vimtex-status-full)",
-              desc = "Full status",
-              icon = { icon = "󱖫", color = "purple" },
-            },
-            {
-              "<localleader>lc",
-              "<plug>(vimtex-clean)",
-              desc = "Clean",
-              icon = { icon = "󰃢", color = "orange" },
-            },
-            {
-              "<localleader>lh",
-              "<Cmd>VimtexClearCache ALL<cr>",
-              desc = "Clear all cache",
-              icon = { icon = "󰃢", color = "grey" },
-            },
-            {
-              "<localleader>lC",
-              "<plug>(vimtex-clean-full)",
-              desc = "Full clean",
-              icon = { icon = "󰃢", color = "red" },
-            },
-            {
-              "<localleader>lx",
-              "<plug>(vimtex-reload)",
-              desc = "Reload",
-              icon = { icon = "󰑓", color = "green" },
-            },
-            {
-              "<localleader>lX",
-              "<plug>(vimtex-reload-state)",
-              desc = "Reload state",
-              icon = { icon = "󰑓", color = "cyan" },
-            },
-            {
-              "<localleader>lm",
-              "<plug>(vimtex-imaps-list)",
-              desc = "Input mappings",
-              icon = { icon = "", color = "purple" },
-            },
-            {
-              "<localleader>ls",
-              "<plug>(vimtex-toggle-main)",
-              desc = "Toggle main",
-              icon = { icon = "󱪚", color = "green" },
-            },
-            {
-              "<localleader>la",
-              "<plug>(vimtex-context-menu)",
-              desc = "Context menu",
-              icon = { icon = "󰮫", color = "purple" },
-            },
             { "ds", group = "+surrounding", icon = { icon = "󰗅", color = "green" } },
             {
               "dse",
@@ -431,6 +291,151 @@ return {
             },
             { "am", "<plug>(vimtex-am)", desc = "item", icon = { icon = "", color = "orange" } },
             { "im", "<plug>(vimtex-im)", desc = "item", icon = { icon = "", color = "orange" } },
+            {
+              "<localleader>ll",
+              "<plug>(vimtex-compile)",
+              desc = "Compile",
+              icon = { icon = "", color = "green" },
+            },
+            {
+              "<localleader>lL",
+              "<plug>(vimtex-compile-selected)",
+              desc = "Compile selected",
+              icon = { icon = "", color = "green" },
+              mode = "nx",
+            },
+            {
+              "<localleader>li",
+              "<plug>(vimtex-info)",
+              desc = "Information",
+              icon = { icon = "", color = "purple" },
+            },
+            {
+              "<localleader>lI",
+              "<plug>(vimtex-info-full)",
+              desc = "Full information",
+              icon = { icon = "󰙎", color = "purple" },
+            },
+            {
+              "<localleader>lt",
+              "<plug>(vimtex-toc-open)",
+              desc = "Table of Contents",
+              icon = { icon = "󰠶", color = "purple" },
+            },
+            {
+              "<localleader>lT",
+              "<plug>(vimtex-toc-toggle)",
+              desc = "Toggle table of Contents",
+              icon = { icon = "󰠶", color = "purple" },
+            },
+            {
+              "<localleader>lq",
+              "<plug>(vimtex-log)",
+              desc = "Log",
+              icon = { icon = "", color = "purple" },
+            },
+            -- {
+            --   "<localleader>lv",
+            --   "<plug>(vimtex-view)",
+            --   desc = "View",
+            --   icon = { icon = "", color = "green" },
+            -- },
+            {
+              "<localleader>v",
+              "<plug>(vimtex-view)",
+              desc = "View",
+              icon = { icon = "", color = "green" },
+            },
+            {
+              "<localleader>lr",
+              "<plug>(vimtex-reverse-search)",
+              desc = "Reverse search",
+              icon = { icon = "", color = "purple" },
+            },
+            {
+              "<localleader>lk",
+              "<plug>(vimtex-stop)",
+              desc = "Stop",
+              icon = { icon = "", color = "red" },
+            },
+            {
+              "<localleader>lK",
+              "<plug>(vimtex-stop-all)",
+              desc = "Stop all",
+              icon = { icon = "󰓛", color = "red" },
+            },
+            {
+              "<localleader>le",
+              "<plug>(vimtex-errors)",
+              desc = "Errors",
+              icon = { icon = "", color = "red" },
+            },
+            {
+              "<localleader>lo",
+              "<plug>(vimtex-compile-output)",
+              desc = "Compile output",
+              icon = { icon = "", color = "purple" },
+            },
+            {
+              "<localleader>lg",
+              "<plug>(vimtex-status)",
+              desc = "Status",
+              icon = { icon = "󱖫", color = "purple" },
+            },
+            {
+              "<localleader>lG",
+              "<plug>(vimtex-status-full)",
+              desc = "Full status",
+              icon = { icon = "󱖫", color = "purple" },
+            },
+            {
+              "<localleader>lc",
+              "<plug>(vimtex-clean)",
+              desc = "Clean",
+              icon = { icon = "󰃢", color = "orange" },
+            },
+            {
+              "<localleader>lh",
+              "<Cmd>VimtexClearCache ALL<cr>",
+              desc = "Clear all cache",
+              icon = { icon = "󰃢", color = "grey" },
+            },
+            {
+              "<localleader>lC",
+              "<plug>(vimtex-clean-full)",
+              desc = "Full clean",
+              icon = { icon = "󰃢", color = "red" },
+            },
+            {
+              "<localleader>lx",
+              "<plug>(vimtex-reload)",
+              desc = "Reload",
+              icon = { icon = "󰑓", color = "green" },
+            },
+            {
+              "<localleader>lX",
+              "<plug>(vimtex-reload-state)",
+              desc = "Reload state",
+              icon = { icon = "󰑓", color = "cyan" },
+            },
+            {
+              "<localleader>lm",
+              "<plug>(vimtex-imaps-list)",
+              desc = "Input mappings",
+              icon = { icon = "", color = "purple" },
+            },
+            {
+              "<localleader>ls",
+              "<plug>(vimtex-toggle-main)",
+              desc = "Toggle main",
+              icon = { icon = "󱪚", color = "green" },
+            },
+            {
+              "<localleader>la",
+              "<plug>(vimtex-context-menu)",
+              desc = "Context menu",
+              icon = { icon = "󰮫", color = "purple" },
+            },
           },
           {
             mode = "nxo",
