@@ -106,6 +106,12 @@ return {
           { "<localleader>l", group = "VimTeX", icon = { icon = "", color = "green" }, mode = "nx" },
           {
             mode = "n",
+            {
+              "<localleader>v",
+              "<plug>(vimtex-view)",
+              desc = "View",
+              icon = { icon = "", color = "green" },
+            },
             { "ds", group = "+surrounding", icon = { icon = "󰗅", color = "green" } },
             {
               "dse",
@@ -334,12 +340,6 @@ return {
               desc = "Log",
               icon = { icon = "", color = "purple" },
             },
-            -- {
-            --   "<localleader>lv",
-            --   "<plug>(vimtex-view)",
-            --   desc = "View",
-            --   icon = { icon = "", color = "green" },
-            -- },
             {
               "<localleader>v",
               "<plug>(vimtex-view)",
