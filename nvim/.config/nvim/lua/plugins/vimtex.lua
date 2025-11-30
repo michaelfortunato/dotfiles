@@ -26,10 +26,6 @@ return {
         -- Syntex works and I like it,
         -- but somtimes I think it slows down my computer.
         -- Not very scientific!
-        -- Also there might be a synctex bug with snippets
-        -- where they do not work right after
-        -- reverse search unless I move around a bit in the editor.
-        -- Oh what fun!
         "-synctex=1",
         "-silent",
         "-aux-directory=target/obj",
