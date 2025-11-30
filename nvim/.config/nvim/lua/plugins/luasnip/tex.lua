@@ -926,6 +926,16 @@ sorting=ynt
       ),
       fmta(
         [[
+\begin{align*}
+  <>
+\end{align*}<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        }
+      ),
+      fmta(
+        [[
 \[
   <>
 \]<>]],
@@ -982,6 +992,18 @@ sorting=ynt
 \begin{align}
   <>
 \end{align}<>]],
+        {
+          d(1, get_visual),
+          i(0),
+        },
+        { trim_empty = false }
+      ),
+      fmta(
+        [[
+
+\begin{align*}
+  <>
+\end{align*}<>]],
         {
           d(1, get_visual),
           i(0),
