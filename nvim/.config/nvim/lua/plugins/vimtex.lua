@@ -1,4 +1,4 @@
---- Shoutout to https://github.com/Dolfost/dotfiles/blob/main/nvim/lua/plugins/vimtex.lua!
+-- Shoutout to https://github.com/Dolfost/dotfiles/blob/main/nvim/lua/plugins/vimtex.lua!
 return {
   "lervag/vimtex",
   lazy = false, -- no need to lazy load vimtex
@@ -7,8 +7,35 @@ return {
   init = function()
     vim.g.vimtex_mappings_disable = { ["n"] = { "K" } } -- disable `K` as it conflicts with LSP hover
     vim.g.vimtex_view_method = "sioyek"
-    vim.g.vimtex_view_sioyek_exe = vim.fn.expand("/Applications/sioyek.app/Contents/MacOS/sioyek")
+    vim.g.vimtex_view_sioyek_exe = "/Applications/sioyek.app/Contents/MacOS/sioyek"
     vim.g.vimtex_quickfix_method = vim.fn.executable("pplatex") == 1 and "pplatex" or "latexlog"
+
+    vim.g.vimtex_compiler_method = "latexmk"
+    vim.g.vimtex_compiler_latexmk = {
+      callback = true,
+      continuous = false,
+      build_dir = "target",
+      out_dir = "target/bin",
+      aux_dir = "target/obj",
+      executable = "latexmk",
+      options = {
+        "-pdf",
+        "-interaction=nonstopmode",
+        "-file-line-error", -- lets quickfix jump to file:line
+        "-halt-on-error", -- fail fast
+        -- Syntex works and I like it,
+        -- but somtimes I think it slows down my computer.
+        -- Not very scientific!
+        -- Also there might be a synctex bug with snippets
+        -- where they do not work right after
+        -- reverse search unless I move around a bit in the editor.
+        -- Oh what fun!
+        "-synctex=1",
+        "-silent",
+        "-aux-directory=target/obj",
+        "-output-directory=target/bin",
+      },
+    }
 
     -- vim.opt_local.spell = true
 
@@ -63,27 +90,7 @@ return {
 
     vim.g.vimtex_doc_confirm_single = false
     vim.g.vimtex_doc_handlers = { "vimtex#doc#handlers#texdoc" }
-
-    vim.g.vimtex_compiler_method = "latexmk"
-    vim.g.vimtex_compiler_latexmk = {
-      callback = true,
-      continuous = false,
-      build_dir = "target",
-      out_dir = "target/bin",
-      aux_dir = "target/obj",
-      executable = "latexmk",
-      options = {
-        "-pdf",
-        "-interaction=nonstopmode",
-        "-file-line-error", -- lets quickfix jump to file:line
-        "-halt-on-error", -- fail fast
-        "-synctex=0", -- Syntex works but I do not want it I think it slows down my computer
-        "-silent",
-        "-aux-directory=target/obj",
-        "-output-directory=target/bin",
-      },
-    }
-    vim.g.vimtex_root_markers = { "paper/Justfile", "paper/main.tex" }
+    vim.g.vimtex_root_markers = { "main.tex", "paper/main.tex" }
 
     vim.g.vimtex_mappings_enabled = false
     local augroup = vim.api.nvim_create_augroup("vimtexConfig", {})
