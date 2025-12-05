@@ -112,6 +112,7 @@ return {
             ["<c-u>"] = false,
             ["<c-a>"] = false,
             ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
+            ["<del>"] = { "bufdelete", mode = { "n", "i" } },
             ["<c-c>"] = { "yank", mode = { "n", "i" } },
             ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
             ["<D-c>"] = { "yank", mode = { "n", "i" } },
