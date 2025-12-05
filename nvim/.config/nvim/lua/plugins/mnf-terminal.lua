@@ -227,6 +227,11 @@ return {
         M.show_scratch("typst", { filetype = "typst" })
       end, { desc = "Typst scratch buffer" })
 
+      vim.keymap.set("n", "'tex", function()
+        local M = require("mnf.scratch")
+        M.show_scratch("tex", { filetype = "tex" })
+      end, { desc = "TeX scratch buffer" })
+
       vim.keymap.set("n", "'md", function()
         local M = require("mnf.scratch")
         M.show_scratch("markdown", { filetype = "markdown" })
