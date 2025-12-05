@@ -2,6 +2,10 @@
 
 This repository holds my dear dotfiles
 
+## TODO
+
+- [ ] Switch from telescope to snacks picker
+
 ## Installation
 
 I have a personality that is susceptible to endless ["ricing"][1].
