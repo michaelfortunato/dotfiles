@@ -571,11 +571,13 @@ sorting=ynt
   s({ trig = "ZZ", snippetType = "autosnippet" }, t("\\mathbb{Z}"), { condition = tex.in_mathzone }),
   s({ trig = "SS", snippetType = "autosnippet" }, t("\\mathbb{S}"), { condition = tex.in_mathzone }),
   s({ trig = "EE", snippetType = "autosnippet" }, t("\\mathbb{E}"), { condition = tex.in_mathzone }),
+  s({ trig = "PP", snippetType = "autosnippet" }, t("\\mathbb{P}"), { condition = tex.in_mathzone }),
   --- Relations
   s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = tex.in_mathzone }),
   s({ trig = "equiv", snippetType = "autosnippet" }, t("\\equiv"), { condition = tex.in_mathzone }),
   s({ trig = "===", snippetType = "autosnippet" }, t("\\equiv"), { condition = tex.in_mathzone }),
   s({ trig = "neq", snippetType = "autosnippet" }, t("\\neq"), { condition = tex.in_mathzone }),
+  s({ trig = "approx", snippetType = "autosnippet" }, t("\\approx"), { condition = tex.in_mathzone }),
   s({
     trig = "=",
     name = "_insert_equal_sign_as_text_node",
