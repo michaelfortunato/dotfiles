@@ -299,7 +299,7 @@ return {
 % \usepackage{csquotes}
 % \usepackage[textsize=tiny]{todonotes} % usage: \todo[inline]{notehere}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Personal Packages
-\usepackage{tailwindcolors} % my custom tailwindcss colors
+% \usepackage{tailwindcolors} % my custom tailwindcss colors
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                           Theorems/Definitions/etc
