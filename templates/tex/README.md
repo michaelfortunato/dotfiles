@@ -1,10 +1,20 @@
-# ML Class
+# Tex Template
 
 ## Installation
 
+Copy files from this folder
+
 ### Prerequisites
 
-You must have docker
+Make sure you have `just` and `pdflatex` installed.
+You can get both and keep them up to date decently by doing
+
+```sh
+# somethign like nix profile install nixpkgs#texlive.combined.scheme-full
+nix profile install nixpkgs#just
+```
+
+For tex, it'll be a few gigs, just live with it and get everything.
 
 ### Build
 
