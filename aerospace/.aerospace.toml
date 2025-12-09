@@ -280,6 +280,14 @@ run = "move-node-to-workspace C"  # mnemonics C - Chat
 if.app-id = "org.python.python"
 run = "layout floating"
 
+[[on-window-detected]]
+if.app-id = "com.mitchellh.ghostty"
+run = [
+  # FIXME: This doesn't work https://ghostty.org/docs/help/macos-tiling-wms
+  "layout tiling",
+  "move-node-to-workspace T",  # mnemonics T - Tiling
+]
+
 [workspace-to-monitor-force-assignment]
 S = "^Sidecar.*"
 D = "^DELL.*"
