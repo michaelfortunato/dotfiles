@@ -114,41 +114,78 @@ return {
         end,
       },
     }
-    table.insert(opts.sections.lualine_x, {
-      function()
-        -- if not already loaded, do not load this as lualine is not Lazy
-        local curr = require("mnf.terminal.jobs").get_current()
-        local count = require("mnf.terminal.jobs").count()
-        local label
-        if curr ~= nil then
-          label = curr .. "/" .. count
-        else
-          label = count
-        end
-        return "👷 " .. label
-      end,
-      cond = function()
-        return package.loaded["mnf.terminal.jobs"] and require("mnf.terminal.jobs").count() > 0
-      end,
-    })
-    table.insert(opts.sections.lualine_x, {
-      function()
-        -- if not already loaded, do not load this as lualine is not Lazy
-        local curr = require("mnf.terminal.managed").get_current()
-        local count = require("mnf.terminal.managed").count()
-        local label
-        if curr ~= nil then
-          label = curr .. "/" .. count
-        else
-          label = count
-        end
-        -- print(label)
-        return "📺 " .. label
-      end,
-      cond = function()
-        return package.loaded["mnf.terminal.managed"] and require("mnf.terminal.managed").count() > 0
-      end,
-    })
+    -- Explicit lualine_x stack (Lazy updates removed)
+    opts.sections.lualine_x = {
+      -- Noice command status
+      {
+        function()
+          return require("noice").api.status.command.get()
+        end,
+        cond = function()
+          return package.loaded["noice"] and require("noice").api.status.command.has()
+        end,
+        color = { fg = "#ff9e64" },
+      },
+      -- Noice mode (e.g., recording)
+      {
+        function()
+          return require("noice").api.status.mode.get()
+        end,
+        cond = function()
+          return package.loaded["noice"] and require("noice").api.status.mode.has()
+        end,
+        color = { fg = "#ff9e64" },
+      },
+      -- DAP status
+      {
+        function()
+          return require("dap").status()
+        end,
+        cond = function()
+          return package.loaded["dap"] and require("dap").status() ~= ""
+        end,
+        color = { fg = "#ff9e64" },
+      },
+      -- Git diff from gitsigns
+      {
+        "diff",
+        source = function()
+          local gitsigns = vim.b.gitsigns_status_dict
+          if gitsigns then
+            return {
+              added = gitsigns.added,
+              modified = gitsigns.changed,
+              removed = gitsigns.removed,
+            }
+          end
+        end,
+        symbols = { added = " ", modified = " ", removed = " " },
+      },
+      -- Managed terminal jobs (custom)
+      {
+        function()
+          local curr = require("mnf.terminal.jobs").get_current()
+          local count = require("mnf.terminal.jobs").count()
+          local label = curr and (curr .. "/" .. count) or count
+          return "👷 " .. label
+        end,
+        cond = function()
+          return package.loaded["mnf.terminal.jobs"] and require("mnf.terminal.jobs").count() > 0
+        end,
+      },
+      -- Managed terminal sessions (custom)
+      {
+        function()
+          local curr = require("mnf.terminal.managed").get_current()
+          local count = require("mnf.terminal.managed").count()
+          local label = curr and (curr .. "/" .. count) or count
+          return "📺 " .. label
+        end,
+        cond = function()
+          return package.loaded["mnf.terminal.managed"] and require("mnf.terminal.managed").count() > 0
+        end,
+      },
+    }
 
     opts.sections.lualine_y = {
       -- LazyVim had this, not a fan.
