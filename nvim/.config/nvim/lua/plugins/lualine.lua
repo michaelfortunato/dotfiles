@@ -97,7 +97,7 @@ return {
     opts.sections.lualine_z = {
       function()
         local bufnum = vim.api.nvim_get_current_buf()
-        return "Buf: " .. bufnum
+        return "📄 " .. bufnum
       end,
       {
         function()
