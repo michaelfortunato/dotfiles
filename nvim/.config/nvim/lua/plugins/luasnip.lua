@@ -13,6 +13,16 @@ return {
       opts.enable_autosnippets = true
       --- NOTE: This does not with luasnip 2.3, so if you use
       --- that use opts.store_selection_keys
+      --- NOTE: This also does not work with typst along with the
+      --- new version too so you can see if this last-resort fixes it
+      --- or if typst is getting a buffer local map
+      --- vim.api.nvim_create_autocmd("FileType", {
+      --   pattern = "typst",
+      --   callback = function(ev)
+      --     local cut = require("luasnip.util.select").cut_keys
+      --     vim.keymap.set({ "x", "s" }, "<BS>", cut, { buffer = ev.buf, silent = true })
+      --   end,
+      -- })
       opts.cut_selection_keys = "<BS>"
       opts.store_selection_keys = "<BS>"
       -- NOTE: If you want injected languages, consider this
@@ -30,7 +40,7 @@ return {
     end,
     keys = {
       {
-        "<leader>ml",
+        "<leader>msl",
         function()
           require("luasnip.loaders.from_lua").lazy_load({ paths = { SNIPPET_PATH } })
           print("Snippets refreshed!")
