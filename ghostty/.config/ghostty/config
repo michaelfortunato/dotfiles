@@ -12,7 +12,7 @@ shell-integration-features = no-cursor
 confirm-close-surface = false
 window-vsync = true
 macos-titlebar-style = hidden
-
+scrollbar = never
 # Clipboard behaviour matches `clipboard_control write-clipboard write-primary ...`
 clipboard-read = allow
 clipboard-write = allow
@@ -55,3 +55,4 @@ keybind = ctrl+shift+arrow_right=next_tab
 
 # Match Kitty's `send_key ctrl+shift+[` by sending the CSI-u sequence directly.
 keybind = ctrl+[=csi:91;6u
+#keybind = shift+space=csi:32;2u
