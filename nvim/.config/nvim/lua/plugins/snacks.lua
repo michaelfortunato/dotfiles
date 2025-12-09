@@ -304,7 +304,7 @@ return {
           tabs = {
             title = "Tabs",
             prompt = " ",
-            preview = "preview",
+            preview = "file",
             format = "file", -- leverage Snacks file formatter for icons/filetype awareness
             finder = function()
               local current = vim.api.nvim_get_current_tabpage()
