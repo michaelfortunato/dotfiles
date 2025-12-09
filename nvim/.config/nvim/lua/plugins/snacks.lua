@@ -72,6 +72,14 @@ vim.api.nvim_set_hl(0, "SnacksPickerPreviewBorder", { link = "SnacksPickerBoxBor
 vim.keymap.set({ "n" }, "<Leader>uz", function()
   require("snacks").zen()
 end, { desc = "Toggle Zen Mode" })
+vim.keymap.set({ "n" }, "<Leader>ux", function()
+  local dim = require("snacks.dim")
+  if dim.enabled then
+    dim.disable()
+  else
+    dim.enable()
+  end
+end, { desc = "Toggle Zen Mode" })
 
 return {
   {
