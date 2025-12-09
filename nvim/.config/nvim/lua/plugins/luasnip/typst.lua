@@ -1,15 +1,37 @@
 ---@diagnostic disable: undefined-global
 ---@module "luasnip"
--- local ls = require("luasnip")
--- local s = ls.snippet
--- local sn = ls.snippet_node
--- local t = ls.text_node
--- local i = ls.insert_node
--- local f = ls.function_node
--- local d = ls.dynamic_node
--- local fmt = require("luasnip.extras.fmt").fmt
--- local fmta = require("luasnip.extras.fmt").fmta
--- local rep = require("luasnip.extras").rep
+local ls = require("luasnip")
+-- some shorthands...
+---@diagnostic disable-next-line: param-type-mismatch
+local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
+local sn = ls.snippet_node
+local t = ls.text_node
+local i = ls.insert_node
+local f = ls.function_node
+local c = ls.choice_node
+local d = ls.dynamic_node
+local r = ls.restore_node
+local l = require("luasnip.extras").lambda
+local rep = require("luasnip.extras").rep
+local p = require("luasnip.extras").partial
+local m = require("luasnip.extras").match
+local n = require("luasnip.extras").nonempty
+local dl = require("luasnip.extras").dynamic_lambda
+local fmt = require("luasnip.extras.fmt").fmt
+local fmta = require("luasnip.extras.fmt").fmta
+local types = require("luasnip.util.types")
+local conds = require("luasnip.extras.conditions")
+local conds_expand = require("luasnip.extras.conditions.expand")
+-- Adds a new undo point
+-- See https://github.com/L3MON4D3/LuaSnip/issues/830
+local snip_expand = require("luasnip").snip_expand
+require("luasnip").snip_expand = function(...)
+  vim.o.ul = vim.o.ul
+  snip_expand(...)
+end
+local iv = function(i, ...)
+  return d(i, get_visual, ...)
+end
 -- Anatomy of a LuaSnip snippet
 -- require("luasnip").snippet(
 --   snip_params:table,  -- table of snippet parameters
@@ -50,33 +72,7 @@
 --    })
 --
 -- }
----- Some LaTeX-specific conditional expansion functions (requires VimTeX)
---- local tex_utils = {}
---- tex_utils.in_mathzone = function()  -- math context detection
----   return vim.fn['vimtex#syntax#in_mathzone']() == 1
---- end
---- tex_utils.in_text = function()
----   return not tex_utils.in_mathzone()
---- end
---- tex_utils.in_comment = function()  -- comment detection
----   return vim.fn['vimtex#syntax#in_comment']() == 1
---- end
---- tex_utils.in_env = function(name)  -- generic environment detection
----     local is_inside = vim.fn['vimtex#env#is_inside'](name)
----     return (is_inside[1] > 0 and is_inside[2] > 0)
---- end
---- -- A few concrete environments---adapt as needed
---- tex_utils.in_equation = function()  -- equation environment detection
----     return tex_utils.in_env('equation')
---- end
---- tex_utils.in_itemize = function()  -- itemize environment detection
----     return tex_utils.in_env('itemize')
---- end
---- tex_utils.in_tikz = function()  -- TikZ picture environment detection
----     return tex_utils.in_env('tikzpicture')
---- end
 --
-
 local get_visual = function(args, parent)
   if #parent.snippet.env.LS_SELECT_RAW > 0 then
     return sn(nil, i(1, parent.snippet.env.LS_SELECT_RAW))
@@ -145,7 +141,6 @@ local function make_trigger_preceeds_pattern(pattern)
   return cond_obj.make_condition(condition)
 end
 
-local ls = require("luasnip")
 local trigger_does_not_follow_alpha_char = make_trigger_does_not_follow_char("%a")
 local trigger_does_not_preceed_alpha_char = -make_trigger_preceeds_pattern("^%w")
 
@@ -222,10 +217,6 @@ local in_mathzone = cond_obj.make_condition(function()
   return false
 end)
 
-local iv = function(i, ...)
-  return d(i, get_visual, ...)
-end
-
 -- Generating functions for Matrix/Cases - thanks L3MON4D3!
 local generate_matrix = function(args, snip)
   local rows = tonumber(snip.captures[2])
@@ -282,17 +273,6 @@ local function sanitize_label(s)
     :gsub("%(", "")
     :gsub("%)", "")
     :gsub("%^", "")
-end
-
----@diagnostic disable-next-line: param-type-mismatch
-local s = ls.extend_decorator.apply(ls.snippet, { hidden = true })
-
--- Adds a new undo point
--- See https://github.com/L3MON4D3/LuaSnip/issues/830
-local snip_expand = require("luasnip").snip_expand
-require("luasnip").snip_expand = function(...)
-  vim.o.ul = vim.o.ul
-  snip_expand(...)
 end
 
 return {
@@ -623,11 +603,15 @@ supplement: <>,
   s({ trig = "concat", snippetType = "autosnippet" }, t("plus.circle"), { condition = in_mathzone }),
   s(
     { trig = "directsum", snippetType = "autosnippet" },
-    c(1, { { t("plus.o") }, { t("plus.o.big") } }),
-    { condition = in_mathzone }
+    c(1, {
+      t("plus.o.big"),
+      t("plus.o"),
+    }),
+    --{ condition = in_mathzone }
+    {}
   ),
   s({ trig = "tensorprod", snippetType = "autosnippet" }, t("times.circle.big"), { condition = in_mathzone }),
-  -- s({ trig = ":=", snippetType = "autosnippet" }, t("\\coloneq"), { condition = in_mathzone }),
+  s({ trig = "def", snippetType = "autosnippet" }, t(":= "), { condition = in_mathzone }),
   -- NOTE: \to is not supprted in typst
   -- NOTE: Everything else is shorthand supported!
   -- s({ trig = "->", snippetType = "autosnippet" }, t("arrow.r"), { condition = in_mathzone }),
@@ -650,11 +634,13 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
-  s({ trig = "implies", snippetType = "autosnippet" }, t("=>"), { condition = in_mathzone }),
+  s({ trig = "implies ", snippetType = "autosnippet" }, t("=> "), { condition = in_mathzone }),
+  s({ trig = "then ", snippetType = "autosnippet" }, c(1, { t("=> "), t("==> ") }), { condition = in_mathzone }),
   s({ trig = "iff", snippetType = "autosnippet" }, t("<=>"), { condition = in_mathzone }),
-  s({ trig = "neq", snippetType = "autosnippet" }, t("!="), { condition = in_mathzone }),
-  s({ trig = "leq", snippetType = "autosnippet" }, t("<="), { condition = in_mathzone }),
-  s({ trig = "geq", snippetType = "autosnippet" }, t(">="), { condition = in_mathzone }),
+  s({ trig = "neq", snippetType = "autosnippet" }, t("!= "), { condition = in_mathzone }),
+  -- s({ trig = "leq", snippetType = "autosnippet" }, t("<="), { condition = in_mathzone }),
+  s({ trig = "leq", snippetType = "autosnippet" }, t("<= "), { condition = in_mathzone }),
+  s({ trig = "geq", snippetType = "autosnippet" }, t(">= "), { condition = in_mathzone }),
   s({ trig = "iso", snippetType = "autosnippet" }, t("tilde.equiv"), { condition = in_mathzone }),
   -- s({ trig = "-->", snippetType = "autosnippet" }, t(" arrow.r.long"), { condition = in_mathzone }),
   -- s({ trig = ">=", snippetType = "autosnippet" }, t("gt.eq"), { condition = in_mathzone }),
@@ -671,7 +657,15 @@ supplement: <>,
   -- s({ trig = "lt.tri", snippetType = "autosnippet" }, t("lt.tri "), { condition = in_mathzone }),
   s({ trig = "normalsubgroup", snippetType = "autosnippet" }, t("lt.tri.eq"), { condition = in_mathzone }),
   s({ trig = "normalpsubgroup", snippetType = "autosnippet" }, t("lt.tri"), { condition = in_mathzone }),
-  s({ trig = "/", snippetType = "autosnippet" }, c(1, { { t("/") }, { t("slash") } }), { condition = in_mathzone }),
+  s({ trig = "cuberoot", snippetType = "autosnippet" }, { t("root(3,"), i(1), t(")") }, { condition = in_mathzone }),
+  s({ trig = "2root", snippetType = "autosnippet" }, { t("sqrt("), i(1), t(")") }, { condition = in_mathzone }),
+  -- FIXME: I do not think this would work
+  -- s(
+  --   { trig = "/", snippetType = "autosnippet" },
+  --   c(1, { { t("/") }, { t("slash") }, { fmta("(<>)/(<>)", { i(1), i(0) }) } }),
+  --   { condition = in_mathzone }
+  -- ),
+  --
   -- Operators
   s({ trig = "||", snippetType = "autosnippet" }, fmta("norm(<>)<>", { i(1), i(0) }), { condition = in_mathzone }),
   --- FIXME: This one is tricky, I think this works though smoothly so long as I put the space back `\mid `
@@ -684,7 +678,7 @@ supplement: <>,
     end), i(0) }),
     { condition = in_mathzone }
   ),
-  -- --- Let "@" namespace operators
+  -- --- Let "'" namespace operators
   s({ trig = "'g", snippetType = "autosnippet" }, t("nabla"), { condition = in_mathzone }),
   s({ trig = "'p", snippetType = "autosnippet" }, t("partial"), { condition = in_mathzone }),
   s({ trig = "'c", snippetType = "autosnippet" }, t("compose"), { condition = in_mathzone }),
