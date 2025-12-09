@@ -50,12 +50,16 @@ end, {
   bang = true,
 })
 
+-- TODO: Its possible the persistence load screws up refresh for Vimtex
 vim.api.nvim_create_user_command(
   "Restart",
   'restart lua require("persistence").load({ last = true })',
   { desc = "Restart Neovim and reload last session on reopen" }
 )
-vim.api.nvim_create_user_command("R", "Restart", { desc = "(Alias) Restart Neovim and reload last session on reopen" })
+
+-- stylua: ignore
+vim.api.nvim_create_user_command("R", "Restart", { desc = "(Restart Alias) Restart Neovim and reload last session on reopen" })
+vim.api.nvim_create_user_command("Q", "quitall", { desc = "(quitall Alias) Quit Neovim If No Pending Changes" })
 
 --- Get the particular terminal to remember its last mode
 local term_group = vim.api.nvim_create_augroup("MNF_TermGroup", { clear = true })

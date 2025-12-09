@@ -4,6 +4,7 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = ","
 vim.wo.colorcolumn = "80" -- TODO: How do I set the actual color?
+
 -- Try this
 vim.opt.number = false
 vim.opt.relativenumber = false
@@ -67,7 +68,10 @@ vim.o.showtabline = 0
 vim.o.showcmd = false
 
 -- Consider this for C-u c-d nav, a bit more tractable
-vim.o.scroll = 15
+-- Causing visual issues
+-- vim.wo.scroll = 15
+-- vim.o.scroll = 15
+-- vim.opt.scroll = 15
 -- or this idk
 -- vim.wo.scroll = 15
 

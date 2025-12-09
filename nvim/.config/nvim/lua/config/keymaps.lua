@@ -171,12 +171,9 @@ vim.keymap.del({ "n" }, "f")
 -- WARN: overloaded a really nice key combo for buffer search not sure how I feel
 -- abt it.
 vim.keymap.set({ "n" }, "fb", "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>")
-vim.keymap.set(
-  { "n" },
-  "f<Tab>",
-  "<CMD>Telescope telescope-tabs list_tabs<CR>",
-  { desc = "Search open tabs", noremap = true, silent = true }
-)
+vim.keymap.set({ "n" }, "f<Tab>", function()
+  Snacks.picker.tabs()
+end, { desc = "Search open tabs", noremap = true, silent = true })
 
 --- FIXME: Eh not great and a little slow?
 -- map("n", "p", paste, { noremap = true, silent = true })
@@ -212,6 +209,9 @@ map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Othe
 
 --- kitty section
 --- -- Kitty Splits
+-- FIXME: There is some bug in kitty where the cursor is flickering
+-- in neovim. It coudl be on the neovim side or the kitty size.
+-- Look at it later.
 map({ "n", "v" }, "<C-h>", function()
   require("smart-splits").move_cursor_left()
 end)

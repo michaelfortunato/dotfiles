@@ -1,6 +1,7 @@
 local M = {
   show_statusline = true,
 }
+vim.g.lazyvim_picker = "snacks"
 return {
   {
     "michaelfortunato/LazyVim",
@@ -8,8 +9,9 @@ return {
       { "projekt0n/github-nvim-theme", name = "github-theme" },
     },
     opts = {
-      colorscheme = "github_dark_high_contrast",
-      -- colorscheme = "catppuccin-mocha",
+      -- colorscheme = "github_dark_high_contrast",
+      -- colorscheme = "github_light",
+      colorscheme = "catppuccin-mocha",
       -- colorscheme = "tokyonight-night",
       -- colorscheme = "default",
     },

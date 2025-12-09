@@ -2,6 +2,7 @@ return {
   -- Tabs extension remains as-is
   {
     "LukasPietzschmann/telescope-tabs",
+    enabled = false,
     config = function()
       require("telescope").load_extension("telescope-tabs")
       require("telescope-tabs").setup({
@@ -12,8 +13,10 @@ return {
   },
 
   -- Global mapping for buffers picker: D in normal mode deletes buffer
+  ---@type LazyPluginSpec
   {
     "nvim-telescope/telescope.nvim",
+    enabled = false,
     ---@param opts table
     opts = function(_, opts)
       local actions = require("telescope.actions")
