@@ -35,7 +35,7 @@ keybind = cmd+enter=new_split:auto
 
 quick-terminal-space-behavior=remain
 quick-terminal-position=center
-quick-terminal-autohide=true
+quick-terminal-autohide=false
 quick-terminal-size=67%,67%
 quick-terminal-animation-duration=.100
 
