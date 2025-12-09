@@ -14,6 +14,7 @@ window-vsync = true
 macos-titlebar-style = hidden
 macos-window-shadow = false
 macos-option-as-alt = true
+macos-non-native-fullscreen = true
 scrollbar = never
 # Clipboard behaviour matches `clipboard_control write-clipboard write-primary ...`
 clipboard-read = allow
@@ -31,6 +32,10 @@ keybind = cmd+w=close_surface
 keybind = ctrl+shift+w=close_surface
 keybind = cmd+n=new_window
 keybind = cmd+enter=new_split:auto
+
+quick-terminal-space-behavior=remain
+quick-terminal-position=center
+quick-terminal-autohide=true
 
 keybind = ctrl+1=goto_tab:1
 keybind = ctrl+2=goto_tab:2
