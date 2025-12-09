@@ -56,7 +56,10 @@ return {
       keymap = {
         preset = "default",
         -- ["<C-space>"] = { "show", "hide", "show_documentation", "hide_documentation" },
-        -- FIXME: Some tom foolery with not being able to use the completion right
+        -- FIXME:
+        -- 1. I think Ctrl-space causes buffer to come first, and that overrides
+        -- the lsp, I should investigate. see blink-cmp-spell
+        -- 2. Some tom foolery with not being able to use the completion right
         -- this helps vs. the other toggles I think??
         ["<C-space>"] = { "show", "hide" },
         ["<C-e>"] = { "hide" },
@@ -216,6 +219,8 @@ return {
       -- Default list of enabled providers defined so that you can extend it
       -- elsewhere in your config, without redefining it, due to `opts_extend`
       sources = {
+        -- I think Ctrl-space causes buffer to come first, and that overrides
+        -- the lsp, I should investigate. see blink-cmp-spell
         default = { "snippets", "lsp", "path", "buffer", "emoji" },
 
         per_filetype = {
@@ -326,6 +331,11 @@ return {
   },
   {
     {
+      --  TODO: Note there is some issue with latex and its
+      -- treesitter environment in comment mode that makes
+      -- tab out think cursor is right before a closed - deliminter.
+      -- Ie % |<Tab>Foo becomes
+      --    % Foo|
       "abecodes/tabout.nvim",
       lazy = false,
       config = function()
