@@ -1,8 +1,11 @@
 # Ghostty config ported from Kitty on 2025-10-13
+# vim: set commentstring=#\ %s :
 
 # Appearance -------------------------------------------------------------
-theme = github-dark-high-contrast
-font-family = "MesloLGS NF"
+theme = Catppuccin Mocha
+#theme = Github Light High Contrast
+#theme = Catppuccin Latte
+font-family = "JetBrains Mono NL"
 font-size = 10
 cursor-style = block
 shell-integration-features = no-cursor
