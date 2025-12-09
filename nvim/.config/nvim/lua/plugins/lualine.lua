@@ -99,6 +99,20 @@ return {
         local bufnum = vim.api.nvim_get_current_buf()
         return "Buf: " .. bufnum
       end,
+      {
+        function()
+          local tabs = vim.api.nvim_list_tabpages()
+          local total = #tabs
+          if total <= 1 then
+            return ""
+          end
+          local current = vim.api.nvim_tabpage_get_number(vim.api.nvim_get_current_tabpage())
+          return string.format(" %d/%d", current, total)
+        end,
+        cond = function()
+          return #vim.api.nvim_list_tabpages() > 1
+        end,
+      },
     }
     table.insert(opts.sections.lualine_x, {
       function()
