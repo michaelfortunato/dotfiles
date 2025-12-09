@@ -68,6 +68,11 @@ vim.api.nvim_set_hl(0, "SnacksPickerInputBorder", { link = "SnacksPickerBoxBorde
 vim.api.nvim_set_hl(0, "SnacksPickerBorder", { link = "SnacksPickerBoxBorder" })
 vim.api.nvim_set_hl(0, "SnacksPickerPreviewBorder", { link = "SnacksPickerBoxBorder" })
 
+-- typical snacks w
+vim.keymap.set({ "n" }, "<Leader>uz", function()
+  require("snacks").zen()
+end, { desc = "Toggle Zen Mode" })
+
 return {
   {
     "michaelfortunato/snacks.nvim",
@@ -157,6 +162,9 @@ return {
       },
       --
       -- Concepts
+      --
+      -- TODO: We should figure out away to open bufers in a backgroudn tab
+      -- but keep the picker open.
       --
       -- - Finders: sources that produce items. Common ones: files, buffers, recent, git_files, grep, plus LSP pickers.
       -- - Smart: a convenience wrapper over pickers; by default it aggregates multiple finders (buffers, recent, files) and applies a
