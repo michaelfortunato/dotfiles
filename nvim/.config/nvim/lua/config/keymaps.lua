@@ -260,8 +260,6 @@ vim.keymap.set("t", "<C-S-h>", function()
   vim.cmd("silent! wincmd R")
 end, { silent = true, desc = "Rotate windows backward (terminal)" })
 
-map({ "n", "t", "v" }, "<C-q>", "<cmd>qa<cr>", { desc = "Quit All (Warns If Unsaved)" })
-
 del("n", "m")
 map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })
 local wk = require("which-key")
