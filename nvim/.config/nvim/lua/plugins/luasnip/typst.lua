@@ -380,7 +380,7 @@ return {
     { trig = "DOC", snippetType = "autosnippet" },
     fmta(
       [[
-#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, lemma, proof, example, subpar, scr, output_html
+#import "@local/mnf-typst:0.1.0": mnf_ams_article, theorem, definition, remark, lemma, proof, example, subpar, scr, mtext, output_html
 #import "@preview/cetz:0.3.4": canvas, draw
 #import "@preview/cetz-plot:0.1.1": plot
 
@@ -1095,7 +1095,7 @@ $<>]],
   --- PART (only applicable to book document class)
   s(
     { trig = "tt", wordTrig = false, snippetType = "autosnippet" },
-    fmta([["<>"<>]], {
+    fmta([[mtext(<>)<>]], {
       d(1, get_visual),
       i(0),
     }),
