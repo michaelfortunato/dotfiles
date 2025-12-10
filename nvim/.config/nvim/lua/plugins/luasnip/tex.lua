@@ -274,6 +274,23 @@ return {
       [[
 \documentclass[10pt, letterpaper]{article}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                     Fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% As of today on this works: \usepackage[amsthm]{newtx}
+%
+% From ICML they went back 2025.11.6 revert to times for better compatibility
+% But before they did they said
+% - Use newtx instead of times, aligning serif, sans-serif, typerwriter,
+%   and math fonts.
+% - Also somehwere they had this commented out \usepackage[amsthm]{newtx}
+% You should use this if you are writing a paper
+% but apperntly just stick to cm for notes?: 
+% Preferable as it gets times math and others in harmony
+% Or this \usepackage{newtx}
+% \usepackage{newtxtext,newtxmath}
+% Or the classic:
+% \usepackage{times}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                   Packages
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[utf8]{inputenc} % allow utf-8 input
@@ -282,6 +299,7 @@ return {
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
+% \usepackage[amsthm]{newtx} % if you want times
 \usepackage{amsthm}
 \usepackage{mathtools}
 \usepackage{hyperref}       % hyperlinks
@@ -343,10 +361,10 @@ return {
 %                               Math Operators
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % HELPFUL TIPS
-======================================================================
+% ======================================================================
 % 	No *  subscript to the side always (inline style)
 % 	With *  subscript below in display math (like \lim or \sum)
-======================================================================
+% ======================================================================
 % Math Operators
 \DeclareMathOperator*{\argmax}{arg\,max} % \DeclareMathOperator*{\argmin}{arg\,min}
 %% Pair Deleiminter! Lovem 
@@ -376,6 +394,10 @@ return {
 \newcommand{\ddx}[1]{\frac{d}{d#1}}
 \newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
 \newcommand{\ppx}[1]{\frac{\partial}{\partial#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                 Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % bibliography
 % Usage: \cite{keyword}
@@ -388,6 +410,9 @@ sorting=ynt
 %\addbibresource{main.bib}
 %\addbibresource{Zotero.bib} %Main bib db, see $BIBINPUTS 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                             Begin Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 % Title Section
 \title{<>}
@@ -662,7 +687,18 @@ sorting=ynt
   -- big structural separation
   -- ---
   -- Operators
-  s({ trig = "op", snippetType = "autosnippet" }, fmta("\\mathrm{<>}<>", { i(1), i(0) }), { condition = in_mathzone }),
+  s(
+    { trig = "op", snippetType = "autosnippet" },
+    -- \\mathrm might be more semantic but this prevents Vimtex
+    -- from thinking I am in am ath environment
+    -- actually wait \textrm and \mathrm render differnet idk
+    -- @ref: https://tex.stackexchange.com/questions/22350/difference-between-textrm-and-mathrm
+    -- @ref: https://en.wikibooks.org/wiki/LaTeX/Advanced_Mathematics#Custom_operators
+    -- Ill never figure this shit out
+    -- { c(1, { t("\\operatorname{"), t("\\operatorname*{") }), i(2), t("}"), i(0) },
+    c(1, { { t("\\operatorname{"), i(1), t("}") }, { t("\\operatorname*{"), i(1), t("}") } }),
+    { condition = in_mathzone }
+  ),
   s(
     { trig = "||", snippetType = "autosnippet" },
     fmta("\\norm{<>}<>", { i(1), i(0) }),
@@ -813,19 +849,20 @@ sorting=ynt
     t(" \\rangle"),
     i(0),
   }, { condition = tex.in_mathzone }),
-  s({
-    trig = "@",
-    snippetType = "autosnippet",
-    trigEngine = "plain",
-    wordTrig = false, -- allows triggering even when not at word boundary
-  }, {
+  s(
+    {
+      trig = "@",
+      snippetType = "autosnippet",
+      trigEngine = "plain",
+      wordTrig = false, -- allows triggering even when not at word boundary
+    },
     c(1, {
       { t("\\citep{"), i(1), t("}") },
       { t("\\citet{"), i(1), t("}") },
       { t("\\cref{"), i(1), t("}") },
       { t("\\autoref{"), i(1), t("}") },
-    }),
-  }),
+    })
+  ),
   s(
     { trig = "bxd", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\boxed{<>}<>]], {
