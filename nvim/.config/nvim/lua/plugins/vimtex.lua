@@ -1,7 +1,7 @@
 -- Shoutout to https://github.com/Dolfost/dotfiles/blob/main/nvim/lua/plugins/vimtex.lua!
 return {
   "lervag/vimtex",
-  lazy = false, -- no need to lazy load vimtex
+  lazy = false, -- Do NOT lazy load vimtex
   enabled = true,
 
   init = function()
