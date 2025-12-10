@@ -71,7 +71,7 @@ vim.api.nvim_set_hl(0, "SnacksPickerPreviewBorder", { link = "SnacksPickerBoxBor
 -- typical snacks w
 vim.keymap.set({ "n" }, "<Leader>uz", function()
   require("snacks").zen()
-end, { desc = "Toggle Zen Mode" })
+end, { desc = "Toggle Dim Mode" })
 vim.keymap.set({ "n" }, "<Leader>ux", function()
   local dim = require("snacks.dim")
   if dim.enabled then
@@ -142,6 +142,9 @@ return {
         math = { enabled = false },
       },
       styles = {
+        -- NOTE: We need to be careful here
+        -- as zenmode will not restore the c-h etc. mappings once left
+        -- See the `HACK` below on `on_close`.
         zen = {
           keys = {
             ["<C-h>"] = "",
@@ -167,6 +170,46 @@ return {
             blend = 99,
           },
         },
+        ---@param win snacks.win
+        -- HACK: See below for why this is important window navigation given
+        -- i disable the relativent buttons in zen mode
+        -- as zenmode will not restore the c-h etc. mappings once left
+        on_close = function(win)
+          vim.keymap.set({ "n", "v" }, "<C-h>", function()
+            require("smart-splits").move_cursor_left()
+          end, { buffer = win.buf })
+          vim.keymap.set({ "n", "v" }, "<C-j>", function()
+            require("smart-splits").move_cursor_down()
+          end, { buffer = win.buf })
+          vim.keymap.set({ "n", "v" }, "<C-k>", function()
+            require("smart-splits").move_cursor_up()
+          end)
+          vim.keymap.set({ "n", "v" }, "<C-l>", function(e)
+            require("smart-splits").move_cursor_right()
+          end, { buffer = win.buf })
+          --- The splits in insert mode
+          vim.keymap.set({ "i", "t" }, "<C-h>", function()
+            vim.cmd("stopinsert")
+            require("smart-splits").move_cursor_left()
+          end, { buffer = win.buf })
+          vim.keymap.set({ "t", "i" }, "<C-j>", function()
+            vim.cmd("stopinsert")
+            require("smart-splits").move_cursor_down()
+          end, { buffer = win.buf })
+          vim.keymap.set({ "t", "i" }, "<C-k>", function()
+            vim.cmd("stopinsert")
+            require("smart-splits").move_cursor_up()
+          end)
+          vim.kemap.set({ "t", "i" }, "<C-l>", function(e)
+            local ls = require("luasnip")
+            if ls.choice_active() then
+              ls.change_choice(1)
+              return true
+            end
+            vim.cmd("stopinsert")
+            require("smart-splits").move_cursor_right()
+          end, { buffer = win.buf })
+        end,
       },
       --
       -- Concepts
@@ -190,6 +233,8 @@ return {
         actions = {
           focus_left = function(picker)
             local here = picker_cur_part()
+            --- Note that this will not when the buffer
+            --- is reused since the buffer type is no longer preview
             if here ~= "preview" then
               return
             end
@@ -205,7 +250,8 @@ return {
               return
             end
             if here == "input" or here == "list" then
-              picker_focus_part(picker, "preview")
+              picker:focus("preview")
+              -- picker_focus_part(picker, "preview")
             end
           end,
 
@@ -219,6 +265,10 @@ return {
 
           focus_down = function(picker)
             picker_focus_part(picker, "list")
+          end,
+
+          hide_help = function(picker)
+            -- picker:help
           end,
 
           close_or_hide_help = function(picker)
@@ -257,10 +307,10 @@ return {
         win = {
           input = {
             keys = {
-              ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
-              ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
-              ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
-              ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
+              -- ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
+              -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
+              -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
+              -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<c-y>"] = { "confirm", mode = { "i", "n" } },
               ["<c-g>i"] = { "toggle_ignored", mode = { "i", "n" } },
@@ -285,10 +335,10 @@ return {
           },
           list = {
             keys = {
-              ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
-              ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
-              ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
-              ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
+              -- ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
+              -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
+              -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
+              -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
@@ -297,10 +347,10 @@ return {
           },
           preview = {
             keys = {
-              ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
-              ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
-              ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
-              ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
+              -- ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
+              -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
+              -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
+              -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
@@ -386,6 +436,24 @@ return {
         },
       },
     },
+    -- This almost worked.
+    -- config = function(_, opts)
+    --   local Snacks = require("snacks")
+    --
+    --   -- When the preview window reuses a real buffer (not the scratch preview
+    --   -- buffer), re-apply the picker window keymaps to that buffer so
+    --   -- <C-h/j/k/l> and other picker bindings still work inside preview.
+    --   local preview = require("snacks.picker.core.preview")
+    --   local orig_set_buf = preview.set_buf
+    --   function preview:set_buf(buf)
+    --     orig_set_buf(self, buf)
+    --     if self.win and self.win.buf == buf then
+    --       self.win:map() -- rebind picker window maps onto the reused buffer
+    --     end
+    --   end
+    --
+    --   Snacks.setup(opts)
+    -- end,
   -- stylua: ignore
   keys = {
     { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
