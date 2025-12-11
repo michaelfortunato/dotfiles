@@ -105,6 +105,7 @@ end, {
   desc = "Next Trouble/Quickfix Item",
 })
 -- The "n" is necesasry to continue the keymap
+-- TODO: Update for ghossty
 vim.keymap.set({ "t", "n" }, "<C-S-Up>", [[<C-\><C-n>5<C-y>]], { silent = true })
 vim.keymap.set({ "t", "n" }, "<C-S-Down>", [[<C-\><C-n>5<C-e>]], { silent = true })
 

@@ -373,6 +373,9 @@ return {
           },
           preview = {
             keys = {
+              -- WARN: Note rn there is a nto so great bug that
+              -- where all of these keymaps will be added to buffer local maps
+              --
               -- ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
               -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
               -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
@@ -506,7 +509,7 @@ return {
     -- end,
   -- stylua: ignore
   keys = {
-    { "ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
+    { "ff", function() Snacks.picker.buffers({ modified = true }) end, desc = "List Modified Buffers" },
 
     { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
     { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
