@@ -509,7 +509,9 @@ return {
     -- end,
   -- stylua: ignore
   keys = {
-    { "ff", function() Snacks.picker.buffers({ modified = true }) end, desc = "List Modified Buffers" },
+    --- Modified true does not give us what we want, which is modifed
+    --- since before we opened it.
+    -- { "ff", function() Snacks.picker.buffers({ modified = true }) end, desc = "List Modified Buffers" },
 
     { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
     { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
