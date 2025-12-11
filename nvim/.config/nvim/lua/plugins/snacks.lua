@@ -133,7 +133,7 @@ return {
       -- manage this monoltith plugin and disable it for typst
       -- Also though this is a pretty sick plugin
       image = {
-        enabled = true,
+        enabled = false,
         doc = {
           enabled = true,
           max_width = 300,
@@ -367,11 +367,12 @@ return {
             finder = function()
               local current = vim.api.nvim_get_current_tabpage()
 
-              return vim.tbl_map(function(tabpage)
+              local items = vim.tbl_map(function(tabpage)
                 local tabnr = vim.api.nvim_tabpage_get_number(tabpage)
                 local win = vim.api.nvim_tabpage_get_win(tabpage)
                 local buf = vim.api.nvim_win_get_buf(win)
                 local name = vim.api.nvim_buf_get_name(buf)
+                local is_current = tabpage == current
 
                 local file = name ~= "" and vim.fn.fnamemodify(name, ":p") or nil
                 local filename = name ~= "" and vim.fn.fnamemodify(name, ":t") or "[No Name]"
@@ -380,7 +381,7 @@ return {
                 local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf })
                 local win_count = #vim.api.nvim_tabpage_list_wins(tabpage)
 
-                local label = string.format("%s %d", tabpage == current and "" or "", tabnr)
+                local label = string.format("%s %d", is_current and "" or "", tabnr)
                 local comment = win_count > 1 and (win_count .. " wins") or nil
 
                 return {
@@ -392,11 +393,21 @@ return {
                   parent = parent and { text = parent, file = parent, dir = true } or nil,
                   tabpage = tabpage,
                   tabnr = tabnr,
+                  is_current = is_current,
                   search = table.concat({ filename, parent or "", tostring(tabnr), filetype, buftype }, " "),
                   label = label,
                   comment = comment,
                 }
               end, vim.api.nvim_list_tabpages())
+
+              table.sort(items, function(a, b)
+                if a.is_current ~= b.is_current then
+                  return a.is_current
+                end
+                return a.tabnr < b.tabnr
+              end)
+
+              return items
             end,
             confirm = function(picker, item)
               if item and item.tabpage and vim.api.nvim_tabpage_is_valid(item.tabpage) then
