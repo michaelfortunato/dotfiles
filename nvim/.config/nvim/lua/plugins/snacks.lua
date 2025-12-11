@@ -506,6 +506,8 @@ return {
     -- end,
   -- stylua: ignore
   keys = {
+    { "ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
+
     { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
     { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
     { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },

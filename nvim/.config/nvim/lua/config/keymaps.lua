@@ -33,7 +33,6 @@ vim.keymap.set({ "n" }, "<leader>.", function()
   Snacks.picker.files({ cwd = dir })
 end, { desc = "Search files in this buffer's cwd" })
 vim.keymap.set("n", "<Enter>", "za", { desc = "Toggle fold under cursor" })
-vim.keymap.set({ "n" }, "ff", "zz", { desc = "Center screen to cursor" })
 vim.keymap.set({ "n" }, "<C-q>", "<Cmd>copen<CR>", { desc = "Open Quickfix List" })
 ---
 vim.keymap.set({ "c", "i" }, "<C-a>", "<Home>")
