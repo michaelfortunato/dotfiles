@@ -1,6 +1,22 @@
 local M = {
   show_statusline = true,
 }
+
+-- Toggle native tabline on demand (0 = never, 1 = only with tabs, 2 = always)
+vim.keymap.set("n", "<leader>ut", function()
+  local v = vim.o.showtabline
+  -- cycle 0 -> 1 -> 2 -> 0
+  local next = (v == 0) and 1 or (v == 1) and 2 or 0
+  vim.o.showtabline = next
+  vim.notify("Tabline showtabline=" .. next)
+end, { desc = "Toggle tabline visibility" })
+
+--[[
+Neovim UI line modes (quick reference)
+- statusline (this file): shown per-window unless `globalstatus = true` (we set true, so one line across all splits).
+- tabline (native): sits above windows, controlled by `showtabline` (0 never, 1 with tabs, 2 always). We default to 0; toggle via <leader>ut in options.lua.
+- winbar: per-window header line; we leave it empty here (commented block below).
+]]
 return {
   ---@module "lualine"
   "nvim-lualine/lualine.nvim",
