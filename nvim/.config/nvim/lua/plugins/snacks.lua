@@ -289,6 +289,32 @@ return {
           select_only = function(picker)
             picker.list:select() -- toggle current item, no cursor movement
           end,
+
+          scratch_delete_confirm = function(picker, item)
+            local selected = picker:selected({ fallback = true })
+            item = item or selected[1]
+            if not item then
+              return
+            end
+            local meta = item.item or item
+            local file = meta.file
+            if not file then
+              return
+            end
+            local name = meta.name or vim.fn.fnamemodify(file, ":t")
+            local choice = vim.fn.confirm("Delete scratch '" .. name .. "'?", "&Yes\n&No", 2)
+            if choice ~= 1 then
+              return
+            end
+            os.remove(file)
+            os.remove(file .. ".meta")
+            picker:refresh()
+          end,
+
+          scratch_toggle_cwd = function(picker)
+            scratch_filter_cwd = not scratch_filter_cwd
+            picker:refresh()
+          end,
         },
         -- These two blocks control the look of tihngs, along with the hol
         -- group
@@ -442,6 +468,19 @@ return {
               input = { keys = {
                 ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
               } },
+            },
+          },
+          scratch = {
+            win = {
+              input = {
+                keys = {
+                  ["<c-n>"] = { "list_down", mode = { "n", "i" } },
+                  ["<c-p>"] = { "list_up", mode = { "n", "i" } },
+                  ["<c-d>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
+                  ["<c-x>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
+                  ["<c-g>i"] = { "scratch_toggle_cwd", mode = { "n", "i" } },
+                },
+              },
             },
           },
         },

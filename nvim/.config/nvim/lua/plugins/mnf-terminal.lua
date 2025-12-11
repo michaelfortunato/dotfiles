@@ -5,7 +5,7 @@ return {
     name = "mnf.terminal",
     lazy = true,
     dir = vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "mnf", "terminal"),
-    dependencies = { "folke/which-key.nvim", "folke/snacks.nvim" },
+    dependencies = { "folke/which-key.nvim", "michaelfortunato/snacks.nvim" },
     init = function()
       -- TODO: makes me safe and fix the operator pending issue
       -- local del = function(...)
@@ -151,10 +151,11 @@ return {
     end,
   },
   {
-    -- This plugin  was ai generated and is not create sorry claude.
+    -- This plugin  was ai generated and is not great sorry claude.
     name = "mnf.scratch",
     lazy = true,
     dir = vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "mnf", "scratch"),
+    dependencies = { "michaelfortunato/snacks.nvim" },
     init = function()
       vim.keymap.set("n", "'1", function()
         local M = require("mnf.scratch")
@@ -162,12 +163,12 @@ return {
       end, { desc = "Open scratch buffer 1 (lua)" })
       vim.keymap.set("n", "'2", function()
         local M = require("mnf.scratch")
-        M.scratch_number(1, "python")
+        M.scratch_number(2, "python")
       end, { desc = "Open scratch buffer 2 (python)" })
       vim.keymap.set("n", "'3", function()
         local M = require("mnf.scratch")
-        M.scratch_number(1, "typst")
-      end, { desc = "Open scratch buffer 2 (typst)" })
+        M.scratch_number(3, "typst")
+      end, { desc = "Open scratch buffer 3 (typst)" })
       -- Main scratch operations
       vim.keymap.set("n", "'g", function()
         local M = require("mnf.scratch")
@@ -182,6 +183,13 @@ return {
         local M = require("mnf.scratch")
         M.toggle_scratch()
       end, { desc = "Toggle scratch buffer" })
+      vim.api.nvim_create_user_command("ScratchRun", function(opts)
+        local M = require("mnf.scratch")
+        M.run_scratch(opts.args ~= "" and opts.args or nil)
+      end, {
+        desc = "Run the current (or named) scratch buffer",
+        nargs = "?",
+      })
       vim.api.nvim_create_user_command("ScratchNew", function(opts)
         local M = require("mnf.scratch")
         print(opts.args)
@@ -205,6 +213,8 @@ return {
         desc = "Copy current buffer to scratch",
         nargs = "?",
       })
+
+      vim.keymap.set("n", "''", "<Cmd>ScratchToggle<CR>", { desc = "Toggle scratch buffer" })
 
       -- Filetype-specific shortcuts
       vim.keymap.set("n", "'py", function()
