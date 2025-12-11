@@ -1,0 +1,172 @@
+% !TEX program = lualatex
+% NOTE: The above ensures only LuaLaTeX can be used.
+% And VimTex needs it to know to use it.
+\documentclass[10pt, letterpaper]{article}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                     Fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{fontspec}
+\usepackage{mathtools}
+\usepackage{unicode-math}
+% NOTE: To future me,
+% I know that people are trying to non CM math fonts and that
+% san serif math fonts are getting more popular:
+% Please, DO NOT EVER use a non-Computer-Modern based math font!!!
+%
+% Honestly this combo is great we just need to get the weights
+% a bit more uniform. I want going to write a blog
+% one day of why one should NEVER FUCKING EVER use a Times Font For
+% Math. Literally looks like a high-schooler put tried to add math in
+% MS Word.
+\setmainfont{STIX Two Text}
+\setmathfont{Latin Modern Math}
+% Available Combos
+% (STIX Two Text, NewComputerModernMath)   % Note the integral looks garbled?
+% (Latin Modern, Latin Modern Math) % This is default for LuaLaTex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                   Packages
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{microtype}      % microtypography (still worth it)
+\UseMicrotypeSet[protrusion]{basicmath}
+
+% AMS core + improvements
+% amsthm: \begin{theorem} ...
+% Note: with unicode-math + STIX Two Math, AMS symbols (like \mathbb) are
+% provided by the font, so amssymb is unnecessary and conflicts on \eth.
+\usepackage{amsthm} % amsmath is loaded by mathtools
+
+% Links should come late
+\usepackage{xcolor}
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage[capitalize,noabbrev]{cleveref}
+
+% Tables / numbers
+\usepackage{booktabs, multirow, makecell}
+\usepackage{siunitx}
+\usepackage{nicefrac}
+
+% Matrices / floats
+\usepackage{nicematrix}
+\usepackage{float}
+
+% Optional quality-of-life
+% \usepackage{csquotes}
+% \usepackage[textsize=tiny]{todonotes} % \todo[inline]{note}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                           Theorems/Definitions/etc
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                               CLEVERREF Configs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sections
+\Crefname{section}{Section}{Sections}
+
+% Theorems etc
+\crefname{theorem}{Theorem}{Theorems}
+\Crefname{theorem}{Theorem}{Theorems}
+\crefname{lemma}{Lemma}{Lemmas}
+\Crefname{lemma}{Lemma}{Lemmas}
+\crefname{proposition}{Proposition}{Propositions}
+\Crefname{proposition}{Proposition}{Propositions}
+\crefname{corollary}{Corollary}{Corollaries}
+\Crefname{corollary}{Corollary}{Corollaries}
+\crefname{remark}{Remark}{Remarks}
+\Crefname{remark}{Remark}{Remarks}
+
+% Definitions
+\crefname{definition}{Definition}{Definitions}
+\Crefname{definition}{Definition}{Definitions}
+
+% Figures/Tables
+\crefname{figure}{Fig.}{Figs.}
+\Crefname{figure}{Fig.}{Figs.}
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Table}{Tables}
+
+% Equation format
+\crefformat{equation}{(#2#1#3)}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                               Math Operators
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                          Paired Delimiters
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+\DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+% Your preferred starred/unstarred behavior:
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+\let\oldnorm\norm
+\def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                  Commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\dxdy}[2]{\frac{d#1}{d#2}}
+\newcommand{\ddx}[1]{\frac{d}{d#1}}
+\newcommand{\pxpy}[2]{\frac{\partial#1}{\partial#2}}
+\newcommand{\ppx}[1]{\frac{\partial}{\partial#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                 Bibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% You said you *think* you use BibTeX. Here's the simple BibTeX path:
+% Put your references in main.bib and use:
+% \bibliographystyle{plain}  % or alpha, abbrv, unsrt
+% \bibliography{main}
+
+% -------------------- biblatex option (COMMENTED for future)
+% \usepackage[
+%   backend=biber,
+%   style=alphabetic,
+%   sorting=nyt
+% ]{biblatex}
+% \addbibresource{main.bib}
+% \addbibresource{Zotero.bib}
+% --------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                             Begin Document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\title{Open Type Font Template}
+\author{Michael Newman Fortunato}
+\date{\today}
+\maketitle
+\begin{align}
+  \int_{a}^{b} x^{2} + \operatorname{sin}^{2}(x)
+\end{align}
+% -------------------- BibTeX usage
+% \bibliographystyle{plain}
+% \bibliography{main}
+% --------------------
+
+% -------------------- biblatex usage (if you switch later)
+% \printbibliography
+% --------------------
+%
+\end{document}
