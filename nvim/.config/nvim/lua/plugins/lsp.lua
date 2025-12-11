@@ -71,24 +71,7 @@ vim.api.nvim_create_user_command("RuneDebugViewer", function()
   rune_exec({ command = "rune.debugViewer.open", title = "Rune Debug Viewer" })
 end, {})
 
---- AI SLOP completion code
--- Key mappings for inline completion
--- Three main mappings:
-
 vim.lsp.inline_completion.enable(false)
--- 1) Cycle suggestions
-vim.keymap.set("i", "<C-l>", function()
-  vim.lsp.inline_completion.select({ count = 1 }) -- next candidate
-end, { desc = "Inline: next suggestion" })
-
-vim.keymap.set("i", "<C-h>", function()
-  vim.lsp.inline_completion.select({ count = -1 }) -- previous candidate
-end, { desc = "Inline: previous suggestion" })
-
--- 2) Accept current suggestion (falls back if none is showing)
-vim.keymap.set("i", "<C-;>", function()
-  return vim.lsp.inline_completion.get() and "" or "<C-;>"
-end, { expr = true, desc = "Inline: accept suggestion" })
 
 -- 3) Toggle automatic ghost text (enable/disable capability)
 vim.keymap.set({ "n" }, "<leader>mi", function()
