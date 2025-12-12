@@ -29,6 +29,14 @@ require("luasnip").snip_expand = function(...)
   vim.o.ul = vim.o.ul
   snip_expand(...)
 end
+
+local get_visual = function(args, parent)
+  if #parent.snippet.env.LS_SELECT_RAW > 0 then
+    return sn(nil, i(1, parent.snippet.env.LS_SELECT_RAW))
+  else -- If LS_SELECT_RAW is empty, return a blank insert node
+    return sn(nil, i(1))
+  end
+end
 local iv = function(i, ...)
   return d(i, get_visual, ...)
 end
@@ -73,13 +81,6 @@ end
 --
 -- }
 --
-local get_visual = function(args, parent)
-  if #parent.snippet.env.LS_SELECT_RAW > 0 then
-    return sn(nil, i(1, parent.snippet.env.LS_SELECT_RAW))
-  else -- If LS_SELECT_RAW is empty, return a blank insert node
-    return sn(nil, i(1))
-  end
-end
 
 local line_begin = require("luasnip.extras.expand_conditions").line_begin
 -- NOTE: Not in use local line_end = require("luasnip.extras.expand_conditions").line_end
@@ -600,15 +601,32 @@ supplement: <>,
   s({ trig = "floor", snippetType = "autosnippet" }, t("floor.l"), { condition = in_mathzone }),
   s({ trig = "subseteq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
   s({ trig = "sseq", snippetType = "autosnippet" }, t("subset.eq"), { condition = in_mathzone }),
-  s({ trig = "concat", snippetType = "autosnippet" }, t("plus.circle"), { condition = in_mathzone }),
+  s(
+    { trig = "concat", snippetType = "autosnippet" },
+    --- FIXME: Still not workign as right nodes collapse to it afeter
+    c(1, {
+      { t("plus.o.big"), i(1), t("") },
+      { t("plus.o"), i(1), t("") },
+    }),
+    { condition = in_mathzone }
+  ),
   s(
     { trig = "directsum", snippetType = "autosnippet" },
+    --- FIXME: Still not workign as right nodes collapse to it afeter
     c(1, {
-      t("plus.o.big"),
-      t("plus.o"),
+      { t("plus.o.big"), i(1), t("") },
+      { t("plus.o"), i(1), t("") },
     }),
-    --{ condition = in_mathzone }
-    {}
+    { condition = in_mathzone }
+  ),
+  s(
+    { trig = "dsum", snippetType = "autosnippet" },
+    c(1, {
+      -- honestly this dones't work that great
+      { t("plus.o.big"), i(1), t("") },
+      { t("plus.o"), i(1), t("") },
+    }),
+    { condition = in_mathzone }
   ),
   s({ trig = "tensorprod", snippetType = "autosnippet" }, t("times.circle.big"), { condition = in_mathzone }),
   s({ trig = "def", snippetType = "autosnippet" }, t(":= "), { condition = in_mathzone }),
