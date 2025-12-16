@@ -186,8 +186,15 @@ end, { desc = "Search open tabs", noremap = true, silent = true })
 
 -- map({ "n", "v", "o" }, "<leader>r", "<Cmd>make<CR>", { desc = "Run build command" })
 --
+--
 
--- WARN: We are remapping LazyVim's <Tab> Commands
+vim.keymap.set("n", "<leader>bD", function()
+  Snacks.bufdelete()
+end, { desc = "Delete Buffer (Not Window)" })
+vim.keymap.set("n", "<leader>bd", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
+
+vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+-- NOTE: We are remapping LazyVim's <Tab> Commands
 -- TODO:  local wk = require("which-key")
 -- How do I delete a group mapping? { "<leader><tab>", group = "tabs" },
 -- del({"n", "v"}, "<leader><tab>")
@@ -247,14 +254,20 @@ map({ "t", "i" }, "<C-l>", function(e)
   vim.cmd("stopinsert")
   require("smart-splits").move_cursor_right()
 end)
--- --- Kitty like layout rotation keybindings
-vim.keymap.set({ "n", "i", "v" }, "<C-S-h>", "<C-w>R", { desc = "Rotate windows forward", silent = true })
-vim.keymap.set({ "n", "i", "v" }, "<C-S-l>", "<C-w>r", { desc = "Rotate windows backward", silent = true })
-
+vim.keymap.set({ "n", "i", "v" }, "<C-S-l>", function()
+  local ls = require("luasnip")
+  if ls.choice_active() then
+    ls.change_choice(-1)
+    return true
+  end
+  return "<C-w>r"
+end, { desc = "Rotate windows backward", silent = true })
 -- Rotate windows forward (like <C-w>r) while staying in terminal mode
 vim.keymap.set("t", "<C-S-l>", function()
   vim.cmd("silent! wincmd r")
 end, { silent = true, desc = "Rotate windows forward (terminal)" })
+-- --- Kitty like layout rotation keybinding
+vim.keymap.set({ "n", "i", "v" }, "<C-S-h>", "<C-w>R", { desc = "Rotate windows forward", silent = true })
 
 -- Optional: rotate backward (like <C-w>R)
 vim.keymap.set("t", "<C-S-h>", function()
