@@ -1,3 +1,13 @@
+-- TODOs:
+--  - [ ] nvim/.config/nvim/lua/plugins/snacks.lua:548: override opts.picker.sources.keymaps.confirm to open item.file/item.pos when
+--    present (else vim.notify(...) + no-op).
+--  - [ ] Same place: add a secondary key/action (e.g. <C-y>) to “execute keymap” (current behavior) via
+--    vim.api.nvim_input(item.item.lhs).
+--  - [ ] nvim/.config/nvim/lua/plugins/snacks.lua:627: add a buffers-picker filter/state so terminal buffers (buftype == "terminal")
+--    can be hidden by default and shown on demand.
+--  - [ ] Bind sources.buffers.win.input.keys["<C-g><C-t>"] → actions.toggle_terminal (flip flag + picker:find()), and pick additional
+--    <C-g><C-…> toggles for other kinds (nofile, help, quickfix, unlisted, modified-only, etc.).
+
 ---@module "snacks"
 ---@type LazyPluginSpec
 
@@ -81,16 +91,125 @@ vim.keymap.set({ "n" }, "<Leader>ux", function()
   end
 end, { desc = "Toggle Zen Mode" })
 
+vim.t.scratch = "python"
+vim.keymap.set("n", "''", function()
+  local snacks = require("snacks")
+  if vim.t.scratch ~= nil then
+    snacks.scratch.open({ ft = vim.t.scratch })
+  end
+end, { desc = "Python scratch buffer" })
+
+-- Main scratch operations
+vim.keymap.set("n", "'g", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.select()
+end, { desc = "List scratch buffers" })
+
+-- Filetype-specific shortcuts
+vim.keymap.set("n", "'py", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "python" })
+end, { desc = "Python scratch buffer" })
+
+vim.keymap.set("n", "'js", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "javascript" })
+end, { desc = "JavaScript scratch buffer" })
+
+vim.keymap.set("n", "'lua", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "lua" })
+end, { desc = "Lua scratch buffer" })
+
+vim.keymap.set("n", "'ty", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "typst" })
+end, { desc = "Typst scratch buffer" })
+
+vim.keymap.set("n", "'tex", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "tex" })
+end, { desc = "TeX scratch buffer" })
+
+vim.keymap.set("n", "'md", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "markdown" })
+end, { desc = "Markdown scratch buffer" })
+
+vim.keymap.set("n", "'sql", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "sql" })
+end, { desc = "SQL scratch buffer" })
+
+vim.keymap.set("n", "'sh", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "sh" })
+end, { desc = "Shell scratch buffer" })
+
 return {
   {
     "michaelfortunato/snacks.nvim",
-    -- I had this because I was paranoid the snacks updates made it slower
-    -- but I do not think it actually did so I will remove it after a bit
-    -- more usage.
-    -- branch = "mnf-snacks-pre-update",
-    dev = false,
+    dev = true,
     ---@type snacks.Config
     opts = {
+      scratch = {
+        win = {
+          on_close = function(win)
+            assert(win and win.buf, "We need this to be not onone here")
+            local buf = win.buf
+            local ft = vim.bo[buf].filetype
+            vim.t.scratch = ft
+          end,
+          on_win = function(win)
+            vim.t.scratch = nil
+          end,
+          -- if you want none
+          -- footer_keys = false,
+          footer_keys = { "q" },
+          keys = {
+            -- ["''"] = {
+            --   ---@param arg snacks.win
+            --   "close",
+            --   mode = "n",
+            --   desc = "Close scratch window",
+            -- },
+            ["'f"] = function(win)
+              assert(win and win.opts and win.opts.position, "scratch_cycle_layout: missing win/position")
+              assert(win.buf and vim.api.nvim_buf_is_valid(win.buf), "scratch_cycle_layout: invalid buffer")
+              local snacks = require("snacks")
+
+              -- FIXME: This is registering styles a tone of times
+              snacks.config.style("scratch_float", { position = "float", width = 0.6, height = 0.6, backdrop = 75 })
+              snacks.config.style("scratch_split", { position = "bottom", height = 0.35, width = 1, backdrop = false })
+              snacks.config.style("scratch_vsplit", { position = "right", width = 0.45, backdrop = false })
+
+              local next_style = ({
+                float = "scratch_split",
+                bottom = "scratch_vsplit",
+                top = "scratch_vsplit",
+                right = "scratch_float",
+                left = "scratch_float",
+              })[win.opts.position] or "scratch_float"
+
+              local buf = win.buf
+              local file = vim.api.nvim_buf_get_name(buf)
+              local ft = vim.bo[buf].filetype
+
+              if win.close then
+                win:close()
+              end
+              Snacks.scratch.open({ file = file, ft = ft, win = { style = next_style } })
+            end,
+
+            ["''"] = function(win) -- value is fun(self: snacks.win)
+              win:close()
+            end,
+            -- ["''"] = function(win) -- value is fun(self: snacks.win)
+            --   win:action(actions)()
+            -- end,
+          },
+        },
+      },
 
       dashboard = {
         preset = {
@@ -337,14 +456,15 @@ return {
               -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
               -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
-              ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
+              ["<Esc>"] = { "close", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<c-y>"] = { "confirm", mode = { "i", "n" } },
-              ["<c-g>i"] = { "toggle_ignored", mode = { "i", "n" } },
+              ["<c-g><c-i>"] = { "toggle_ignored", mode = { "i", "n" } },
               ["<c-o>"] = { "edit_split", mode = { "i", "n" } },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
               ["<c-u>"] = false,
               ["<c-d>"] = false,
               ["<c-a>"] = false,
+              ["<c-g>"] = false, -- no need
               ["<del>"] = { "bufdelete", mode = { "n", "i" } },
               ["<c-c>"] = { "yank", mode = { "n", "i" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
@@ -354,9 +474,13 @@ return {
               ["<c-i>"] = { "print_path", mode = { "n", "i" } },
               ["<c-.>"] = { "cd", mode = { "n", "i" } },
               ["<c-;>"] = { "terminal", mode = { "n", "i" } },
-              ["<c-space>"] = { "select_only", mode = { "n", "i" } },
+              ["<C-space>"] = { "select_only", mode = { "n", "i" } },
               ["<S-enter>"] = { "tab", mode = { "n", "i" } },
-              ["<c-enter>"] = { "edit_vsplit", mode = { "n", "i" } },
+              ["<C-enter>"] = { "edit_vsplit", mode = { "n", "i" } },
+              ["<C-h>"] = false,
+              ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
+              ["<C-k>"] = false,
+              ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
             },
           },
           list = {
@@ -369,17 +493,58 @@ return {
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
               ["<c-space>"] = { "select_only", mode = { "n", "i" } },
+              ["<C-h>"] = false,
+              ["<C-j>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus down" },
+              ["<C-k>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus up" },
+              ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
             },
           },
           preview = {
+            -- on_close = function(win)
+            --   -- vim.keymap.del({ "i", "n" }, "<C-h>", { buffer = win.buf })
+            --   -- vim.keymap.del({ "i", "n" }, "<C-l>", { buffer = win.buf })
+            --   -- vim.keymap.del({ "i", "n" }, "<C-j>", { buffer = win.buf })
+            --   -- vim.keymap.del({ "i", "n" }, "<C-k>", { buffer = win.buf })
+            --
+            --   vim.keymap.set({ "n", "v" }, "<C-h>", "<C-w><C-h>", { buffer = win.buf })
+            --   vim.keymap.set({ "n", "v" }, "<C-j>", "<C-w><C-j>", { buffer = win.buf })
+            --   vim.keymap.set({ "n", "v" }, "<C-k>", "<C-w><C-k>", { buffer = win.buf })
+            --   vim.keymap.set({ "n", "v" }, "<C-l>", "<C-w><c-l>", { buffer = win.buf })
+            --   --- The splits in insert mode
+            --   vim.keymap.set({ "i", "t" }, "<C-h>", function()
+            --     vim.cmd("stopinsert")
+            --     return "<C-w><C-h>"
+            --     -- require("smart-splits").move_cursor_left()
+            --   end, { buffer = win.buf })
+            --   vim.keymap.set({ "t", "i" }, "<C-j>", function()
+            --     vim.cmd("stopinsert")
+            --     return "<C-w><C-j>"
+            --     -- require("smart-splits").move_cursor_down()
+            --   end, { buffer = win.buf })
+            --   vim.keymap.set({ "t", "i" }, "<C-k>", function()
+            --     vim.cmd("stopinsert")
+            --     return "<C-w><C-k>"
+            --     -- require("smart-splits").move_cursor_up()
+            --   end)
+            --   vim.kemap.set({ "t", "i" }, "<C-l>", function(e)
+            --     local ls = require("luasnip")
+            --     if ls.choice_active() then
+            --       ls.change_choice(1)
+            --       return true
+            --     end
+            --     vim.cmd("stopinsert")
+            --     return "<C-w><C-l>"
+            --   end, { buffer = win.buf })
+            --   vim.keymap.del({ "i", "n" }, "<Esc>", { buffer = win.buf })
+            -- end,
             keys = {
               -- WARN: Note rn there is a nto so great bug that
               -- where all of these keymaps will be added to buffer local maps
               --
-              -- ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
-              -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
-              -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
-              -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
+              ["<C-h>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus left" },
+              ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
+              ["<C-k>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus up" },
+              ["<C-l>"] = false,
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
@@ -481,8 +646,20 @@ return {
                   ["<c-p>"] = { "list_up", mode = { "n", "i" } },
                   ["<c-d>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-x>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
-                  ["<c-g>i"] = { "scratch_toggle_cwd", mode = { "n", "i" } },
+                  ["<c-g><c-i>"] = { "scratch_toggle_cwd", mode = { "n", "i" } },
                 },
+              },
+            },
+          },
+          notifications = {
+            win = {
+              input = {
+                keys = {
+                  ["<c-y>"] = { "yank", mode = { "n", "i" } },
+                },
+              },
+              preview = {
+                wo = { wrap = true, linebreak = true }, -- linebreak is not try to split words
               },
             },
           },
@@ -507,88 +684,70 @@ return {
     --
     --   Snacks.setup(opts)
     -- end,
-  -- stylua: ignore
-  keys = {
-    --- Modified true does not give us what we want, which is modifed
-    --- since before we opened it.
-    -- { "ff", function() Snacks.picker.buffers({ modified = true }) end, desc = "List Modified Buffers" },
+    -- stylua: ignore
+    keys = {
+      --- Modified true does not give us what we want, which is modifed
+      --- since before we opened it.
+      -- { "ff", function() Snacks.picker.buffers({ modified = true }) end, desc = "List Modified Buffers" },
+      { "ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
 
-    { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
-    { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
-    { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
-    { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-    { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
-    -- find
-    { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
-    { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
-    { "<leader>ft", function() Snacks.picker.tabs() end, desc = "Tabs" },
-    { "<leader>fc", LazyVim.pick.config_files(), desc = "Find Config File" },
-    { "<leader>ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-    { "<leader>fF", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
-    { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find Files (git-files)" },
-    { "<leader>fr", LazyVim.pick("oldfiles"), desc = "Recent" },
-    { "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
-    { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
-    -- git
-    { "<leader>gd", function() Snacks.picker.git_diff() end, desc = "Git Diff (hunks)" },
-    { "<leader>gD", function() Snacks.picker.git_diff({ base = "origin", group = true }) end, desc = "Git Diff (origin)" },
-    { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git Status" },
-    { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Git Stash" },
-    { "<leader>gi", function() Snacks.picker.gh_issue() end, desc = "GitHub Issues (open)" },
-    { "<leader>gI", function() Snacks.picker.gh_issue({ state = "all" }) end, desc = "GitHub Issues (all)" },
-    { "<leader>gp", function() Snacks.picker.gh_pr() end, desc = "GitHub Pull Requests (open)" },
-    { "<leader>gP", function() Snacks.picker.gh_pr({ state = "all" }) end, desc = "GitHub Pull Requests (all)" },
-    -- Grep
-    -- For <leader>sb and maybe other you should update it where it respects the
-    -- line numbers and doesn't autoclose ? Or create a good workflow for it
-    { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
-    { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
-    { "<leader>sg", LazyVim.pick("live_grep"), desc = "Grep (Root Dir)" },
-    { "<leader>sG", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
-    { "<leader>sp", function() Snacks.picker.lazy() end, desc = "Search for Plugin Spec" },
-    { "<leader>sw", LazyVim.pick("grep_word"), desc = "Visual selection or word (Root Dir)", mode = { "n", "x" } },
-    { "<leader>sW", LazyVim.pick("grep_word", { root = false }), desc = "Visual selection or word (cwd)", mode = { "n", "x" } },
-    -- search
-    { '<leader>s"', function() Snacks.picker.registers() end, desc = "Registers" },
-    { '<leader>s/', function() Snacks.picker.search_history() end, desc = "Search History" },
-    { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocmds" },
-    { "<leader>sc", function() Snacks.picker.command_history() end, desc = "Command History" },
-    { "<leader>sC", function() Snacks.picker.commands() end, desc = "Commands" },
-    { "<leader>sd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
-    { "<leader>sD", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
-    { "<leader>sh", function() Snacks.picker.help() end, desc = "Help Pages" },
-    { "<leader>sH", function() Snacks.picker.highlights() end, desc = "Highlights" },
-    { "<leader>si", function() Snacks.picker.icons() end, desc = "Icons" },
-    { "<leader>sj", function() Snacks.picker.jumps() end, desc = "Jumps" },
-    { "<leader>sk", function() Snacks.picker.keymaps() end, desc = "Keymaps" },
-    { "<leader>sl", function() Snacks.picker.loclist() end, desc = "Location List" },
-    { "<leader>sM", function() Snacks.picker.man() end, desc = "Man Pages" },
-    { "<leader>sm", function() Snacks.picker.marks() end, desc = "Marks" },
-    { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume" },
-    { "<leader>sq", function() Snacks.picker.qflist() end, desc = "Quickfix List" },
-    { "<leader>su", function() Snacks.picker.undo() end, desc = "Undotree" },
-    -- ui
-    { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
-  },
-    --    -- preset = {
-    --    --   header = [[mnf]],
-    --    -- },
-    -- opts = function(_, opts)
-    --  ---@class snacks.dashboard.Config
-    --  opts.dashboard = {
-    --    -- preset = {
-    --    --   header = [[mnf]],
-    --    -- },
-    --    sections = {
-    --      {
-    --        section = "terminal",
-    --        -- cmd = "kitten icat ~/mnf3.png",
-    --        cmd = "kitten icat --use-window-size 1,1,100,100 ~/mnf3.png",
-    --      },
-    --    },
-    --  }
-    --  return opts
-    --end,
+      { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
+      { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
+      { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
+      { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
+      { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
+      -- find
+      { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
+      { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
+      { "<leader>ft", function() Snacks.picker.tabs() end, desc = "Tabs" },
+      { "<leader>fc", LazyVim.pick.config_files(), desc = "Find Config File" },
+      { "<leader>ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
+      { "<leader>fF", LazyVim.pick("files", { root = false }), desc = "Find Files (cwd)" },
+      { "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find Files (git-files)" },
+      { "<leader>fr", LazyVim.pick("oldfiles"), desc = "Recent" },
+      { "<leader>fR", function() Snacks.picker.recent({ filter = { cwd = true }}) end, desc = "Recent (cwd)" },
+      { "<leader>fp", function() Snacks.picker.projects() end, desc = "Projects" },
+      -- git
+      { "<leader>gd", function() Snacks.picker.git_diff() end, desc = "Git Diff (hunks)" },
+      { "<leader>gD", function() Snacks.picker.git_diff({ base = "origin", group = true }) end, desc = "Git Diff (origin)" },
+      { "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git Status" },
+      { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Git Stash" },
+      { "<leader>gi", function() Snacks.picker.gh_issue() end, desc = "GitHub Issues (open)" },
+      { "<leader>gI", function() Snacks.picker.gh_issue({ state = "all" }) end, desc = "GitHub Issues (all)" },
+      { "<leader>gp", function() Snacks.picker.gh_pr() end, desc = "GitHub Pull Requests (open)" },
+      { "<leader>gP", function() Snacks.picker.gh_pr({ state = "all" }) end, desc = "GitHub Pull Requests (all)" },
+      -- Grep
+      -- For <leader>sb and maybe other you should update it where it respects the
+      -- line numbers and doesn't autoclose ? Or create a good workflow for it
+      { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
+      { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
+      { "<leader>sg", LazyVim.pick("live_grep"), desc = "Grep (Root Dir)" },
+      { "<leader>sG", LazyVim.pick("live_grep", { root = false }), desc = "Grep (cwd)" },
+      { "<leader>sp", function() Snacks.picker.lazy() end, desc = "Search for Plugin Spec" },
+      { "<leader>sw", LazyVim.pick("grep_word"), desc = "Visual selection or word (Root Dir)", mode = { "n", "x" } },
+      { "<leader>sW", LazyVim.pick("grep_word", { root = false }), desc = "Visual selection or word (cwd)", mode = { "n", "x" } },
+      -- search
+      { '<leader>s"', function() Snacks.picker.registers() end, desc = "Registers" },
+      { '<leader>s/', function() Snacks.picker.search_history() end, desc = "Search History" },
+      { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocmds" },
+      { "<leader>sc", function() Snacks.picker.command_history() end, desc = "Command History" },
+      { "<leader>sC", function() Snacks.picker.commands() end, desc = "Commands" },
+      { "<leader>sd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
+      { "<leader>sD", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
+      { "<leader>sh", function() Snacks.picker.help() end, desc = "Help Pages" },
+      { "<leader>sH", function() Snacks.picker.highlights() end, desc = "Highlights" },
+      { "<leader>si", function() Snacks.picker.icons() end, desc = "Icons" },
+      { "<leader>sj", function() Snacks.picker.jumps() end, desc = "Jumps" },
+      { "<leader>sk", function() Snacks.picker.keymaps() end, desc = "Keymaps" },
+      { "<leader>sl", function() Snacks.picker.loclist() end, desc = "Location List" },
+      { "<leader>sM", function() Snacks.picker.man() end, desc = "Man Pages" },
+      { "<leader>sm", function() Snacks.picker.marks() end, desc = "Marks" },
+      { "<leader>sR", function() Snacks.picker.resume() end, desc = "Resume" },
+      { "<leader>sq", function() Snacks.picker.qflist() end, desc = "Quickfix List" },
+      { "<leader>su", function() Snacks.picker.undo() end, desc = "Undotree" },
+      -- ui
+      { "<leader>uC", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
+    },
   },
   {
     "folke/todo-comments.nvim",
