@@ -150,113 +150,50 @@ return {
       end, { desc = "Kill current job" })
     end,
   },
-  {
-    -- This plugin  was ai generated and is not great sorry claude.
-    name = "mnf.scratch",
-    lazy = true,
-    dir = vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "mnf", "scratch"),
-    dependencies = { "michaelfortunato/snacks.nvim" },
-    init = function()
-      vim.keymap.set("n", "'1", function()
-        local M = require("mnf.scratch")
-        M.scratch_number(1, "lua")
-      end, { desc = "Open scratch buffer 1 (lua)" })
-      vim.keymap.set("n", "'2", function()
-        local M = require("mnf.scratch")
-        M.scratch_number(2, "python")
-      end, { desc = "Open scratch buffer 2 (python)" })
-      vim.keymap.set("n", "'3", function()
-        local M = require("mnf.scratch")
-        M.scratch_number(3, "typst")
-      end, { desc = "Open scratch buffer 3 (typst)" })
-      -- Main scratch operations
-      vim.keymap.set("n", "'g", function()
-        local M = require("mnf.scratch")
-        M.list_scratches()
-      end, { desc = "List scratch buffers" })
-      -- Commands
-      vim.api.nvim_create_user_command("ScratchList", function()
-        local M = require("mnf.scratch")
-        M.list_scratches()
-      end, { desc = "List scratch buffers" })
-      vim.api.nvim_create_user_command("ScratchToggle", function()
-        local M = require("mnf.scratch")
-        M.toggle_scratch()
-      end, { desc = "Toggle scratch buffer" })
-      vim.api.nvim_create_user_command("ScratchRun", function(opts)
-        local M = require("mnf.scratch")
-        M.run_scratch(opts.args ~= "" and opts.args or nil)
-      end, {
-        desc = "Run the current (or named) scratch buffer",
-        nargs = "?",
-      })
-      vim.api.nvim_create_user_command("ScratchNew", function(opts)
-        local M = require("mnf.scratch")
-        print(opts.args)
-        local args = vim.split(opts.args, "%s+")
-        local name = args[1] or nil
-        local filetype = args[2] or name or nil
-        M.create_named_scratch(name, filetype)
-      end, {
-        desc = "Create named scratch buffer",
-        nargs = "*",
-        complete = function(_, _, _)
-          local M = require("mnf.scratch")
-          return vim.tbl_keys(M.extension_to_filetype)
-        end,
-      })
-
-      vim.api.nvim_create_user_command("ScratchCopy", function(opts)
-        local M = require("mnf.scratch")
-        M.copy_to_scratch(opts.args ~= "" and opts.args or nil)
-      end, {
-        desc = "Copy current buffer to scratch",
-        nargs = "?",
-      })
-
-      vim.keymap.set("n", "''", "<Cmd>ScratchToggle<CR>", { desc = "Toggle scratch buffer" })
-
-      -- Filetype-specific shortcuts
-      vim.keymap.set("n", "'py", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("python", { filetype = "python" })
-      end, { desc = "Python scratch buffer" })
-
-      vim.keymap.set("n", "'js", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("javascript", { filetype = "javascript" })
-      end, { desc = "JavaScript scratch buffer" })
-
-      vim.keymap.set("n", "'lua", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("lua", { filetype = "lua" })
-      end, { desc = "Lua scratch buffer" })
-
-      vim.keymap.set("n", "'ty", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("typst", { filetype = "typst" })
-      end, { desc = "Typst scratch buffer" })
-
-      vim.keymap.set("n", "'tex", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("tex", { filetype = "tex" })
-      end, { desc = "TeX scratch buffer" })
-
-      vim.keymap.set("n", "'md", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("markdown", { filetype = "markdown" })
-      end, { desc = "Markdown scratch buffer" })
-
-      vim.keymap.set("n", "'sql", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("sql", { filetype = "sql" })
-      end, { desc = "SQL scratch buffer" })
-
-      vim.keymap.set("n", "'sh", function()
-        local M = require("mnf.scratch")
-        M.show_scratch("sh", { filetype = "sh" })
-      end, { desc = "Shell scratch buffer" })
-    end,
-    opts = {},
-  },
+  -- {
+  --   -- This plugin  was ai generated and is not great sorry claude.
+  --   name = "mnf.scratch",
+  --   lazy = true,
+  --   dir = vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "mnf", "scratch"),
+  --   dependencies = { "michaelfortunato/snacks.nvim" },
+  --   init = function()
+  --     local snacks_local = require("snacks")
+  --     vim.keymap.set("n", "'1", function()
+  --       -- TODO
+  --     end, { desc = "Open scratch buffer 1 (lua)" })
+  --     vim.keymap.set("n", "'2", function()
+  --       -- TODO
+  --     end, { desc = "Open scratch buffer 2 (python)" })
+  --     vim.keymap.set("n", "'3", function()
+  --       -- TODO
+  --     end, { desc = "Open scratch buffer 3 (typst)" })
+  --     -- Main scratch operations
+  --     -- vim.keymap.set("n", "'g", function()
+  --     --   snacks_local.scratch.select()
+  --     -- end, { desc = "List scratch buffers" })
+  --     -- -- Commands
+  --     -- vim.api.nvim_create_user_command("ScratchList", function()
+  --     --   snacks_local.scratch.select()
+  --     -- end, { desc = "List scratch buffers" })
+  --     --
+  --     -- vim.api.nvim_create_user_command("ScratchToggle", function()
+  --     --   snacks_local.scratch.open()
+  --     -- end, { desc = "Toggle scratch buffer" })
+  --     -- vim.api.nvim_create_user_command("ScratchRun", function(opts)
+  --     --   --- TODO
+  --     -- end, {
+  --     --   desc = "Run the current (or named) scratch buffer",
+  --     --   nargs = "?",
+  --     -- })
+  --     --
+  --     -- vim.api.nvim_create_user_command("ScratchCopy", function(opts)
+  --     --   -- local M = require("mnf.scratch")
+  --     --   -- M.copy_to_scratch(opts.args ~= "" and opts.args or nil)
+  --     -- end, {
+  --     --   desc = "Copy current buffer to scratch",
+  --     --   nargs = "?",
+  --     -- })
+  --   end,
+  --   opts = {},
+  -- },
 }
