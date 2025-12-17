@@ -1,5 +1,49 @@
 # Ghostty config ported from Kitty on 2025-10-13
 # vim: set commentstring=#\ %s :
+#
+# --- CSI / CSI-u (extended keyboard input) — reference notes ---
+#
+# Terminals do not send “keys” to programs; they send byte sequences.
+# Some modified keys have no distinct legacy encoding. A common example is
+# Ctrl+Tab, which historically collapses to plain Tab (ASCII 0x09), making it
+# impossible for downstream programs to distinguish without an extended encoding.
+#
+# CSI = Control Sequence Introducer. A CSI escape sequence is:
+#   ESC [ <parameters> <final>
+# where ESC is byte 0x1b.
+#
+# Ghostty keybind actions:
+#   - csi:<payload>  -> sends ESC [ <payload>
+#   - esc:<payload>  -> sends ESC <payload>
+#   - text:<string>  -> sends literal bytes (Zig string literal)
+# For control / key encodings, csi: is the cleanest way to express “send a CSI”.
+#
+# CSI-u (final byte 'u') is an extended keyboard encoding used by the
+# kitty-keyboard-protocol ecosystem. It encodes a keypress as:
+#   CSI <codepoint> ; <modifier> u
+#
+# Why the semicolon ';' matters:
+#   CSI numeric parameters must be delimited. CSI-u has TWO parameters
+#   (codepoint and modifier); ';' separates them so the sequence is unambiguous.
+#
+# Example: Ctrl+Tab
+#   - Tab codepoint        = 9  (U+0009)
+#   - Ctrl modifier value  = 5
+#   => Ctrl+Tab is:  ESC [ 9 ; 5 u
+#   => Ghostty form: csi:9;5u
+#
+# Why Neovim shows "<C-Tab>" without extra remapping:
+#   Neovim’s TUI input layer uses libtermkey and supports extended input
+#   encodings including CSI-u. When it receives a CSI-u sequence corresponding
+#   to a known key+modifier, it normalizes it into Neovim’s canonical key
+#   notation (e.g. "<C-Tab>", "<S-Tab>", "<C-kEnter>").
+#
+# Neovim docs to read / debug with:
+#   - :help tui-input        (extended keys incl. CSI-u / modifyOtherKeys)  
+#   - :help key-notation     (canonical "<C-Tab>"-style names)
+#   - Debug what Neovim receives:
+#       :lua print(vim.fn.keytrans(vim.fn.getcharstr()))
+#     Press Ctrl+Tab; if it prints "<C-Tab>", it’s working as intended.
 
 # Appearance -------------------------------------------------------------
 theme = Catppuccin Mocha
@@ -63,6 +107,9 @@ keybind = ctrl+shift+0=reload_config
 
 # Match Kitty's `send_key ctrl+shift+[` by sending the CSI-u sequence directly.
 keybind = ctrl+[=csi:91;6u
+keybind = ctrl+tab=csi:91;6u
+# Ctrl+Tab -> send ESC [ 9 ; 5 u  (tab codepoint 9, ctrl modifier 5)
+keybind = ctrl+tab=csi:9;5u
 #keybind = shift+space=csi:32;2u
 
 # keybind = ctrl+shift+arrow_left=previous_tab
@@ -74,3 +121,4 @@ keybind = ctrl+shift+arrow_down=goto_split:down
 keybind = cmd+k=toggle_command_palette
 
 keybind = global:cmd+/=toggle_quick_terminal
+
