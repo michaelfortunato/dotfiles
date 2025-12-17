@@ -67,6 +67,7 @@ end, {
     recording mode as I often hit q by accident with tab
   ]],
 })
+del("v", "q")
 
 vim.keymap.set({ "n" }, "<C-S-[>", function()
   if require("trouble").is_open() then
@@ -191,9 +192,12 @@ end, { desc = "Search open tabs", noremap = true, silent = true })
 vim.keymap.set("n", "<leader>bD", function()
   Snacks.bufdelete()
 end, { desc = "Delete Buffer (Not Window)" })
+-- TODO: Make this smart so that we only delete the buffer and the window
+-- if there is at least one other window in the tab that holds a regular buffer
 vim.keymap.set("n", "<leader>bd", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
 
 vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+vim.keymap.set("n", "<C-Tab>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
 -- NOTE: We are remapping LazyVim's <Tab> Commands
 -- TODO:  local wk = require("which-key")
 -- How do I delete a group mapping? { "<leader><tab>", group = "tabs" },
