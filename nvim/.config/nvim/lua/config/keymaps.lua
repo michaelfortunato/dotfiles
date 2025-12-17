@@ -196,8 +196,9 @@ end, { desc = "Delete Buffer (Not Window)" })
 -- if there is at least one other window in the tab that holds a regular buffer
 vim.keymap.set("n", "<leader>bd", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
 
+vim.keymap.set({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
 vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
-vim.keymap.set("n", "<C-Tab>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
+vim.keymap.set({ "n", "t" }, "<C-Tab>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
 -- NOTE: We are remapping LazyVim's <Tab> Commands
 -- TODO:  local wk = require("which-key")
 -- How do I delete a group mapping? { "<leader><tab>", group = "tabs" },
@@ -216,8 +217,6 @@ del("n", "<leader><tab>d", { desc = "Close Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
 del("n", "<leader><tab>[", { desc = "Previous Tab" })
 --- TODO: Remap me: map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close Tab" })
-
-map({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Switch to Other Buffer" })
 
 --- kitty section
 --- -- Kitty Splits
