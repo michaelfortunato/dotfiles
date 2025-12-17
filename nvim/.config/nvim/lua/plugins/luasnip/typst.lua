@@ -660,6 +660,7 @@ supplement: <>,
   s({ trig = "leq", snippetType = "autosnippet" }, t("<= "), { condition = in_mathzone }),
   s({ trig = "geq", snippetType = "autosnippet" }, t(">= "), { condition = in_mathzone }),
   s({ trig = "iso", snippetType = "autosnippet" }, t("tilde.equiv"), { condition = in_mathzone }),
+  s({ trig = "cong", snippetType = "autosnippet" }, t("equiv"), { condition = in_mathzone }),
   -- s({ trig = "-->", snippetType = "autosnippet" }, t(" arrow.r.long"), { condition = in_mathzone }),
   -- s({ trig = ">=", snippetType = "autosnippet" }, t("gt.eq"), { condition = in_mathzone }),
   -- s({ trig = "<=", snippetType = "autosnippet" }, t("\\leq"), { condition = in_mathzone }),
@@ -685,6 +686,7 @@ supplement: <>,
   -- ),
   --
   -- Operators
+  s({ trig = "op", snippetType = "autosnippet" }, fmta('op("<>")<>', { i(1), i(0) }), { condition = in_mathzone }),
   s({ trig = "||", snippetType = "autosnippet" }, fmta("norm(<>)<>", { i(1), i(0) }), { condition = in_mathzone }),
   --- FIXME: This one is tricky, I think this works though smoothly so long as I put the space back `\mid `
   s({ trig = "| ", snippetType = "autosnippet" }, t("bar.v "), { condition = in_mathzone }),
@@ -802,13 +804,25 @@ supplement: <>,
   --   }),
   --   { condition = -in_mathzone }
   -- ),
+  s({ trig = "zz", snippetType = "autosnippet" }, {
+    t("ZZ"),
+  }, { condition = in_mathzone }),
+  s({ trig = "rr", snippetType = "autosnippet" }, {
+    t("RR"),
+  }, { condition = in_mathzone }),
+  s({ trig = "xx", snippetType = "autosnippet" }, {
+    t("XX"),
+  }, { condition = in_mathzone }),
+  s({ trig = "pp", snippetType = "autosnippet" }, {
+    t("PP"),
+  }, { condition = in_mathzone }),
+  s({ trig = "ee", snippetType = "autosnippet" }, {
+    t("EE"),
+  }, { condition = in_mathzone }),
   s({ trig = "**", snippetType = "autosnippet" }, {
     t("cdot.op"),
   }, { condition = in_mathzone }),
   -- \times
-  s({ trig = "xx", snippetType = "autosnippet" }, {
-    t("times"),
-  }, { condition = in_mathzone }),
   s({ trig = "by", snippetType = "autosnippet" }, {
     t("times"),
   }, { condition = in_mathzone }),
@@ -997,6 +1011,7 @@ $<>]],
     { condition = in_mathzone }
   ),
   -- FRACTION
+  -- TODO: Make this a choice node, wonce you get the cursor in the right place
   s(
     { trig = "ff", wordTrig = false, snippetType = "autosnippet" },
     fmta("(<>)/(<>)<>", {

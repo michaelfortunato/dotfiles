@@ -312,7 +312,6 @@ return {
 \usepackage{nicematrix} % for matrix/block drawing
 \usepackage{float} % for [H] exact placement
 \usepackage[capitalize,noabbrev]{cleveref} %  use \cref{} instead of \ref
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Optional Packages
 % \usepackage{csquotes}
 % \usepackage[textsize=tiny]{todonotes} % usage: \todo[inline]{notehere}
@@ -713,10 +712,25 @@ sorting=ynt
     end), i(0) }),
     { condition = in_mathzone }
   ),
-  -- --- Let "@" namespace operators
-  s({ trig = "@g", snippetType = "autosnippet" }, t("\\nabla"), { condition = tex.in_mathzone }),
-  s({ trig = "@p", snippetType = "autosnippet" }, t("\\partial"), { condition = tex.in_mathzone }),
-  s({ trig = "@c", snippetType = "autosnippet" }, t("\\circ"), { condition = tex.in_mathzone }),
+  -- --- Let "'" namespace operators
+  s({ trig = "'g", snippetType = "autosnippet" }, t("nabla"), { condition = in_mathzone }),
+  s({ trig = "'p", snippetType = "autosnippet" }, t("partial"), { condition = in_mathzone }),
+  s({ trig = "'c", snippetType = "autosnippet" }, t("compose"), { condition = in_mathzone }),
+  s(
+    {
+      trig = "@",
+      snippetType = "autosnippet",
+      trigEngine = "plain",
+      wordTrig = false, -- allows triggering even when not at word boundary
+    },
+    c(1, {
+      { t("\\citep{"), i(1), t("}") },
+      { t("\\citet{"), i(1), t("}") },
+      { t("\\cref{"), i(1), t("}") },
+      { t("\\autoref{"), i(1), t("}") },
+      { t("\\href{"), i(1), t("}") },
+    })
+  ),
   s(
     { trig = "dxdy", snippetType = "autosnippet" },
     fmta([[\frac{d<>}{d<>}<>]], {
@@ -849,20 +863,6 @@ sorting=ynt
     t(" \\rangle"),
     i(0),
   }, { condition = tex.in_mathzone }),
-  s(
-    {
-      trig = "@",
-      snippetType = "autosnippet",
-      trigEngine = "plain",
-      wordTrig = false, -- allows triggering even when not at word boundary
-    },
-    c(1, {
-      { t("\\citep{"), i(1), t("}") },
-      { t("\\citet{"), i(1), t("}") },
-      { t("\\cref{"), i(1), t("}") },
-      { t("\\autoref{"), i(1), t("}") },
-    })
-  ),
   s(
     { trig = "bxd", wordTrig = false, snippetType = "autosnippet" },
     fmta([[\boxed{<>}<>]], {
