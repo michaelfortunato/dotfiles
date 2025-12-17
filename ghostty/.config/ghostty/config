@@ -25,8 +25,6 @@ window-inherit-working-directory = true
 bell-features = no-attention,no-title,no-audio,no-system
 
 # Key mappings -----------------------------------------------------------
-# `ctrl+/` toggled a scratch terminal via a Kitty kitten; map to Ghostty's quick terminal.
-keybind = ctrl+/=toggle_quick_terminal
 keybind = ctrl+shift+q=close_tab
 keybind = cmd+w=close_surface
 keybind = ctrl+shift+w=close_surface
