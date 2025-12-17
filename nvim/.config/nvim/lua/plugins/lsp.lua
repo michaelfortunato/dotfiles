@@ -35,41 +35,42 @@ vim.lsp.config("tinymist", {
 vim.lsp.enable("tinymist")
 vim.lsp.enable("rust-analyzer")
 
-vim.lsp.config["rune"] = {
-  cmd = { "rune" },
-  filetypes = { "typst" },
-  -- Use the file's directory as the root; Rune will optionally walk to VAULT.typ
-  root_markers = { "VAULT.typ" },
-  init_options = {
-    vault_marker = "VAULT.typ",
-    default_extension = ".typ",
-    ignore = { ".git", "node_modules", "target", ".cache" },
-
-    completionTriggerCharacters = { '"', "(", "#", "[" },
-  },
-  cmd_env = { RUNE_DEBUG_HTTP = "1" },
-}
-vim.lsp.enable("rune")
---- @param command lsp.Command
---- @param context? {bufnr?: integer}
-local function rune_exec(command, context)
-  local clients = vim.lsp.get_clients({ name = "rune", bufnr = 0 })
-  if #clients == 0 then
-    vim.notify("Rune LSP not attached to this buffer", vim.log.levels.WARN)
-    return
-  end
-  local client = clients[1]
-  client:exec_cmd(command, context, function(err, result, ...)
-    if err ~= nil then
-      vim.notify("Failed with" .. err.message)
-    else
-      vim.notify("Sucess with" .. vim.inspect(result))
-    end
-  end)
-end
-vim.api.nvim_create_user_command("RuneDebugViewer", function()
-  rune_exec({ command = "rune.debugViewer.open", title = "Rune Debug Viewer" })
-end, {})
+-- Disable ruen for now its crating .rune files everytime I open a .typ file
+-- vim.lsp.config["rune"] = {
+--   cmd = { "rune" },
+--   filetypes = { "typst" },
+--   -- Use the file's directory as the root; Rune will optionally walk to VAULT.typ
+--   root_markers = { "VAULT.typ" },
+--   init_options = {
+--     vault_marker = "VAULT.typ",
+--     default_extension = ".typ",
+--     ignore = { ".git", "node_modules", "target", ".cache" },
+--
+--     completionTriggerCharacters = { '"', "(", "#", "[" },
+--   },
+--   cmd_env = { RUNE_DEBUG_HTTP = "1" },
+-- }
+-- vim.lsp.enable("rune")
+-- --- @param command lsp.Command
+-- --- @param context? {bufnr?: integer}
+-- local function rune_exec(command, context)
+--   local clients = vim.lsp.get_clients({ name = "rune", bufnr = 0 })
+--   if #clients == 0 then
+--     vim.notify("Rune LSP not attached to this buffer", vim.log.levels.WARN)
+--     return
+--   end
+--   local client = clients[1]
+--   client:exec_cmd(command, context, function(err, result, ...)
+--     if err ~= nil then
+--       vim.notify("Failed with" .. err.message)
+--     else
+--       vim.notify("Sucess with" .. vim.inspect(result))
+--     end
+--   end)
+-- end
+-- vim.api.nvim_create_user_command("RuneDebugViewer", function()
+--   rune_exec({ command = "rune.debugViewer.open", title = "Rune Debug Viewer" })
+-- end, {})
 
 vim.lsp.inline_completion.enable(false)
 
@@ -146,13 +147,6 @@ return {
         end,
         desc = "Hover",
       }
-      keys[#keys + 1] = {
-        "gi",
-        function()
-          return vim.lsp.buf.implementation()
-        end,
-        desc = "Goto Implementation",
-      }
       keys[#keys + 1] = { "K", false }
       -- stylua: ignore
       vim.list_extend(keys, {
@@ -161,8 +155,10 @@ return {
           { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition", has = "definition" },
           { "gr", function() Snacks.picker.lsp_references() end, nowait = true, desc = "References" },
           { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
+          { "gi", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
           { "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "Goto T[y]pe Definition" },
           { "<leader>ss", function() Snacks.picker.lsp_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Symbols", has = "documentSymbol" },
+          { "<leader>si", function() Snacks.picker.lsp_workspace_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Workspace Symbols", has = "workspace/symbols" },
           { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Workspace Symbols", has = "workspace/symbols" },
           { "gai", function() Snacks.picker.lsp_incoming_calls() end, desc = "C[a]lls Incoming", has = "callHierarchy/incomingCalls" },
           { "gao", function() Snacks.picker.lsp_outgoing_calls() end, desc = "C[a]lls Outgoing", has = "callHierarchy/outgoingCalls" },
