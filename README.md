@@ -316,6 +316,7 @@ done
 
 # Ensure Neovim is the editor launched inside Kitty
 echo 'export EDITOR="nvim"' >> ~/.zshrc
+```
 
 ## How to manage machine learning jobs (no tmux, no zellij)
 
@@ -323,8 +324,6 @@ echo 'export EDITOR="nvim"' >> ~/.zshrc
 complicated solution. It does exactly what we want. I would use it on macOS
 if I could (see [shpool#183](https://github.com/shell-pool/shpool/issues/183))
 
-
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
 [3]: https://www.lazyvim.org
-```
