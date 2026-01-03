@@ -36,41 +36,41 @@ vim.lsp.enable("tinymist")
 vim.lsp.enable("rust-analyzer")
 
 -- Disable ruen for now its crating .rune files everytime I open a .typ file
--- vim.lsp.config["rune"] = {
---   cmd = { "rune" },
---   filetypes = { "typst" },
---   -- Use the file's directory as the root; Rune will optionally walk to VAULT.typ
---   root_markers = { "VAULT.typ" },
---   init_options = {
---     vault_marker = "VAULT.typ",
---     default_extension = ".typ",
---     ignore = { ".git", "node_modules", "target", ".cache" },
---
---     completionTriggerCharacters = { '"', "(", "#", "[" },
---   },
---   cmd_env = { RUNE_DEBUG_HTTP = "1" },
--- }
--- vim.lsp.enable("rune")
--- --- @param command lsp.Command
--- --- @param context? {bufnr?: integer}
--- local function rune_exec(command, context)
---   local clients = vim.lsp.get_clients({ name = "rune", bufnr = 0 })
---   if #clients == 0 then
---     vim.notify("Rune LSP not attached to this buffer", vim.log.levels.WARN)
---     return
---   end
---   local client = clients[1]
---   client:exec_cmd(command, context, function(err, result, ...)
---     if err ~= nil then
---       vim.notify("Failed with" .. err.message)
---     else
---       vim.notify("Sucess with" .. vim.inspect(result))
---     end
---   end)
--- end
--- vim.api.nvim_create_user_command("RuneDebugViewer", function()
---   rune_exec({ command = "rune.debugViewer.open", title = "Rune Debug Viewer" })
--- end, {})
+vim.lsp.config["rune"] = {
+  cmd = { "rune" },
+  filetypes = { "typst" },
+  -- Use the file's directory as the root; Rune will optionally walk to VAULT.typ
+  root_markers = { "VAULT.typ" },
+  init_options = {
+    vault_marker = "VAULT.typ",
+    default_extension = ".typ",
+    ignore = { ".git", "node_modules", "target", ".cache" },
+
+    completionTriggerCharacters = { '"', "(", "#", "[" },
+  },
+  cmd_env = { RUNE_DEBUG_HTTP = "1" },
+}
+vim.lsp.enable("rune")
+--- @param command lsp.Command
+--- @param context? {bufnr?: integer}
+local function rune_exec(command, context)
+  local clients = vim.lsp.get_clients({ name = "rune", bufnr = 0 })
+  if #clients == 0 then
+    vim.notify("Rune LSP not attached to this buffer", vim.log.levels.WARN)
+    return
+  end
+  local client = clients[1]
+  client:exec_cmd(command, context, function(err, result, ...)
+    if err ~= nil then
+      vim.notify("Failed with" .. err.message)
+    else
+      vim.notify("Sucess with" .. vim.inspect(result))
+    end
+  end)
+end
+vim.api.nvim_create_user_command("RuneDebugViewer", function()
+  rune_exec({ command = "rune.debugViewer.open", title = "Rune Debug Viewer" })
+end, {})
 
 vim.lsp.inline_completion.enable(false)
 
@@ -148,11 +148,57 @@ return {
         desc = "Hover",
       }
       keys[#keys + 1] = { "K", false }
+
+      --- Maybe...
+      local function transient_jump(picker_fn)
+        return function()
+          local actions = require("snacks.picker.actions")
+
+          picker_fn({
+            confirm = function(picker, item, action)
+              -- Was the destination already an existing *listed* buffer?
+              local dest = item and (item.buf or (item.file and vim.fn.bufnr(item.file, false))) or -1
+              local was_listed = (dest ~= -1) and vim.bo[dest].buflisted
+
+              actions.jump(picker, item, action)
+
+              vim.schedule(function()
+                local b = vim.api.nvim_get_current_buf()
+                if vim.bo[b].buftype ~= "" then
+                  return
+                end
+                if was_listed then
+                  return
+                end
+
+                -- Make it "navigation-only"
+                vim.bo[b].buflisted = false
+
+                -- This is optional see the wipe code below
+                -- vim.bo[b].bufhidden = "wipe"
+
+                -- If you actually start editing, promote it back to a real buffer
+                vim.api.nvim_create_autocmd("BufModifiedSet", {
+                  buffer = b,
+                  once = true,
+                  callback = function()
+                    vim.bo[b].buflisted = true
+                    -- if vim.bo[b].bufhidden == "wipe" then
+                    --   vim.bo[b].bufhidden = "" -- or "hide"
+                    -- end
+                  end,
+                })
+              end)
+            end,
+          })
+        end
+      end
+
       -- stylua: ignore
       vim.list_extend(keys, {
           -- TODO: See if we/should add an autocmd to these buffers that removes them on close so my list of opened does not get polluted
           -- Though, right now I have ff to show only modified buffeers which might be the right way to do it.
-          { "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition", has = "definition" },
+          { "gd", function() transient_jump(Snacks.picker.lsp_definitions)() end, desc = "Goto Definition", has = "definition" },
           { "gr", function() Snacks.picker.lsp_references() end, nowait = true, desc = "References" },
           { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
           { "gi", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },

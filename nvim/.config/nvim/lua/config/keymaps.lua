@@ -189,14 +189,17 @@ end, { desc = "Search open tabs", noremap = true, silent = true })
 --
 --
 
-vim.keymap.set("n", "<leader>bD", function()
+vim.keymap.set("n", "<leader>bd", function()
   Snacks.bufdelete()
 end, { desc = "Delete Buffer (Not Window)" })
 -- TODO: Make this smart so that we only delete the buffer and the window
 -- if there is at least one other window in the tab that holds a regular buffer
-vim.keymap.set("n", "<leader>bd", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
+vim.keymap.set("n", "<leader>bD", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
 
 vim.keymap.set({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Previous Buffer" })
+
+-- Consider this
+vim.keymap.set("n", "<leader>tt", "<Cmd>tabprev<CR>")
 vim.keymap.set({ "n", "t" }, "<C-Tab>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
 vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 -- NOTE: We are remapping LazyVim's <Tab> Commands

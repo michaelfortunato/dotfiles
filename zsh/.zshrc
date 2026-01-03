@@ -219,10 +219,10 @@ alias shellconf="nvim $HOME/.zshrc"
 alias shellconfig="nvim $HOME/.zshrc"
 alias nvimconf="cd $HOME/.config/nvim && nvim"
 alias nvimconfig="cd $HOME/.config/nvim && nvim"
-alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
-alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
-alias termconf-ghostty="cd $HOME/.config/ghostty && nvim config"
-alias termconfig-ghostty="cd $HOME/.config/ghostty && nvim config"
+alias termconf="cd $HOME/.config/ghostty && nvim config"
+alias termconfig="cd $HOME/.config/ghostty && nvim config"
+alias termconf-kitty="cd $HOME/.config/kitty && nvim kitty.conf"
+alias termconfig-kitty="cd $HOME/.config/kitty && nvim kitty.conf"
 alias conf="cd $HOME/dotfiles"
 alias dotconf="cd $HOME/dotfiles && nvim"
 alias dotconfig="cd $HOME/dotfiles && nvim"
@@ -399,18 +399,7 @@ _fzf_compgen_dir() {
     -or -name "__pycache__"  \) -type d \
 }
 #export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
-export FZF_DEFAULT_COMMAND=cat <<EOF
-bfs . $HOME -color -mindepth 1  \
-     -exclude \( \
-    -name ".git" \
-    -or -name "node_modules" \
-    -or -name "target/debug" \
-    -or -name "target/release" \
-    -or -name "obj" \
-    -or -name "build" \
-    -or -name "dist" \
-    -or -name "__pycache__"  \)
-EOF
+export FZF_DEFAULT_COMMAND="bfs . $HOME -color -mindepth 1  -exclude \( -name '.git' -or -name 'node_modules' -or -name 'target/debug' -or -name 'target/release' -or -name 'obj' -or -name 'build' -or -name 'dist' -or -name '__pycache__'  \)"
 # NOTE: Consider adding --ignore-case, though probably best per command
 export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept' --bind 'ctrl-b:preview-page-up' --bind 'ctrl-f:preview-page-down' --bind 'ctrl-d:half-page-down' --bind 'ctrl-u:half-page-up'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "

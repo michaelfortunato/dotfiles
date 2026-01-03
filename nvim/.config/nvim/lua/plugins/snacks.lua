@@ -81,7 +81,7 @@ vim.api.nvim_set_hl(0, "SnacksPickerPreviewBorder", { link = "SnacksPickerBoxBor
 -- typical snacks w
 vim.keymap.set({ "n" }, "<Leader>uz", function()
   require("snacks").zen()
-end, { desc = "Toggle Dim Mode" })
+end, { desc = "Toggle Zen Mode" })
 vim.keymap.set({ "n" }, "<Leader>ux", function()
   local dim = require("snacks.dim")
   if dim.enabled then
@@ -89,7 +89,7 @@ vim.keymap.set({ "n" }, "<Leader>ux", function()
   else
     dim.enable()
   end
-end, { desc = "Toggle Zen Mode" })
+end, { desc = "Toggle Dim Mode" })
 
 vim.t.scratch = "python"
 vim.keymap.set("n", "''", function()
@@ -145,6 +145,16 @@ vim.keymap.set("n", "'sh", function()
   local snacks_local = require("snacks")
   snacks_local.scratch.open({ ft = "sh" })
 end, { desc = "Shell scratch buffer" })
+
+vim.keymap.set("n", "'rust", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "rust" })
+end, { desc = "Rust scratch buffer" })
+
+vim.keymap.set("n", "'rs", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "rust" })
+end, { desc = "Rust scratch buffer" })
 
 return {
   {
@@ -229,9 +239,7 @@ return {
               key = "f",
               desc = "Find File",
               -- action = ":Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true",
-              action = function()
-                Snacks.picker.smart()
-              end,
+              action = LazyVim.pick("files"),
             },
             { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
             { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
@@ -434,6 +442,72 @@ return {
             scratch_filter_cwd = not scratch_filter_cwd
             picker:refresh()
           end,
+
+          ---@diagnostic disable-next-line: redefined-local
+          oneoff_float = function(picker, item)
+            item = item or picker:selected({ fallback = true })[1]
+            local file = item and (item.item or item).file
+            if not file or file == "" then
+              return
+            end
+
+            picker:close()
+            vim.schedule(function()
+              local filep = vim.fn.fnamemodify(file, ":p")
+              local existed = vim.fn.bufexists(filep) == 1
+              local buf = vim.fn.bufadd(filep)
+              vim.fn.bufload(buf)
+
+              if not existed then
+                vim.bo[buf].buflisted = false
+                vim.bo[buf].bufhidden = "wipe"
+                vim.bo[buf].swapfile = false
+              end
+
+              Snacks.win.new({ buf = buf, position = "float", width = 0.86, height = 0.86 })
+
+              vim.keymap.set("n", "q", function()
+                if #vim.fn.win_findbuf(buf) == 1 then
+                  vim.cmd("bwipeout!")
+                else
+                  vim.cmd("close")
+                end
+              end, { buffer = buf, nowait = true, silent = true })
+            end)
+          end,
+
+          ---@diagnostic disable-next-line: redefined-local
+          oneoff_tab = function(picker, item)
+            item = item or picker:selected({ fallback = true })[1]
+            local file = item and (item.item or item).file
+            if not file or file == "" then
+              return
+            end
+
+            picker:close()
+            vim.schedule(function()
+              local filep = vim.fn.fnamemodify(file, ":p")
+              local existed = vim.fn.bufexists(filep) == 1
+              local buf = vim.fn.bufadd(filep)
+              vim.fn.bufload(buf)
+
+              if not existed then
+                vim.bo[buf].buflisted = false
+                vim.bo[buf].bufhidden = "wipe"
+                vim.bo[buf].swapfile = false
+              end
+
+              vim.cmd("tabnew")
+              vim.api.nvim_set_current_buf(buf)
+
+              vim.keymap.set("n", "q", function()
+                if #vim.fn.win_findbuf(buf) == 1 then
+                  vim.cmd("bwipeout!")
+                end
+                vim.cmd("tabclose")
+              end, { buffer = buf, nowait = true, silent = true })
+            end)
+          end,
         },
         -- These two blocks control the look of tihngs, along with the hol
         -- group
@@ -459,6 +533,7 @@ return {
               ["<Esc>"] = { "close", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<c-y>"] = { "confirm", mode = { "i", "n" } },
               ["<c-g><c-i>"] = { "toggle_ignored", mode = { "i", "n" } },
+              ["<c-g><c-i>"] = { "toggle_hidden", mode = { "i", "n" } },
               ["<c-o>"] = { "edit_split", mode = { "i", "n" } },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
               ["<c-u>"] = false,
@@ -472,11 +547,15 @@ return {
               ["<D-p>"] = { "paste", mode = { "n", "i" } },
               -- Probably won't work given this is Tab
               ["<c-i>"] = { "print_path", mode = { "n", "i" } },
+              ["<C-t>"] = { "tab", mode = { "n", "i" } },
               ["<c-.>"] = { "cd", mode = { "n", "i" } },
               ["<c-;>"] = { "terminal", mode = { "n", "i" } },
+              -- TODO: We should have an action like ctrl-enter that opens the file as a hidden buffer!
+              -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
-              ["<S-enter>"] = { "tab", mode = { "n", "i" } },
-              ["<C-enter>"] = { "edit_vsplit", mode = { "n", "i" } },
+              -- Maybe do one of these
+              ["<S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
+              -- ["<C-enter>"] = { "edit_vsplit", mode = { "n", "i" } },
               ["<C-h>"] = false,
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = false,
@@ -610,6 +689,8 @@ return {
               picker:close()
             end,
             actions = {
+              -- TODO: Get it so that the highlighted entry
+              -- doesn't move arund after the fact
               close_tab = function(picker, item)
                 if not (item and item.tabnr) then
                   return
@@ -633,9 +714,12 @@ return {
           },
           buffers = {
             win = {
-              input = { keys = {
-                ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
-              } },
+              input = {
+                keys = {
+                  ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
+                  -- TODO: Get <c-g><c-i> to toggle hidden buffers
+                },
+              },
             },
           },
           scratch = {
@@ -690,7 +774,7 @@ return {
       --- since before we opened it.
       -- { "ff", function() Snacks.picker.buffers({ modified = true }) end, desc = "List Modified Buffers" },
       { "ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-
+      -- Get this to list terminal buffers last
       { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },

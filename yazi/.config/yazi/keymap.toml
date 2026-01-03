@@ -4,14 +4,36 @@
 
 [mgr]
 prepend_keymap = [
+  { on = "<Esc>", run = ["close"], desc = "Close the current tab, or quit if it's last" },
   { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory" },
   { on = "<S-Enter>", run = ["enter", "quit"], desc = "Quit and cd to the selected directory" },
+  { on = "?", run = "help", desc = "Open help" },
+  { on = "e", run = "open", desc = "Open selected files" },
+  { on = "<c-h>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
+  { on = "<c-i>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
+  { on = "<S-h>", run = "cd ~", desc = "Go home" },
+  { on = ["<space>"], run = "noop", desc = "Noop (free <space>)" },
+  { on = ["<space>", "<space>"], run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
+  { on = "cdj", run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
+  { on = "s", run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
+  { on = "D", run = "noop", desc = "Noop (prevent accidental deletion)" },
+  { on = "d", run = "noop", desc = "Noop (prevent accidental deletion)" },
+  { on = "Z", run = "Noop", desc = "Noop (free Z)" },
+  { on = "<C-q>", run = "quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
+  { on = "q", run = "quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
+  { on = "<C-u>", run = "arrow -50%", desc = "Move cursor up half page" },
+  { on = "<C-d>", run = "arrow 50%", desc = "Move cursor down half page" },
 ]
 append_keymap = [
   { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
   { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
   { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory" },
   { on = "<Backspace>", run = "leave", desc = "Go back to the parent directory" },
+]
+
+[input]
+prepend_keymap = [
+  { on = "<Esc>", run = "close", desc = "Cancel input" },
 ]
 
 [spot]
@@ -39,7 +61,8 @@ append_keymap = [
 ]
 
 [help]
-append_keymap = [
+prepend_keymap = [
   { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
   { on = "<C-n>", run = "arrow 1", desc = "Move cursor down" },
+  { on = "/", run = "filter", desc = "Filter help items" },
 ]

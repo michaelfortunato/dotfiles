@@ -29,8 +29,9 @@ return {
           renamed = "",
           untracked = "",
           ignored = "",
-          unstaged = "",
-          staged = "",
+          -- This needs to be yellow, but its read right now quite annoying.
+          -- unstaged = "",
+          -- staged = "",
           conflict = "",
         },
       },
