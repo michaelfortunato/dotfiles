@@ -11,7 +11,8 @@ prepend_keymap = [
   { on = "e", run = "open", desc = "Open selected files" },
   { on = "<c-h>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
   { on = "<c-i>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
-  { on = "<S-h>", run = "cd ~", desc = "Go home" },
+  { on = "<S-h>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
+  { on = "`", run = "cd ~", desc = "Toggle the visibility of hidden files" },
   { on = ["<space>"], run = "noop", desc = "Noop (free <space>)" },
   { on = ["<space>", "<space>"], run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
   { on = "cdj", run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
@@ -23,6 +24,8 @@ prepend_keymap = [
   { on = "q", run = "quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
   { on = "<C-u>", run = "arrow -50%", desc = "Move cursor up half page" },
   { on = "<C-d>", run = "arrow 50%", desc = "Move cursor down half page" },
+  { on = "<leader>sg", run = "plugin gri", desc = "Grep (root dir)" },
+  { on = "<leader>sG", run = "plugin gri", desc = "Grep (cwd)" },
 ]
 append_keymap = [
   { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
