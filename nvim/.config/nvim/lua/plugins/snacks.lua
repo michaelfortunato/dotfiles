@@ -163,9 +163,43 @@ return {
     ---@type snacks.Config
     opts = {
       scratch = {
+        -- Per-filetype scratch actions (kept in your config; no Snacks patches).
+        -- This mirrors Folke's lua scratch `<cr>` runner, but routes python to `mnf.scratch.python`.
+        win_by_ft = {
+          python = {
+            keys = {
+              ["run"] = {
+                "<cr>",
+                function(self)
+                  require("mnf.scratch.python").run({ buf = self.buf })
+                end,
+                desc = "Run selection (ghost output)",
+                mode = { "n", "x" },
+              },
+              ["clear"] = {
+                "C",
+                function(self)
+                  require("mnf.scratch.python").clear({ buf = self.buf })
+                end,
+                desc = "Clear output",
+              },
+              ["reset"] = {
+                "R",
+                function(self)
+                  require("mnf.scratch.python").reset({ buf = self.buf })
+                end,
+                desc = "Reset Python session",
+              },
+            },
+            footer_keys = { "<cr>", "R" },
+          },
+        },
         win = {
+          wo = {
+            colorcolumn = "",
+          },
           on_close = function(win)
-            assert(win and win.buf, "We need this to be not onone here")
+            assert(win and win.buf, "We need this to be not none here")
             local buf = win.buf
             local ft = vim.bo[buf].filetype
             vim.t.scratch = ft
@@ -446,7 +480,8 @@ return {
           ---@diagnostic disable-next-line: redefined-local
           oneoff_float = function(picker, item)
             item = item or picker:selected({ fallback = true })[1]
-            local file = item and (item.item or item).file
+            -- use item._path for things like snacks config picker
+            local file = item and item._path or (item.item or item).file
             if not file or file == "" then
               return
             end
@@ -473,13 +508,21 @@ return {
                   vim.cmd("close")
                 end
               end, { buffer = buf, nowait = true, silent = true })
+              vim.keymap.set("n", "<Esc>", function()
+                if #vim.fn.win_findbuf(buf) == 1 then
+                  vim.cmd("bwipeout!")
+                else
+                  vim.cmd("close")
+                end
+              end, { buffer = buf, nowait = true, silent = true })
             end)
           end,
 
           ---@diagnostic disable-next-line: redefined-local
           oneoff_tab = function(picker, item)
+            -- use item._path for things like snacks config picker
             item = item or picker:selected({ fallback = true })[1]
-            local file = item and (item.item or item).file
+            local file = item and item._path or (item.item or item).file
             if not file or file == "" then
               return
             end
@@ -554,7 +597,7 @@ return {
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
               -- Maybe do one of these
-              ["<S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
+              ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (tab)" },
               -- ["<C-enter>"] = { "edit_vsplit", mode = { "n", "i" } },
               ["<C-h>"] = false,
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
