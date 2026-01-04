@@ -59,6 +59,7 @@ vim.api.nvim_create_user_command(
 
 -- stylua: ignore
 vim.api.nvim_create_user_command("R", "Restart", { desc = "(Restart Alias) Restart Neovim and reload last session on reopen" })
+vim.api.nvim_create_user_command("RR", "restart", { desc = "(Restart [Hard]) Restart Neovim" })
 vim.api.nvim_create_user_command("Q", "quitall", { desc = "(quitall Alias) Quit Neovim If No Pending Changes" })
 
 --- Get the particular terminal to remember its last mode
@@ -79,6 +80,7 @@ vim.api.nvim_create_autocmd("TermOpen", {
   callback = function(ev)
     vim.b[ev.buf].mnf_term_last_mode = "terminal"
     vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
+    -- TODO: Configure a timeout here ??
     -- This is so insert mode gets hit if the pattern matches
     vim.cmd("startinsert")
   end,
