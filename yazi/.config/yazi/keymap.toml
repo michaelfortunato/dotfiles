@@ -5,7 +5,8 @@
 [mgr]
 prepend_keymap = [
   { on = "<Esc>", run = ["close"], desc = "Close the current tab, or quit if it's last" },
-  { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory" },
+  { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory or open file" },
+  { on = "<C-y>", run = "plugin smart-enter", desc = "Enter the child directory or open file" },
   { on = "<S-Enter>", run = ["enter", "quit"], desc = "Quit and cd to the selected directory" },
   { on = "?", run = "help", desc = "Open help" },
   { on = "e", run = "open", desc = "Open selected files" },
@@ -26,6 +27,8 @@ prepend_keymap = [
   { on = "<C-d>", run = "arrow 50%", desc = "Move cursor down half page" },
   { on = "<leader>sg", run = "plugin gri", desc = "Grep (root dir)" },
   { on = "<leader>sG", run = "plugin gri", desc = "Grep (cwd)" },
+  { on = "<C-f>", run = "seek 5", desc = "Seek 5 units down in the preview." },
+  { on = "<C-b>", run = "seek -5", desc = "Seek 5 units up in the preview." },
 ]
 append_keymap = [
   { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },
@@ -37,6 +40,7 @@ append_keymap = [
 [input]
 prepend_keymap = [
   { on = "<Esc>", run = "close", desc = "Cancel input" },
+  { on = "<C-y>", run = "close --submit", desc = "Submit input" },
 ]
 
 [spot]
