@@ -149,6 +149,13 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.keymap.set("v", "<localleader>s", function()
       require("mnf.scratch.python").run({ buf = ev.buf })
     end, { buffer = ev.buf, desc = "Run visually selected code" })
+
+    vim.keymap.set("n", "<localleader>r", function()
+      require("mnf.scratch.python").reset({ buf = ev.buf })
+    end, { buffer = ev.buf, desc = "Reset Python session" })
+    vim.keymap.set("n", "<localleader>c", function()
+      require("mnf.scratch.python").clear({ buf = ev.buf })
+    end, { buffer = ev.buf, desc = "Clear output" })
   end,
 })
 
