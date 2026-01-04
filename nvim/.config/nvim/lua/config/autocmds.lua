@@ -141,6 +141,9 @@ vim.api.nvim_create_autocmd("FileType", {
       require("mnf.scratch.python").run({ buf = ev.buf })
     end, { buffer = ev.buf, desc = "Source python file" })
 
+    vim.keymap.set("v", "<localleader><localleader>", function()
+      require("mnf.scratch.python").run({ buf = ev.buf })
+    end, { buffer = ev.buf, desc = "Run visually selected code" })
     vim.keymap.set("v", "<localleader>s", function()
       require("mnf.scratch.python").run({ buf = ev.buf })
     end, { buffer = ev.buf, desc = "Run visually selected code" })
