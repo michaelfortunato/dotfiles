@@ -125,6 +125,10 @@ This directory consists of subdirectories, where each subdirectory is a
 The most important one is the `.git-templates/default` template. Which is
 what every repository on my machine gets after a `git init`.
 
+<details>
+
+<summary>Archival Nix Commentary</summary>
+
 ## Nix Investigation
 
 Nix is appealing to me because it
@@ -247,6 +251,8 @@ in the root, and it does the linking.
 > Look into ways to keep home-manager modular, ideally I
 > would like each of my stow packages (the folders in this repo)
 > to have its corresponding nix file
+
+</details>
 
 ## My new Keeb
 
