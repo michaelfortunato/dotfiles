@@ -208,6 +208,15 @@ alt-shift-l = ["join-with right", "mode main"]
 # 47375 | com.apple.TextEdit        | TextEdit
 # 51899 | com.apple.MobileSMS       | Messages
 # 68141 | com.apple.QuickTimePlayerX | QuickTime Player
+
+[[on-window-detected]]
+if.app-id = "com.mitchellh.ghostty"
+run = [
+  # FIXME: This doesn't work https://ghostty.org/docs/help/macos-tiling-wms
+  "layout tiling",
+  "move-node-to-workspace T",  # mnemonics T - Terminal
+]
+
 [[on-window-detected]]
 if.app-id = "net.kovidgoyal.kitty"
 run = "move-node-to-workspace T"  # mnemonics T - Terminal
@@ -279,14 +288,6 @@ run = "move-node-to-workspace C"  # mnemonics C - Chat
 [[on-window-detected]]
 if.app-id = "org.python.python"
 run = "layout floating"
-
-[[on-window-detected]]
-if.app-id = "com.mitchellh.ghostty"
-run = [
-  # FIXME: This doesn't work https://ghostty.org/docs/help/macos-tiling-wms
-  "layout tiling",
-  "move-node-to-workspace T",  # mnemonics T - Tiling
-]
 
 [workspace-to-monitor-force-assignment]
 S = "^Sidecar.*"
