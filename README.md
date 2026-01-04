@@ -125,6 +125,14 @@ This directory consists of subdirectories, where each subdirectory is a
 The most important one is the `.git-templates/default` template. Which is
 what every repository on my machine gets after a `git init`.
 
+### The `MANIFESTS` directory
+
+This is an automatically generated directory of packages that currently installed on my primary computer.
+
+You should not edit the files in it manually and you can largely
+ignore the contents as its only really helpful when I get a new computer. It is populated
+via the repos `pre-push` hook (see `./git/.config/git-hooks/pre-push/dotfiles` for the script responsible).
+
 <details>
 
 <summary>Archival Nix Commentary</summary>
