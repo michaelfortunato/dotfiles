@@ -125,7 +125,7 @@ This directory consists of subdirectories, where each subdirectory is a
 The most important one is the `.git-templates/default` template. Which is
 what every repository on my machine gets after a `git init`.
 
-### The `MANIFESTS` directory
+### The `_MANIFESTS` directory
 
 This is an automatically generated directory of packages that currently installed on my primary computer.
 

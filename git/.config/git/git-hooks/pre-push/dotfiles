@@ -8,25 +8,25 @@
 GIT_DIR="$(git rev-parse --git-dir)"
 
 function update_brewfile() {
-  mkdir -p "$GIT_DIR/../MANIFESTS/brew"
-  cd "$GIT_DIR/../MANIFESTS/brew" && brew bundle dump --force
+  mkdir -p "$GIT_DIR/../_MANIFESTS/brew"
+  cd "$GIT_DIR/../_MANIFESTS/brew" && brew bundle dump --force
   # Kept for backwards compabability
-  cp "$GIT_DIR/../MANIFESTS/brew/Brewfile" "$GIT_DIR/../brew"
+  cp "$GIT_DIR/../_MANIFESTS/brew/Brewfile" "$GIT_DIR/../brew"
 }
 
 function update_uv() {
-  mkdir -p "$GIT_DIR/../MANIFESTS/uv"
-  cd "$GIT_DIR/../MANIFESTS/uv" && uv tool list >uv_tool_list_output.txt
+  mkdir -p "$GIT_DIR/../_MANIFESTS/uv"
+  cd "$GIT_DIR/../_MANIFESTS/uv" && uv tool list >uv_tool_list_output.txt
 }
 
 function update_cargo() {
-  mkdir -p "$GIT_DIR/../MANIFESTS/cargo"
-  cd "$GIT_DIR/../MANIFESTS/cargo" && cargo install --list >cargo_install_list_output.txt
+  mkdir -p "$GIT_DIR/../_MANIFESTS/cargo"
+  cd "$GIT_DIR/../_MANIFESTS/cargo" && cargo install --list >cargo_install_list_output.txt
 }
 
 function update_nix() {
-  mkdir -p "$GIT_DIR/../MANIFESTS/nix"
-  cd "$GIT_DIR/../MANIFESTS/nix" && nix profile list --json >profile.json
+  mkdir -p "$GIT_DIR/../_MANIFESTS/nix"
+  cd "$GIT_DIR/../_MANIFESTS/nix" && nix profile list --json >profile.json
 }
 
 (update_brewfile)
