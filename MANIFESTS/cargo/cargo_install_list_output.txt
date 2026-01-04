@@ -1,0 +1,38 @@
+agg v1.5.0 (https://github.com/asciinema/agg#f043c1f5):
+    agg
+asm-lsp v0.6.0:
+    asm-lsp
+cargo-binstall v1.16.6:
+    cargo-binstall
+cargo-expand v1.0.114:
+    cargo-expand
+cargo-show-asm v0.2.52:
+    cargo-asm
+cargo-shuttle v0.46.0:
+    cargo-shuttle
+codex-acp v0.2.4 (https://github.com/zed-industries/codex-acp#bf8f944c):
+    codex-acp
+evcxr_jupyter v0.21.1:
+    evcxr_jupyter
+evcxr_repl v0.21.1:
+    evcxr
+hayagriva v0.8.1:
+    hayagriva
+inkscape-figures-manager v0.2.0:
+    inkscape-figures-manager
+irust v1.76.1:
+    irust
+kodama v0.3.6 (https://github.com/kokic/kodama.git#5468c344):
+    kodama
+miniserve v0.32.0:
+    miniserve
+pueue v4.0.2:
+    pueue
+    pueued
+sqlx-cli v0.8.2:
+    cargo-sqlx
+    sqlx
+tokio-console v0.1.14:
+    tokio-console
+tree-sitter-cli v0.25.10:
+    tree-sitter

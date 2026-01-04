@@ -1,0 +1,10 @@
+flake8 v7.1.2
+- flake8
+neovim-remote v2.5.1
+- nvr
+py-spy v0.4.1
+- py-spy
+pyrefly v0.46.3
+- pyrefly
+pyzotero-cli v0.1.5
+- zot
