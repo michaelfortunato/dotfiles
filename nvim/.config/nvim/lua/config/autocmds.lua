@@ -134,6 +134,9 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "python" },
   callback = function(ev)
+    vim.keymap.set("n", "<localleader><localleader>", function()
+      require("mnf.scratch.python").run({ buf = ev.buf })
+    end, { buffer = ev.buf, desc = "Source python file" })
     vim.keymap.set("n", "<localleader>s", function()
       require("mnf.scratch.python").run({ buf = ev.buf })
     end, { buffer = ev.buf, desc = "Source python file" })
