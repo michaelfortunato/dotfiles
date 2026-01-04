@@ -196,12 +196,20 @@ end, { desc = "Delete Buffer (Not Window)" })
 -- if there is at least one other window in the tab that holds a regular buffer
 vim.keymap.set("n", "<leader>bD", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
 
-vim.keymap.set({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Previous Buffer" })
-
--- Consider this
-vim.keymap.set("n", "<leader>tt", "<Cmd>tabprev<CR>")
-vim.keymap.set({ "n", "t" }, "<C-Tab>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
+vim.keymap.set({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Last Accessed Buffer" })
 vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+-- WARN: Mapping <Tab> might conflict with <C-i>
+vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
+vim.keymap.set({ "t" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab", nowait = true })
+-- Consider this
+vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
+vim.keymap.set({ "n", "t" }, "<Tab>p", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
+vim.keymap.set({ "n", "t" }, "<Tab>n", "<Cmd>tabnext<CR>", { desc = "Nest Tab" })
+-- WARN: SUPER IMPORTANT, <Tab> and <C-i> are the same, its important therefore
+-- to get neovim to distinguish it. THis works on ghostty at least.
+vim.keymap.set({ "n", "t", "x", "o" }, "<C-i>", "<C-i>")
+
 -- NOTE: We are remapping LazyVim's <Tab> Commands
 -- TODO:  local wk = require("which-key")
 -- How do I delete a group mapping? { "<leader><tab>", group = "tabs" },
