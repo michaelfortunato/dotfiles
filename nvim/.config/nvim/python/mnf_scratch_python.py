@@ -7,12 +7,11 @@ import vim
 
 # Make `stdpath('config')/python` importable (where `mnf_scratch_mpl.py` lives).
 try:
-    _config = vim.eval("stdpath('config')")
-    _python_dir = os.path.join(str(_config), "python")
+    _python_dir = os.path.join(str(vim.eval("stdpath('config')")), "python")
     if _python_dir not in sys.path:
         sys.path.insert(0, _python_dir)
 except Exception:
-    pass
+    _python_dir = None
 
 _SESSIONS = globals().get("_MNF_SCRATCH_PYTHON_SESSIONS")
 if _SESSIONS is None:
@@ -101,17 +100,6 @@ def _mpl_enabled() -> bool:
         return True
 
 
-def _configure_python_path():
-    # Ensure `stdpath('config')/python` is importable so we can load helper modules.
-    try:
-        config = vim.eval("stdpath('config')")
-        python_dir = os.path.join(str(config), "python")
-        if python_dir not in sys.path:
-            sys.path.insert(0, python_dir)
-    except Exception:
-        pass
-
-
 def _configure_matplotlib(*, filename: str, anchor: int) -> None:
     try:
         # Certified path: select a Matplotlib backend module (Agg-derived) so that
@@ -134,12 +122,11 @@ def _configure_matplotlib(*, filename: str, anchor: int) -> None:
         os.makedirs(plot_dir, exist_ok=True)
         mnf_scratch_mpl.configure(cache_dir=plot_dir, filename=filename, anchor=anchor)
 
-        # Fallback: if pyplot is already imported, ensure show is ours anyway.
+        # Make sure `plt.show()` always yields images (even if pyplot was imported earlier).
         try:
             import matplotlib.pyplot as plt
 
-            if getattr(plt.show, "__module__", "") != "mnf_scratch_mpl":
-                plt.show = mnf_scratch_mpl.show
+            plt.show = mnf_scratch_mpl.show
         except Exception:
             pass
     except Exception:
@@ -158,7 +145,6 @@ def _run(buf: int, code: str, filename: str, anchor: int):
     if mpl:
         # Optional matplotlib support:
         # - `plt.show()` -> save PNG -> emit `{"type":"image","file":...,"line":...}`.
-        _configure_python_path()
         _configure_matplotlib(filename=filename, anchor=anchor)
 
     old_out, old_err = sys.stdout, sys.stderr

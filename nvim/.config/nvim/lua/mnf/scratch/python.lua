@@ -108,6 +108,12 @@ local function render_image(buf, line, file)
     if not vim.api.nvim_buf_is_valid(buf) then
       return
     end
+    local win = vim.fn.win_findbuf(buf)[1]
+    local win_w = win and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_width(win) or vim.o.columns
+    local win_h = win and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_height(win) or vim.o.lines
+    local max_w = vim.g.mnf_scratch_python_plot_max_width or math.max(20, math.floor(win_w * 0.5))
+    local max_h = vim.g.mnf_scratch_python_plot_max_height or math.max(6, math.floor(win_h * 0.35))
+
     -- Anchor at column 0 and render below the line via Snacks.image placeholder grid.
     -- We use a zero-width range at (line,0) so the code line stays intact.
     pcall(snacks.image.placement.new, buf, file, {
@@ -117,6 +123,8 @@ local function render_image(buf, line, file)
       pos = { line, 0 },
       range = { line, 0, line, 0 },
       conceal = false,
+      max_width = max_w,
+      max_height = max_h,
     })
   end)
 end
