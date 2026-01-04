@@ -358,6 +358,39 @@
   # Custom prefix.
   # typeset -g POWERLEVEL9K_DIR_PREFIX='in '
 
+  # Light-terminal detection for palette overrides.
+  # Set P10K_COLOR_SCHEME=light|dark to force a mode.
+  local -i p10k_is_light=0
+  if [[ ${P10K_COLOR_SCHEME:-} == light ]]; then
+    p10k_is_light=1
+  elif [[ ${P10K_COLOR_SCHEME:-} == dark ]]; then
+    p10k_is_light=0
+  elif [[ -n ${COLORFGBG:-} && ${COLORFGBG} == *';'* ]]; then
+    local p10k_bg=${COLORFGBG##*;}
+    [[ $p10k_bg == (7|15) ]] && p10k_is_light=1
+  else
+    local p10k_theme=
+    if [[ -n ${GHOSTTY_THEME:-} ]]; then
+      p10k_theme=${GHOSTTY_THEME}
+    elif [[ ${TERM_PROGRAM:-} == (ghostty|Ghostty) || ${TERM:-} == *ghostty* ]]; then
+      local p10k_ghostty_config=${XDG_CONFIG_HOME:-$HOME/.config}/ghostty/config
+      if [[ -r $p10k_ghostty_config ]]; then
+        local p10k_theme_line
+        p10k_theme_line=$(command awk -F= 'BEGIN{IGNORECASE=1} /^[[:space:]]*theme[[:space:]]*=/{print $2; exit}' \
+          "$p10k_ghostty_config" 2>/dev/null)
+        p10k_theme=${${p10k_theme_line##[[:space:]]#}%%[[:space:]]#}
+      fi
+    fi
+
+    if [[ -n $p10k_theme ]]; then
+      if [[ $p10k_theme == (#i)*light* || $p10k_theme == (#i)*latte* ]]; then
+        p10k_is_light=1
+      elif [[ $p10k_theme == (#i)*dark* || $p10k_theme == (#i)*mocha* || $p10k_theme == (#i)*macchiato* || $p10k_theme == (#i)*frappe* ]]; then
+        p10k_is_light=0
+      fi
+    fi
+  fi
+
   #####################################[ vcs: git status ]######################################
   # Version control background colors.
   typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND=2
@@ -365,6 +398,13 @@
   typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND=2
   typeset -g POWERLEVEL9K_VCS_CONFLICTED_BACKGROUND=3
   typeset -g POWERLEVEL9K_VCS_LOADING_BACKGROUND=8
+  if (( p10k_is_light )); then
+    typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND=151
+    typeset -g POWERLEVEL9K_VCS_MODIFIED_BACKGROUND=223
+    typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND=159
+    typeset -g POWERLEVEL9K_VCS_CONFLICTED_BACKGROUND=217
+    typeset -g POWERLEVEL9K_VCS_LOADING_BACKGROUND=250
+  fi
 
   # Branch icon. Set this parameter to '\UE0A0 ' for the popular Powerline branch icon.
   typeset -g POWERLEVEL9K_VCS_BRANCH_ICON=
@@ -521,6 +561,10 @@
   typeset -g POWERLEVEL9K_STATUS_OK_FOREGROUND=2
   # If you ever want to change this. you will have to find the tip of the powerline too to change
   typeset -g POWERLEVEL9K_STATUS_OK_BACKGROUND=0
+  if (( p10k_is_light )); then
+    typeset -g POWERLEVEL9K_STATUS_OK_FOREGROUND=22
+    typeset -g POWERLEVEL9K_STATUS_OK_BACKGROUND=151
+  fi
 
   # Status when some part of a pipe command fails but the overall exit status is zero. It may look
   # like this: 1|0.
@@ -528,6 +572,10 @@
   typeset -g POWERLEVEL9K_STATUS_OK_PIPE_VISUAL_IDENTIFIER_EXPANSION='✔'
   typeset -g POWERLEVEL9K_STATUS_OK_PIPE_FOREGROUND=2
   typeset -g POWERLEVEL9K_STATUS_OK_PIPE_BACKGROUND=0
+  if (( p10k_is_light )); then
+    typeset -g POWERLEVEL9K_STATUS_OK_PIPE_FOREGROUND=22
+    typeset -g POWERLEVEL9K_STATUS_OK_PIPE_BACKGROUND=151
+  fi
 
   # Status when it's just an error code (e.g., '1'). No need to show it if prompt_char is enabled as
   # it will signify error by turning red.
@@ -535,6 +583,10 @@
   typeset -g POWERLEVEL9K_STATUS_ERROR_VISUAL_IDENTIFIER_EXPANSION='✘'
   typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=3
   typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND=1
+  if (( p10k_is_light )); then
+    typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=124
+    typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND=217
+  fi
 
   # Status when the last command was terminated by a signal.
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL=true
@@ -543,6 +595,10 @@
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_VISUAL_IDENTIFIER_EXPANSION='✘'
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=3
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND=1
+  if (( p10k_is_light )); then
+    typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=124
+    typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND=217
+  fi
 
   # Status when some part of a pipe command fails and the overall exit status is also non-zero.
   # It may look like this: 1|0.
@@ -550,6 +606,10 @@
   typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_VISUAL_IDENTIFIER_EXPANSION='✘'
   typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND=3
   typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_BACKGROUND=1
+  if (( p10k_is_light )); then
+    typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND=124
+    typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_BACKGROUND=217
+  fi
 
   ###################[ command_execution_time: duration of the last command ]###################
   # Execution time color.
