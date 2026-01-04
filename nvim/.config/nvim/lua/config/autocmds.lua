@@ -131,6 +131,19 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "python" },
+  callback = function(ev)
+    vim.keymap.set("n", "<localleader>s", function()
+      require("mnf.scratch.python").run({ buf = ev.buf })
+    end, { buffer = ev.buf, desc = "Source python file" })
+
+    vim.keymap.set("v", "<localleader>s", function()
+      require("mnf.scratch.python").run({ buf = ev.buf })
+    end, { buffer = ev.buf, desc = "Run visually selected code" })
+  end,
+})
+
 -- Auto-trust local config files on save (Neovim 0.12+)
 -- Neovim maintainer was mean to my comment on the PR adding this security
 -- feature--well at least I fixed it now.
