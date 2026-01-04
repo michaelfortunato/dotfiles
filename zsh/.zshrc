@@ -232,6 +232,8 @@ alias yazi="y"
 alias htop="btm" # You are crazy for this one!
 # be more like bash
 alias help='run-help'
+# py-spy should be call pyspy imo
+alias pyspy='py-spy'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
 #---unaliases-------------------------------------------------------------------
@@ -586,6 +588,7 @@ eval "$(codex completion zsh)"
 eval "$(uv generate-shell-completion zsh)"
 # ref: https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#native-completions
 source <(CARGO_COMPLETE=zsh cargo +nightly)
+eval "$(pueue completions zsh)"
 
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
