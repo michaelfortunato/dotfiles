@@ -338,6 +338,7 @@ return {
       --    % Foo|
       "abecodes/tabout.nvim",
       lazy = false,
+      enabled = false,
       config = function()
         require("tabout").setup({
           -- This is good as blink cmp will win out over it.
