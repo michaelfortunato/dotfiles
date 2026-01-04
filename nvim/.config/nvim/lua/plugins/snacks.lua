@@ -291,7 +291,7 @@ return {
       -- manage this monoltith plugin and disable it for typst
       -- Also though this is a pretty sick plugin
       image = {
-        enabled = false,
+        enabled = true,
         doc = {
           enabled = true,
           max_width = 300,
@@ -835,6 +835,11 @@ return {
           notifications = {
             win = {
               input = {
+                keys = {
+                  ["<c-y>"] = { "yank", mode = { "n", "i" } },
+                },
+              },
+              list = {
                 keys = {
                   ["<c-y>"] = { "yank", mode = { "n", "i" } },
                 },
