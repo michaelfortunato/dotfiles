@@ -31,6 +31,11 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 local function reset(buf)
   vim.diagnostic.reset(ns, buf)
   vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+  if vim.g.mnf_scratch_python_plots ~= 0 then
+    pcall(function()
+      require("snacks").image.placement.clean(buf)
+    end)
+  end
 end
 
 ---@param buf number
@@ -74,6 +79,45 @@ local function diag_error(buf, line, message, trace)
     else
       vim.notify(message, vim.log.levels.ERROR, { title = "Python error" })
     end
+  end)
+end
+
+---@param buf number
+---@param line integer 1-based
+---@param file string
+local function render_image(buf, line, file)
+  if vim.g.mnf_scratch_python_plots == 0 then
+    return
+  end
+  if type(file) ~= "string" or file == "" then
+    return
+  end
+  if vim.fn.filereadable(file) ~= 1 then
+    ghost(buf, line, ("[plot missing] %s"):format(file), "stderr")
+    return
+  end
+
+  local ok_snacks, snacks = pcall(require, "snacks")
+  if not ok_snacks then
+    ghost(buf, line, "[plot] snacks.nvim not available", "stderr")
+    return
+  end
+
+  -- Ensure terminal capabilities are detected before placing images.
+  snacks.image.terminal.detect(function()
+    if not vim.api.nvim_buf_is_valid(buf) then
+      return
+    end
+    -- Anchor at column 0 and render below the line via Snacks.image placeholder grid.
+    -- We use a zero-width range at (line,0) so the code line stays intact.
+    pcall(snacks.image.placement.new, buf, file, {
+      inline = true,
+      auto_resize = true,
+      type = "chart",
+      pos = { line, 0 },
+      range = { line, 0, line, 0 },
+      conceal = false,
+    })
   end)
 end
 
@@ -223,6 +267,8 @@ M.exec = function(ctx)
       ctx.out(ev.text or "", ev.line, ev.stream)
     elseif type(ev) == "table" and ev.type == "error" then
       ctx.err(ev.message or "Python error", ev.line, ev.trace)
+    elseif type(ev) == "table" and ev.type == "image" then
+      render_image(ctx.buf, tonumber(ev.line) or ctx.anchor, tostring(ev.file or ""))
     end
   end
 end

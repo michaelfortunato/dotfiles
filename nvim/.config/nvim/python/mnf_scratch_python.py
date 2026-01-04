@@ -1,8 +1,18 @@
 import json
+import os
 import sys
 import traceback
 
 import vim
+
+# Make `stdpath('config')/python` importable (where `mnf_scratch_mpl.py` lives).
+try:
+    _config = vim.eval("stdpath('config')")
+    _python_dir = os.path.join(str(_config), "python")
+    if _python_dir not in sys.path:
+        sys.path.insert(0, _python_dir)
+except Exception:
+    pass
 
 _SESSIONS = globals().get("_MNF_SCRATCH_PYTHON_SESSIONS")
 if _SESSIONS is None:
@@ -84,6 +94,58 @@ def _get_session(buf: int):
     return env
 
 
+def _mpl_enabled() -> bool:
+    try:
+        return int(vim.vars.get("mnf_scratch_python_mpl", 1)) == 1
+    except Exception:
+        return True
+
+
+def _configure_python_path():
+    # Ensure `stdpath('config')/python` is importable so we can load helper modules.
+    try:
+        config = vim.eval("stdpath('config')")
+        python_dir = os.path.join(str(config), "python")
+        if python_dir not in sys.path:
+            sys.path.insert(0, python_dir)
+    except Exception:
+        pass
+
+
+def _configure_matplotlib(*, filename: str, anchor: int) -> None:
+    try:
+        # Certified path: select a Matplotlib backend module (Agg-derived) so that
+        # `pyplot.show()` dispatches to our `mnf_scratch_mpl.show`.
+        cache = vim.eval("stdpath('cache')")
+        mplconf = os.path.join(str(cache), "mnf", "matplotlib")
+        os.makedirs(mplconf, exist_ok=True)
+        os.environ.setdefault("MPLCONFIGDIR", mplconf)
+
+        import matplotlib
+
+        try:
+            matplotlib.use("module://mnf_scratch_mpl", force=True)
+        except Exception:
+            matplotlib.use("Agg", force=True)
+
+        import mnf_scratch_mpl
+
+        plot_dir = os.path.join(str(cache), "mnf", "scratch", "plots")
+        os.makedirs(plot_dir, exist_ok=True)
+        mnf_scratch_mpl.configure(cache_dir=plot_dir, filename=filename, anchor=anchor)
+
+        # Fallback: if pyplot is already imported, ensure show is ours anyway.
+        try:
+            import matplotlib.pyplot as plt
+
+            if getattr(plt.show, "__module__", "") != "mnf_scratch_mpl":
+                plt.show = mnf_scratch_mpl.show
+        except Exception:
+            pass
+    except Exception:
+        return
+
+
 def _run(buf: int, code: str, filename: str, anchor: int):
     env = _get_session(buf)
 
@@ -91,6 +153,13 @@ def _run(buf: int, code: str, filename: str, anchor: int):
     STATE.current_line = 1
     STATE.anchor = anchor
     STATE.events = []
+
+    mpl = _mpl_enabled()
+    if mpl:
+        # Optional matplotlib support:
+        # - `plt.show()` -> save PNG -> emit `{"type":"image","file":...,"line":...}`.
+        _configure_python_path()
+        _configure_matplotlib(filename=filename, anchor=anchor)
 
     old_out, old_err = sys.stdout, sys.stderr
     sys.stdout = _Stream("stdout")
@@ -120,6 +189,22 @@ def _run(buf: int, code: str, filename: str, anchor: int):
         except Exception:
             pass
         sys.stdout, sys.stderr = old_out, old_err
+        if mpl:
+            try:
+                import mnf_scratch_mpl
+
+                imgs = mnf_scratch_mpl.drain()
+            except Exception:
+                imgs = []
+            for img in imgs or []:
+                if isinstance(img, dict) and img.get("file"):
+                    STATE.events.append(
+                        {
+                            "type": "image",
+                            "line": int(img.get("line") or anchor),
+                            "file": str(img["file"]),
+                        }
+                    )
         events = STATE.events
         STATE.events = None
 
@@ -142,4 +227,3 @@ def _mnf_scratch_python_reset_from_vim():
 
 
 vim.vars["mnf_scratch_python_provider_ready"] = 1
-
