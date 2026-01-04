@@ -584,6 +584,8 @@ cd() {
 eval "$(fzf --zsh)"
 eval "$(codex completion zsh)"
 eval "$(uv generate-shell-completion zsh)"
+# ref: https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#native-completions
+source <(CARGO_COMPLETE=zsh cargo +nightly)
 
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
