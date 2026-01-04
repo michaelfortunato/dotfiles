@@ -177,7 +177,7 @@ return {
                 mode = { "n", "x" },
               },
               ["clear"] = {
-                "C",
+                ",c",
                 function(self)
                   require("mnf.scratch.python").clear({ buf = self.buf })
                 end,
@@ -191,7 +191,6 @@ return {
                 desc = "Reset Python session",
               },
             },
-            footer_keys = { "<cr>", "R" },
           },
         },
         win = {
@@ -209,7 +208,8 @@ return {
           end,
           -- if you want none
           -- footer_keys = false,
-          footer_keys = { "q" },
+          -- Note only works here, not on win_by_ft
+          footer_keys = { "q", "<cr>", "R", ",c" },
           keys = {
             -- ["''"] = {
             --   ---@param arg snacks.win
@@ -248,9 +248,6 @@ return {
             ["''"] = function(win) -- value is fun(self: snacks.win)
               win:close()
             end,
-            -- ["''"] = function(win) -- value is fun(self: snacks.win)
-            --   win:action(actions)()
-            -- end,
           },
         },
       },
@@ -451,32 +448,6 @@ return {
             picker.list:select() -- toggle current item, no cursor movement
           end,
 
-          scratch_delete_confirm = function(picker, item)
-            local selected = picker:selected({ fallback = true })
-            item = item or selected[1]
-            if not item then
-              return
-            end
-            local meta = item.item or item
-            local file = meta.file
-            if not file then
-              return
-            end
-            local name = meta.name or vim.fn.fnamemodify(file, ":t")
-            local choice = vim.fn.confirm("Delete scratch '" .. name .. "'?", "&Yes\n&No", 2)
-            if choice ~= 1 then
-              return
-            end
-            os.remove(file)
-            os.remove(file .. ".meta")
-            picker:refresh()
-          end,
-
-          scratch_toggle_cwd = function(picker)
-            scratch_filter_cwd = not scratch_filter_cwd
-            picker:refresh()
-          end,
-
           ---@diagnostic disable-next-line: redefined-local
           oneoff_float = function(picker, item)
             item = item or picker:selected({ fallback = true })[1]
@@ -597,8 +568,8 @@ return {
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
               -- Maybe do one of these
-              ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (tab)" },
-              -- ["<C-enter>"] = { "edit_vsplit", mode = { "n", "i" } },
+              ["<S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
+              ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
               ["<C-h>"] = false,
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = false,
@@ -766,6 +737,84 @@ return {
             },
           },
           scratch = {
+            actions = {
+              -- NOTE:  The confirm action for this picker is dfiferent so
+              -- override the varioau sactions
+              -- ~/projects/neovim-plugins/snacks.nvim/lua/snacks/picker/config/sources.lua
+              scratch_open_tab = function(picker, item)
+                local selected = picker:selected({ fallback = true })
+
+                item = item or selected[1]
+                if not item then
+                  return
+                end
+                local file = item and (item.item or item).file or item._path
+                if not file then
+                  vim.health.warn("Could not find file")
+                  return
+                end
+                -- TODO: key the buffer local keymaps for python like source the file etc back
+                vim.cmd("tabedit " .. file)
+                picker:close()
+              end,
+              scratch_open_split = function(picker, item)
+                local selected = picker:selected({ fallback = true })
+
+                item = item or selected[1]
+                if not item then
+                  return
+                end
+                local file = item and (item.item or item).file or item._path
+                if not file then
+                  vim.health.warn("Could not find file")
+                  return
+                end
+                -- TODO: key the buffer local keymaps for python like source the file etc back
+                vim.cmd("split " .. file)
+                picker:close()
+              end,
+              scratch_open_vsplit = function(picker, item)
+                local selected = picker:selected({ fallback = true })
+
+                item = item or selected[1]
+                if not item then
+                  return
+                end
+                local file = item and (item.item or item).file or item._path
+                if not file then
+                  vim.health.warn("Could not find file")
+                  return
+                end
+                -- TODO: key the buffer local keymaps for python like source the file etc back
+                vim.cmd("vsplit " .. file)
+                picker:close()
+              end,
+              scratch_delete_confirm = function(picker, item)
+                local selected = picker:selected({ fallback = true })
+                item = item or selected[1]
+                if not item then
+                  return
+                end
+                local meta = item.item or item
+                local file = meta.file
+                if not file then
+                  return
+                end
+                local name = meta.name or vim.fn.fnamemodify(file, ":t")
+                local choice = vim.fn.confirm("Delete scratch '" .. name .. "'?", "&Yes\n&No", 2)
+                if choice ~= 1 then
+                  return
+                end
+                os.remove(file)
+                os.remove(file .. ".meta")
+                picker:refresh()
+              end,
+
+              scratch_toggle_cwd = function(picker)
+                scratch_filter_cwd = not scratch_filter_cwd
+                picker:refresh()
+              end,
+            },
             win = {
               input = {
                 keys = {
@@ -774,6 +823,11 @@ return {
                   ["<c-d>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-x>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-g><c-i>"] = { "scratch_toggle_cwd", mode = { "n", "i" } },
+                  -- NOTE: For some reason the default tab command
+                  -- for snacks treats scratch buffers differently.
+                  ["<C-t>"] = { "scratch_open_tab", mode = { "n", "i" } },
+                  ["<C-s>"] = { "scratch_open_split", mode = { "n", "i" } },
+                  ["<C-v>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
                 },
               },
             },
@@ -787,6 +841,22 @@ return {
               },
               preview = {
                 wo = { wrap = true, linebreak = true }, -- linebreak is not try to split words
+              },
+            },
+          },
+          --- Muckng around here. It would be nice to
+          --- be able to see the filetype that set the keymap itself.
+          keymaps = {
+            actions = {
+              debug = function(picker, item)
+                vim.print(item)
+              end,
+            },
+            win = {
+              input = {
+                keys = {
+                  ["<c-y>"] = { "debug", mode = { "n", "i" } },
+                },
               },
             },
           },
