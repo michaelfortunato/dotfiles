@@ -8,7 +8,31 @@
 GIT_DIR="$(git rev-parse --git-dir)"
 
 function update_brewfile() {
-	cd "$GIT_DIR/../brew" && brew bundle dump --force
+  mkdir -p "$GIT_DIR/../MANIFESTS/brew"
+  cd "$GIT_DIR/../MANIFESTS/brew" && brew bundle dump --force
+  # Kept for backwards compabability
+  cp "$GIT_DIR/../MANIFESTS/brew/Brewfile" "$GIT_DIR/../brew"
+}
+
+function update_uv() {
+  mkdir -p "$GIT_DIR/../MANIFESTS/uv"
+  cd "$GIT_DIR/../MANIFESTS/uv" && uv tool list >uv_tool_list_output.txt
+}
+
+function update_cargo() {
+  mkdir -p "$GIT_DIR/../MANIFESTS/cargo"
+  cd "$GIT_DIR/../MANIFESTS/cargo" && cargo install --list >cargo_install_list_output.txt
+}
+
+function update_nix() {
+  mkdir -p "$GIT_DIR/../MANIFESTS/nix"
+  cd "$GIT_DIR/../MANIFESTS/nix" && nix profile list --json >profile.json
 }
 
 (update_brewfile)
+
+(update_uv)
+
+(update_cargo)
+
+(update_nix)
