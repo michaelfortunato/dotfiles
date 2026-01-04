@@ -467,21 +467,22 @@ return {
               if not existed then
                 vim.bo[buf].buflisted = false
                 vim.bo[buf].bufhidden = "wipe"
-                vim.bo[buf].swapfile = false
+                -- vim.bo[buf].swapfile = false
               end
 
               Snacks.win.new({ buf = buf, position = "float", width = 0.86, height = 0.86 })
 
               vim.keymap.set("n", "q", function()
                 if #vim.fn.win_findbuf(buf) == 1 then
-                  vim.cmd("bwipeout!")
+                  vim.cmd("bwipeout")
                 else
                   vim.cmd("close")
                 end
               end, { buffer = buf, nowait = true, silent = true })
               vim.keymap.set("n", "<Esc>", function()
                 if #vim.fn.win_findbuf(buf) == 1 then
-                  vim.cmd("bwipeout!")
+                  -- I think this is right...
+                  vim.cmd("bwipeout")
                 else
                   vim.cmd("close")
                 end
@@ -508,7 +509,7 @@ return {
               if not existed then
                 vim.bo[buf].buflisted = false
                 vim.bo[buf].bufhidden = "wipe"
-                vim.bo[buf].swapfile = false
+                -- vim.bo[buf].swapfile = false ??
               end
 
               vim.cmd("tabnew")
@@ -516,9 +517,16 @@ return {
 
               vim.keymap.set("n", "q", function()
                 if #vim.fn.win_findbuf(buf) == 1 then
-                  vim.cmd("bwipeout!")
+                  vim.cmd("bwipeout")
                 end
                 vim.cmd("tabclose")
+              end, { buffer = buf, nowait = true, silent = true })
+              vim.keymap.set("n", "<Esc>", function()
+                if #vim.fn.win_findbuf(buf) == 1 then
+                  vim.cmd("bwipeout")
+                else
+                  vim.cmd("close")
+                end
               end, { buffer = buf, nowait = true, silent = true })
             end)
           end,
@@ -560,17 +568,19 @@ return {
               ["<D-c>"] = { "yank", mode = { "n", "i" } },
               ["<D-p>"] = { "paste", mode = { "n", "i" } },
               -- Probably won't work given this is Tab
-              ["<c-i>"] = { "print_path", mode = { "n", "i" } },
-              ["<C-t>"] = { "tab", mode = { "n", "i" } },
+              ["<C-i>"] = { "print_path", mode = { "n", "i" } },
+              ["<C-t>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
               ["<c-.>"] = { "cd", mode = { "n", "i" } },
               ["<c-;>"] = { "terminal", mode = { "n", "i" } },
               -- TODO: We should have an action like ctrl-enter that opens the file as a hidden buffer!
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
               -- Maybe do one of these
-              ["<S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
+              -- TODO: Look into tab drop
+              ["<S-enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
               ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
-              ["<C-h>"] = false,
+              ["<C-S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
+              ["<C-h>"] = { "toggle_ignored", mode = { "n", "i" }, desc = "Toggle ignored files" },
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = false,
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
@@ -687,12 +697,13 @@ return {
                 }
               end, vim.api.nvim_list_tabpages())
 
-              table.sort(items, function(a, b)
-                if a.is_current ~= b.is_current then
-                  return a.is_current
-                end
-                return a.tabnr < b.tabnr
-              end)
+              -- If you want to put the current tab first etc.
+              -- table.sort(items, function(a, b)
+              --   if a.is_current ~= b.is_current then
+              --     return a.is_current
+              --   end
+              --   return a.tabnr < b.tabnr
+              -- end)
 
               return items
             end,
@@ -748,13 +759,14 @@ return {
                 if not item then
                   return
                 end
+
                 local file = item and (item.item or item).file or item._path
                 if not file then
                   vim.health.warn("Could not find file")
                   return
                 end
+                Snacks.scratch.open({ file = file, ft = ft, win = { style = "" } })
                 -- TODO: key the buffer local keymaps for python like source the file etc back
-                vim.cmd("tabedit " .. file)
                 picker:close()
               end,
               scratch_open_split = function(picker, item)
@@ -770,7 +782,7 @@ return {
                   return
                 end
                 -- TODO: key the buffer local keymaps for python like source the file etc back
-                vim.cmd("split " .. file)
+                Snacks.scratch.open({ file = file, win = { style = "scratch_split" } })
                 picker:close()
               end,
               scratch_open_vsplit = function(picker, item)
@@ -786,7 +798,7 @@ return {
                   return
                 end
                 -- TODO: key the buffer local keymaps for python like source the file etc back
-                vim.cmd("vsplit " .. file)
+                Snacks.scratch.open({ file = file, win = { style = "scratch_vsplit" } })
                 picker:close()
               end,
               scratch_delete_confirm = function(picker, item)
