@@ -2,6 +2,7 @@ keybinding:
   universal:
     # should really be gg but this works
     gotoTop-alt: g
+    # no work :( quit-alt1: "<Esc>"
     gotoBottom-alt: G
     prevPage: "<c-u>"
     nextPage: "<c-d>"
