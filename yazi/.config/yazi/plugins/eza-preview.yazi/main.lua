@@ -6,6 +6,41 @@ local function fail(s, ...)
 	ya.err({ title = "Eza Preview", content = string.format(s, ...), timeout = 5 })
 end
 
+local function folder_peek(job)
+	local folder = cx.active.preview.folder
+	if not folder then
+		return ya.preview_widget(job, ui.Line("Loading..."):area(job.area):align(ui.Align.CENTER))
+	elseif folder.cwd ~= job.file.url then
+		return
+	end
+
+	local bound = math.max(0, #folder.files - job.area.h)
+	if job.skip > bound then
+		return ya.emit("peek", { bound, only_if = job.file.url, upper_bound = true })
+	end
+
+	if #folder.files == 0 then
+		local done, err = folder.stage()
+		local s = not done and "Loading..." or not err and "No items" or string.format("Error: %s", err)
+		return ya.preview_widget(job, ui.Text(s):area(job.area):align(ui.Align.CENTER):wrap(ui.Wrap.YES))
+	end
+
+	local left, right = {}, {}
+	for _, f in ipairs(folder.window) do
+		local entity = Entity:new(f)
+		left[#left + 1], right[#right + 1] = entity:redraw(), Linemode:new(f):redraw()
+
+		local max = math.max(0, job.area.w - right[#right]:width())
+		left[#left]:truncate { max = max, ellipsis = entity:ellipsis(max) }
+	end
+
+	ya.preview_widget(job, {
+		ui.List(left):area(job.area),
+		ui.Text(right):area(job.area):align(ui.Align.RIGHT),
+		table.unpack(Marker:new(job.area, folder):redraw()),
+	})
+end
+
 local function get_or_init_state(state)
 	if state.initialized then
 		return
@@ -154,16 +189,22 @@ function M:peek(job)
 			table.insert(args, opts.ignore_glob)
 		end
 	end
-	local child = Command("eza"):arg(args):stdout(Command.PIPED):stderr(Command.PIPED):spawn()
+	local child, err = Command("eza"):arg(args):stdout(Command.PIPED):stderr(Command.PIPED):spawn()
+	if not child then
+		fail("Cannot run `eza`: %s", err)
+		return folder_peek(job)
+	end
 	local limit = job.area.h
 	local lines = ""
 	local num_lines = 1
 	local num_skip = 0
 	local empty_output = false
+	local read_err = nil
 	repeat
 		local line, event = child:read_line()
 		if event == 1 then
-			fail(tostring(event))
+			read_err = tostring(line or event)
+			break
 		elseif event ~= 0 then
 			break
 		end
@@ -174,9 +215,15 @@ function M:peek(job)
 			num_skip = num_skip + 1
 		end
 	until num_lines >= limit
-	if num_lines == 1 and not is_tree_view_mode() then
+	if read_err then
+		fail("Failed to read `eza` output: %s", read_err)
+		child:start_kill()
+		return
+	end
+
+	if num_lines == 1 and not is_tree then
 		empty_output = true
-	elseif num_lines == 2 and is_tree_view_mode() then
+	elseif num_lines == 2 and is_tree then
 		empty_output = true
 	end
 	child:start_kill()
