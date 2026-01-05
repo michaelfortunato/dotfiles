@@ -511,6 +511,12 @@ return {
               end, { buffer = buf, nowait = true, silent = true })
             end)
           end,
+          toggle_hidden_ignored = function(picker)
+            picker.opts.hidden = not picker.opts.hidden
+            picker.opts.ignored = not picker.opts.ignored
+            picker.list:set_target()
+            picker:find()
+          end,
         },
         -- These two blocks control the look of tihngs, along with the hol
         -- group
@@ -535,11 +541,8 @@ return {
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<C-y>"] = { "confirm", mode = { "i", "n" } },
-              ["<C-g><C-i>"] = {
-                { "toggle_hidden", "toggle_ignored" },
-                mode = { "n", "i" },
-                desc = "Toggle hidden+ignored",
-              },
+              ["<C-g><C-i>"] = { "toggle_ignored", mode = { "n", "i" }, desc = "Toggle ignored" },
+              ["<C-g><C-h>"] = { "toggle_hidden", mode = { "n", "i" }, desc = "Toggle hidden" },
               ["<C-o>"] = { "edit_split", mode = { "i", "n" } },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
               -- TODO: ["<C-u>"] = { "disabled", mode = { "i", "n" } },
@@ -566,7 +569,7 @@ return {
               ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
               ["<C-S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
               -- Note that it causes the Smart picker to duplicates for some reason
-              ["<C-h>"] = { { "toggle_hidden", "toggle_ignored" }, mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+              ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = false,
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
