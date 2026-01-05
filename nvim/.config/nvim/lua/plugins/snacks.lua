@@ -353,7 +353,7 @@ return {
             vim.cmd("stopinsert")
             require("smart-splits").move_cursor_up()
           end)
-          vim.kemap.set({ "t", "i" }, "<C-l>", function(e)
+          vim.keymap.set({ "t", "i" }, "<C-l>", function(e)
             local ls = require("luasnip")
             if ls.choice_active() then
               ls.change_choice(1)
@@ -534,26 +534,29 @@ return {
               -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close", mode = { "n", "i" }, desc = "Close help or picker" },
-              ["<c-y>"] = { "confirm", mode = { "i", "n" } },
-              ["<c-g><c-i>"] = { "toggle_ignored", mode = { "i", "n" } },
-              ["<c-g><c-i>"] = { "toggle_hidden", mode = { "i", "n" } },
-              ["<c-o>"] = { "edit_split", mode = { "i", "n" } },
+              ["<C-y>"] = { "confirm", mode = { "i", "n" } },
+              ["<C-g><C-i>"] = {
+                { "toggle_hidden", "toggle_ignored" },
+                mode = { "n", "i" },
+                desc = "Toggle hidden+ignored",
+              },
+              ["<C-o>"] = { "edit_split", mode = { "i", "n" } },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
-              -- TODO: ["<c-u>"] = { "disabled", mode = { "i", "n" } },
-              ["<c-u>"] = false,
-              ["<c-d>"] = false,
-              ["<c-a>"] = false,
-              ["<c-g>"] = false, -- no need
-              ["<del>"] = { "bufdelete", mode = { "n", "i" } },
-              ["<c-c>"] = { "yank", mode = { "n", "i" } },
-              ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
+              -- TODO: ["<C-u>"] = { "disabled", mode = { "i", "n" } },
+              ["<C-u>"] = false,
+              ["<C-d>"] = false,
+              ["<C-a>"] = false,
+              ["<C-g>"] = false, -- no need
+              ["<Del>"] = { "bufdelete", mode = { "n", "i" } },
+              ["<C-c>"] = { "yank", mode = { "n", "i" } },
+              ["<C-/>"] = { "cycle_win", mode = { "n", "i" } },
               ["<D-c>"] = { "yank", mode = { "n", "i" } },
               ["<D-p>"] = { "paste", mode = { "n", "i" } },
               -- Probably won't work given this is Tab
               ["<C-i>"] = { "print_path", mode = { "n", "i" } },
               ["<C-t>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
-              ["<c-.>"] = { "cd", mode = { "n", "i" } },
-              ["<c-;>"] = { "terminal", mode = { "n", "i" } },
+              ["<C-.>"] = { "cd", mode = { "n", "i" } },
+              ["<C-;>"] = { "terminal", mode = { "n", "i" } },
               -- TODO: We should have an action like ctrl-enter that opens the file as a hidden buffer!
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
