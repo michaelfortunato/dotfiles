@@ -539,8 +539,8 @@ return {
               ["<c-g><c-i>"] = { "toggle_hidden", mode = { "i", "n" } },
               ["<c-o>"] = { "edit_split", mode = { "i", "n" } },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
+              -- TODO: ["<c-u>"] = { "disabled", mode = { "i", "n" } },
               ["<c-u>"] = false,
-              -- TODO: ["<c-d>"] = { "disabled", mode = { "i", "n" } },
               ["<c-d>"] = false,
               ["<c-a>"] = false,
               ["<c-g>"] = false, -- no need
@@ -562,7 +562,8 @@ return {
               ["<S-enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
               ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
               ["<C-S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
-              ["<C-h>"] = { "toggle_ignored", mode = { "n", "i" }, desc = "Toggle ignored files" },
+              -- Note that it causes the Smart picker to duplicates for some reason
+              ["<C-h>"] = { { "toggle_hidden", "toggle_ignored" }, mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = false,
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
