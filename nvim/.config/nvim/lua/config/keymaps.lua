@@ -126,7 +126,11 @@ vim.keymap.set("n", "<C-S-j>", "jzz")
 -- end, { expr = true, silent = true, desc = "Scroll up 1/3 page" })
 
 -- like the shell
+-- FIXME: Would be nice if this deleted the whole word in `word/`
+-- like it does in zsh
 vim.keymap.set({ "i", "c" }, "<C-BS>", "<C-w>")
+-- FIXME: Would be nice if this deleted the whole word in `word/`
+-- like it does in zsh
 vim.keymap.set({ "i", "c" }, "<M-BS>", "<C-w>")
 
 -- This is so fucking key
@@ -177,6 +181,17 @@ vim.keymap.set({ "n" }, "f<Tab>", function()
   Snacks.picker.tabs()
 end, { desc = "Search open tabs", noremap = true, silent = true })
 
+vim.keymap.set({ "n", "t" }, "<Tab>1", "<Cmd>tabn 1<CR>", { desc = "Go to tab 1", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>2", "<Cmd>tabn 2<CR>", { desc = "Go to tab 2", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>3", "<Cmd>tabn 3<CR>", { desc = "Go to tab 3", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>4", "<Cmd>tabn 4<CR>", { desc = "Go to tab 4", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>5", "<Cmd>tabn 5<CR>", { desc = "Go to tab 5", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>6", "<Cmd>tabn 6<CR>", { desc = "Go to tab 6", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>7", "<Cmd>tabn 7<CR>", { desc = "Go to tab 7", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>8", "<Cmd>tabn 8<CR>", { desc = "Go to tab 8", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", noremap = true, silent = true })
+vim.keymap.set({ "n", "t" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
+
 --- FIXME: Eh not great and a little slow?
 -- map("n", "p", paste, { noremap = true, silent = true })
 -- map("i", "<C-v>", paste, { noremap = true, silent = true })
@@ -189,6 +204,8 @@ end, { desc = "Search open tabs", noremap = true, silent = true })
 --
 --
 
+--- TODO: Try to settle on <leader>bd for delete buffer and some other
+--- <leader><lowercase><lowercase> keymap. Find such a keymap
 vim.keymap.set("n", "<leader>bd", function()
   Snacks.bufdelete()
 end, { desc = "Delete Buffer (Not Window)" })
