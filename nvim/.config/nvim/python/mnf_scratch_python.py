@@ -126,6 +126,7 @@ def _configure_matplotlib(*, filename: str, anchor: int) -> None:
         try:
             import matplotlib.pyplot as plt
 
+            # TODO: Implement FigureManager.show in mnf_scratch_mpl so fig.show()/plt.show() work via the backend (no monkeypatch).
             plt.show = mnf_scratch_mpl.show
         except Exception:
             pass
