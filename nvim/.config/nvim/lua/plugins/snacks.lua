@@ -160,14 +160,6 @@ return {
   {
     "michaelfortunato/snacks.nvim",
     dev = true,
-    ---@type snacks.Config
-    config = function(_, opts)
-      local snacks = require("snacks")
-      snacks.setup(opts)
-      snacks.config.style("scratch_float", { position = "float", width = 0.6, height = 0.6, backdrop = 75 })
-      snacks.config.style("scratch_split", { position = "bottom", height = 0.35, width = 1, backdrop = false })
-      snacks.config.style("scratch_vsplit", { position = "right", width = 0.45, backdrop = false })
-    end,
     opts = {
       scratch = {
         -- Per-filetype scratch actions (kept in your config; no Snacks patches).
@@ -300,6 +292,9 @@ return {
         math = { enabled = false },
       },
       styles = {
+        scratch_vsplit = { position = "right", width = 0.45, backdrop = false },
+        scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false },
+        scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75 },
         -- NOTE: We need to be careful here
         -- as zenmode will not restore the c-h etc. mappings once left
         -- See the `HACK` below on `on_close`.
