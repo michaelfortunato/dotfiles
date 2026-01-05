@@ -10,3 +10,8 @@ function Status:mode()
 		ui.Span(th.status.sep_left.close):fg(style.main:bg()):bg(style.alt:bg()),
 	})
 end
+
+require("eza-preview"):setup({
+	-- Start in list mode; use L to toggle tree view.
+	default_tree = false,
+})

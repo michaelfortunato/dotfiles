@@ -1,3 +1,8 @@
 # yazi.toml
 [mgr]
 show_hidden = false
+
+[plugin]
+prepend_previewers = [
+  { url = "*/", run = "eza-preview" },
+]

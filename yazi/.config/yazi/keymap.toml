@@ -28,6 +28,8 @@ prepend_keymap = [
   { on = "<leader>sG", run = "plugin gri", desc = "Grep (cwd)" },
   { on = "<C-f>", run = "seek 5", desc = "Seek 5 units down in the preview." },
   { on = "<C-b>", run = "seek -5", desc = "Seek 5 units up in the preview." },
+  # FIXME: Not working
+  { on = ["L"], run = "plugin eza-preview", desc = "Toggle tree/list dir preview" },
 ]
 append_keymap = [
   { on = "<C-p>", run = "arrow -1", desc = "Move cursor up" },

@@ -3,6 +3,11 @@ use = "yazi-rs/plugins:smart-enter"
 rev = "cb6165b"
 hash = "7918aab6a71caf31b58411f789195677"
 
+[[plugin.deps]]
+use = "ahkohd/eza-preview"
+rev = "7b00863"
+hash = "c538f3766b4b3bafbae3f0b7c3c3d763"
+
 [[flavor.deps]]
 use = "yazi-rs/flavors:catppuccin-mocha"
 rev = "9276ffa"
