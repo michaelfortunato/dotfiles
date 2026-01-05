@@ -161,6 +161,13 @@ return {
     "michaelfortunato/snacks.nvim",
     dev = true,
     ---@type snacks.Config
+    config = function(_, opts)
+      local snacks = require("snacks")
+      snacks.setup(opts)
+      snacks.config.style("scratch_float", { position = "float", width = 0.6, height = 0.6, backdrop = 75 })
+      snacks.config.style("scratch_split", { position = "bottom", height = 0.35, width = 1, backdrop = false })
+      snacks.config.style("scratch_vsplit", { position = "right", width = 0.45, backdrop = false })
+    end,
     opts = {
       scratch = {
         -- Per-filetype scratch actions (kept in your config; no Snacks patches).
@@ -220,13 +227,6 @@ return {
             ["'f"] = function(win)
               assert(win and win.opts and win.opts.position, "scratch_cycle_layout: missing win/position")
               assert(win.buf and vim.api.nvim_buf_is_valid(win.buf), "scratch_cycle_layout: invalid buffer")
-              local snacks = require("snacks")
-
-              -- FIXME: This is registering styles a tone of times
-              snacks.config.style("scratch_float", { position = "float", width = 0.6, height = 0.6, backdrop = 75 })
-              snacks.config.style("scratch_split", { position = "bottom", height = 0.35, width = 1, backdrop = false })
-              snacks.config.style("scratch_vsplit", { position = "right", width = 0.45, backdrop = false })
-
               local next_style = ({
                 float = "scratch_split",
                 bottom = "scratch_vsplit",
@@ -479,14 +479,6 @@ return {
                   vim.cmd("close")
                 end
               end, { buffer = buf, nowait = true, silent = true })
-              vim.keymap.set("n", "<Esc>", function()
-                if #vim.fn.win_findbuf(buf) == 1 then
-                  -- I think this is right...
-                  vim.cmd("bwipeout")
-                else
-                  vim.cmd("close")
-                end
-              end, { buffer = buf, nowait = true, silent = true })
             end)
           end,
 
@@ -515,18 +507,12 @@ return {
               vim.cmd("tabnew")
               vim.api.nvim_set_current_buf(buf)
 
+              -- I thought about <Esc> too like this but too senstive.
               vim.keymap.set("n", "q", function()
                 if #vim.fn.win_findbuf(buf) == 1 then
                   vim.cmd("bwipeout")
                 end
                 vim.cmd("tabclose")
-              end, { buffer = buf, nowait = true, silent = true })
-              vim.keymap.set("n", "<Esc>", function()
-                if #vim.fn.win_findbuf(buf) == 1 then
-                  vim.cmd("bwipeout")
-                else
-                  vim.cmd("close")
-                end
               end, { buffer = buf, nowait = true, silent = true })
             end)
           end,
@@ -559,6 +545,7 @@ return {
               ["<c-o>"] = { "edit_split", mode = { "i", "n" } },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
               ["<c-u>"] = false,
+              -- TODO: ["<c-d>"] = { "disabled", mode = { "i", "n" } },
               ["<c-d>"] = false,
               ["<c-a>"] = false,
               ["<c-g>"] = false, -- no need
@@ -753,6 +740,7 @@ return {
               -- override the varioau sactions
               -- ~/projects/neovim-plugins/snacks.nvim/lua/snacks/picker/config/sources.lua
               scratch_open_tab = function(picker, item)
+                vim.notify("TODO")
                 local selected = picker:selected({ fallback = true })
 
                 item = item or selected[1]
