@@ -178,16 +178,16 @@ vim.keymap.set({ "n" }, "f<Tab>", function()
   Snacks.picker.tabs()
 end, { desc = "Search open tabs", noremap = true, silent = true })
 
-vim.keymap.set({ "n", "t" }, "<Tab>1", "<Cmd>tabn 1<CR>", { desc = "Go to tab 1", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>2", "<Cmd>tabn 2<CR>", { desc = "Go to tab 2", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>3", "<Cmd>tabn 3<CR>", { desc = "Go to tab 3", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>4", "<Cmd>tabn 4<CR>", { desc = "Go to tab 4", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>5", "<Cmd>tabn 5<CR>", { desc = "Go to tab 5", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>6", "<Cmd>tabn 6<CR>", { desc = "Go to tab 6", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>7", "<Cmd>tabn 7<CR>", { desc = "Go to tab 7", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>8", "<Cmd>tabn 8<CR>", { desc = "Go to tab 8", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", noremap = true, silent = true })
-vim.keymap.set({ "n", "t" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>1", "<Cmd>tabn 1<CR>", { desc = "Go to tab 1", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>2", "<Cmd>tabn 2<CR>", { desc = "Go to tab 2", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>3", "<Cmd>tabn 3<CR>", { desc = "Go to tab 3", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>4", "<Cmd>tabn 4<CR>", { desc = "Go to tab 4", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>5", "<Cmd>tabn 5<CR>", { desc = "Go to tab 5", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>6", "<Cmd>tabn 6<CR>", { desc = "Go to tab 6", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>7", "<Cmd>tabn 7<CR>", { desc = "Go to tab 7", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>8", "<Cmd>tabn 8<CR>", { desc = "Go to tab 8", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
 
 --- FIXME: Eh not great and a little slow?
 -- map("n", "p", paste, { noremap = true, silent = true })
@@ -214,12 +214,11 @@ vim.keymap.set({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Las
 vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 -- WARN: Mapping <Tab> might conflict with <C-i>
 vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
-vim.keymap.set({ "t" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab", nowait = true })
 -- Consider this
 vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
-vim.keymap.set({ "n", "t" }, "<Tab>p", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
-vim.keymap.set({ "n", "t" }, "<Tab>n", "<Cmd>tabnext<CR>", { desc = "Nest Tab" })
+vim.keymap.set({ "n" }, "<Tab>p", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
+vim.keymap.set({ "n" }, "<Tab>n", "<Cmd>tabnext<CR>", { desc = "Nest Tab" })
 -- WARN: SUPER IMPORTANT, <Tab> and <C-i> are the same, its important therefore
 -- to get neovim to distinguish it. THis works on ghostty at least.
 vim.keymap.set({ "n", "t", "x", "o" }, "<C-i>", "<C-i>")
