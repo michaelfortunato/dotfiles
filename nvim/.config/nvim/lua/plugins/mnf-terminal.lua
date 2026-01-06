@@ -31,7 +31,11 @@ return {
         end, { desc = "Send To Terminal " .. i })
       end
 
-      vim.keymap.set({ "n", "t" }, ";;", function()
+      vim.keymap.set("n", ";;", function()
+        require("mnf.terminal.managed").send_file_to_terminal_picker()
+      end, { desc = "Send File To Terminal (pick)" })
+
+      vim.keymap.set("t", ";;", function()
         local mnf_terminal = require("mnf.terminal.managed")
         local last_used_term = mnf_terminal.get_last_used_terminal()
         mnf_terminal.toggle_terminal(last_used_term)
@@ -67,11 +71,9 @@ return {
         mnf_terminal.send_to_terminal(last_used_term, "FILE")
       end, { desc = "Send File To Current Terminal" })
 
-      vim.keymap.set({ "v" }, ";;", function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        local last_used_term = mnf_terminal.get_last_used_terminal()
-        mnf_terminal.send_to_terminal(last_used_term)
-      end, { desc = "Send Selection To Current Terminal" })
+      vim.keymap.set("v", ";;", function()
+        require("mnf.terminal.managed").send_visual_selection_to_terminal_picker()
+      end, { desc = "Send Selection To Terminal (pick)" })
 
       vim.api.nvim_create_user_command("UseKitty", function()
         require("mnf.terminal.managed").use_kitty()
