@@ -406,6 +406,45 @@ function M.make_bracketed_paste(text)
   return bracketed_text
 end
 
+---@param buf integer
+---@param range string
+---@param label? string
+---@return boolean
+local function check_if_safe_to_send_buffer(buf, range, label)
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return false
+  end
+  if vim.bo[buf].buftype ~= "terminal" then
+    return false
+  end
+  if vim.b[buf].mnf_terminal_safe_to_send then
+    return true
+  end
+
+  label = label or vim.api.nvim_buf_get_name(buf)
+  if label == "" then
+    label = "terminal buffer " .. buf
+  end
+
+  local choice = vim.fn.confirm(
+    string.format(
+      "Send %s to %s?\n\nWarning: Cannot verify if this is a REPL or shell.\nSending code to shell can be dangerous!",
+      range,
+      label
+    ),
+    "&Once\n&Always for buffer " .. buf .. "\n&Cancel",
+    3,
+    "Warning"
+  )
+  if choice == 1 then
+    return true
+  elseif choice == 2 then
+    vim.b[buf].mnf_terminal_safe_to_send = true
+    return true
+  end
+  return false
+end
+
 ---@param id integer
 ---@param range string
 ---@return boolean
@@ -415,27 +454,30 @@ function M.check_if_safe_to_send_text(id, range)
     return false
   end
 
-  if buffer_entry.safe_to_send_text then
-    return true
-  end
-  local choice = vim.fn.confirm(
-    string.format(
-      "Send %s to Terminal %d?\n\nWarning: Cannot verify if this is a REPL or shell.\nSending code to shell can be dangerous!",
-      range,
-      id
-    ),
-    "&Once\n&Always for Terminal " .. id .. "\n&Cancel",
-    3, -- default choice (Cancel)
-    "Warning" -- dialog type (can be "Error", "Warning", "Info", "Question")
-  )
-  if choice == 1 then
-    return true
-  elseif choice == 2 then
-    buffer_entry.safe_to_send_text = true
-    return true
-  else
+  if buffer_entry.type == "kitty" then
+    if buffer_entry.safe_to_send_text then
+      return true
+    end
+    local choice = vim.fn.confirm(
+      string.format(
+        "Send %s to Terminal %d?\n\nWarning: Cannot verify if this is a REPL or shell.\nSending code to shell can be dangerous!",
+        range,
+        id
+      ),
+      "&Once\n&Always for Terminal " .. id .. "\n&Cancel",
+      3, -- default choice (Cancel)
+      "Warning" -- dialog type (can be "Error", "Warning", "Info", "Question")
+    )
+    if choice == 1 then
+      return true
+    elseif choice == 2 then
+      buffer_entry.safe_to_send_text = true
+      return true
+    end
     return false
   end
+
+  return check_if_safe_to_send_buffer(buffer_entry.buf, range, "Terminal " .. id)
 end
 
 -- TODO: Create a visual mode keymap that sends the selection
@@ -473,6 +515,42 @@ function M.send_to_terminal(id, range)
   -- end
 end
 
+---@param buf integer
+---@param text string
+local function terminal_write_to_buf(buf, text)
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
+  if vim.bo[buf].buftype ~= "terminal" then
+    return
+  end
+  local channel = vim.bo[buf].channel
+  if not channel or channel == 0 then
+    return
+  end
+
+  vim.api.nvim_chan_send(channel, text)
+
+  local wins = vim.fn.win_findbuf(buf)
+  if #wins == 0 then
+    return
+  end
+
+  vim.schedule(function()
+    for _, win in ipairs(wins) do
+      if vim.api.nvim_win_is_valid(win) then
+        vim.fn.win_execute(win, "normal! G")
+      end
+    end
+  end)
+end
+
+---@param buf integer
+---@param text string
+function M.terminal_write_buf(buf, text)
+  terminal_write_to_buf(buf, text)
+end
+
 ---@param id integer
 ---@param text string
 function M.terminal_write(id, text)
@@ -490,27 +568,171 @@ function M.terminal_write(id, text)
     return
   end
 
-  -- Original neovim terminal logic
-  local buf = buffer_entry.buf
-  if not vim.api.nvim_buf_is_valid(buf) then
+  terminal_write_to_buf(buffer_entry.buf, text)
+end
+
+---@param buf integer
+---@param lines string[]
+---@param range string
+local function send_lines_to_buffer(buf, lines, range)
+  if not check_if_safe_to_send_buffer(buf, range) then
     return
   end
 
-  -- Send text to terminal
-  vim.api.nvim_chan_send(vim.bo[buf].channel, text)
-  -- Auto-scroll to bottom if terminal window is visible, without changing focus
-  if M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
-    local current_buf = vim.api.nvim_win_get_buf(M.terminal_state.win)
-    if current_buf == buf then
-      -- Schedule the scroll to happen after the text is processed
-      vim.schedule(function()
-        if vim.api.nvim_win_is_valid(M.terminal_state.win) then
-          -- Scroll to bottom without changing focus or cursor position
-          vim.fn.win_execute(M.terminal_state.win, "normal! G")
+  local text = table.concat(lines, "\n") .. "\n"
+  local bracketed_text = M.make_bracketed_paste(text)
+  M.terminal_write_buf(buf, bracketed_text)
+end
+
+---@param buf integer
+---@return string
+local function terminal_buffer_display_name(buf)
+  local name = vim.api.nvim_buf_get_name(buf)
+  if name == "" then
+    return "term://[unnamed]"
+  end
+  return name
+end
+
+---@return table[]
+local function collect_terminal_buffers()
+  local entries = {}
+  local current_tab = vim.api.nvim_get_current_tabpage()
+  local current_wins = vim.api.nvim_tabpage_list_wins(current_tab)
+  local win_order = {}
+  for i, win in ipairs(current_wins) do
+    win_order[win] = i
+  end
+
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "terminal" then
+      local wins = vim.fn.win_findbuf(buf)
+      local tabs_set = {}
+      local tabs = {}
+      local visible_in_current_tab = false
+      local current_win_index = math.huge
+
+      for _, win in ipairs(wins) do
+        if vim.api.nvim_win_is_valid(win) then
+          local tab = vim.api.nvim_win_get_tabpage(win)
+          local tabnr = vim.api.nvim_tabpage_get_number(tab)
+          tabs_set[tabnr] = true
+          if tab == current_tab then
+            visible_in_current_tab = true
+            local idx = win_order[win] or math.huge
+            if idx < current_win_index then
+              current_win_index = idx
+            end
+          end
         end
-      end)
+      end
+
+      for tabnr, _ in pairs(tabs_set) do
+        table.insert(tabs, tabnr)
+      end
+      table.sort(tabs)
+
+      table.insert(entries, {
+        buf = buf,
+        name = terminal_buffer_display_name(buf),
+        tabs = tabs,
+        visible_in_current_tab = visible_in_current_tab,
+        current_win_index = current_win_index,
+        has_windows = #tabs > 0,
+      })
     end
   end
+
+  table.sort(entries, function(a, b)
+    local function rank(entry)
+      if entry.visible_in_current_tab then
+        return 1
+      end
+      if entry.has_windows then
+        return 2
+      end
+      return 3
+    end
+
+    local ra = rank(a)
+    local rb = rank(b)
+    if ra ~= rb then
+      return ra < rb
+    end
+    if ra == 1 and a.current_win_index ~= b.current_win_index then
+      return a.current_win_index < b.current_win_index
+    end
+    local atab = a.tabs[1] or 999
+    local btab = b.tabs[1] or 999
+    if atab ~= btab then
+      return atab < btab
+    end
+    return a.buf < b.buf
+  end)
+
+  return entries
+end
+
+-- Terminal buffer picker (all term:// buffers)
+---@param callback fun(buf: integer): nil
+function M.pick_terminal_buffer(callback)
+  local items = {}
+  for _, entry in ipairs(collect_terminal_buffers()) do
+    local indicator = entry.visible_in_current_tab and "●" or (entry.has_windows and "○" or " ")
+    local tabs_label
+    if #entry.tabs > 0 then
+      local prefix = (#entry.tabs == 1) and "Tab " or "Tabs "
+      tabs_label = prefix .. table.concat(entry.tabs, ",")
+      if entry.visible_in_current_tab then
+        tabs_label = tabs_label .. " (current)"
+      end
+    else
+      tabs_label = "Hidden"
+    end
+
+    local display = string.format("%s %s · %s (buf %d)", indicator, tabs_label, entry.name, entry.buf)
+    table.insert(items, { buf = entry.buf, display = display })
+  end
+
+  if #items == 0 then
+    M.notify("No terminal buffers found", vim.log.levels.INFO)
+    return
+  end
+
+  vim.ui.select(items, {
+    prompt = "Select Terminal Buffer:",
+    format_item = function(item)
+      return item.display
+    end,
+  }, function(choice)
+    if choice then
+      callback(choice.buf)
+    end
+  end)
+end
+
+---@return nil
+function M.send_visual_selection_to_terminal_picker()
+  local lines = get_visual_selection_text()
+  if not lines or #lines == 0 then
+    return
+  end
+
+  M.pick_terminal_buffer(function(buf)
+    send_lines_to_buffer(buf, lines, "VISUAL_SELECTION")
+  end)
+end
+
+---@return nil
+function M.send_file_to_terminal_picker()
+  local lines = get_buffer_text()
+  if not lines or #lines == 0 then
+    return
+  end
+
+  M.pick_terminal_buffer(function(buf)
+    send_lines_to_buffer(buf, lines, "FILE")
+  end)
 end
 
 -- Terminal picker function
