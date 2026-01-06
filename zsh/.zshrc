@@ -117,7 +117,7 @@ zstyle ':completion:*' file-sort modification
 # This is necessarily because fzf-tab hijacks native tab completion in zsh
 # Note I could have it use the default ops with zstyle ':fzf-tab:*' use-fzf-default-opts yes
 # fzf-bindindgs need to be done all at once
-zstyle ':fzf-tab:*' fzf-bindings 'ctrl-y:accept,ctrl-b:preview-page-up,ctrl-f:preview-page-down,ctrl-u:half-page-up,ctrl-d:half-page-down'
+zstyle ':fzf-tab:*' fzf-bindings 'ctrl-y:accept,ctrl-b:preview-page-up,ctrl-f:preview-page-down,ctrl-u:clear-query,ctrl-d:half-page-down' # note ctrl-d is not super useful
 # fzf flags cannot handle more than one flag it seems, no matter if
 # I use spaces commas or add them speratresly (gets overriden them)
 zstyle ':fzf-tab:*' fzf-flags '--ansi' #could add --bind-ctrl-y:accept here but the quotest get me
@@ -206,8 +206,8 @@ alias tt="tree -a"
 alias t1="tree -a -L 1"
 alias t2="tree -a -L 2"
 alias t3="tree -a -L 2"
-alias daily="mnf-daily"
-alias gist="mnf-gist"
+alias daily="mnf d"
+alias gist="mnf gist"
 #------------------------------------------------------------------------------
 # NOTE: See function git_ignore_local defined here by me
 alias git-ignore-local="git_ignore_local"
@@ -230,6 +230,7 @@ alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
 #TODO: Do we need to make this smarter?
 alias yazi="y"
 alias htop="btm" # You are crazy for this one!
+alias icat="kitten icat" # to see images
 # be more like bash
 alias help='run-help'
 # py-spy should be call pyspy imo
@@ -403,7 +404,7 @@ _fzf_compgen_dir() {
 #export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
 export FZF_DEFAULT_COMMAND="bfs . $HOME -color -mindepth 1  -exclude \( -name '.git' -or -name 'node_modules' -or -name 'target/debug' -or -name 'target/release' -or -name 'obj' -or -name 'build' -or -name 'dist' -or -name '__pycache__'  \)"
 # NOTE: Consider adding --ignore-case, though probably best per command
-export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept' --bind 'ctrl-b:preview-page-up' --bind 'ctrl-f:preview-page-down' --bind 'ctrl-d:half-page-down' --bind 'ctrl-u:half-page-up'"
+export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept' --bind 'ctrl-b:preview-page-up' --bind 'ctrl-f:preview-page-down' --bind 'ctrl-d:half-page-down' --bind 'ctrl-u:clear-query'"
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
 export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
