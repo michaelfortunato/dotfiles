@@ -1,8 +1,16 @@
+# If true, exit Lazygit when the user presses escape in a context where there is
+# nothing to cancel/close
+quitOnTopLevelReturn: true
+git:
+  pagers:
+    # lazy git says delta --dark --paging=never
+    #- pager: delta --paging=never
+    - pager: delta --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    - externalDiffCommand: difft --color=always
 keybinding:
   universal:
     # should really be gg but this works
     gotoTop-alt: g
-    # no work :( quit-alt1: "<Esc>"
     gotoBottom-alt: G
     prevPage: "<c-u>"
     nextPage: "<c-d>"

@@ -11,6 +11,13 @@
   p = pull
   s = status #FIXME: `gs` Conflicts with ghostscript
   w = whatchanged
+  # Difftastic aliases, so `git slog` is `git log` with difftastic and so on.
+  # s is for "semantic".
+  slog = -c diff.external=difft log --ext-diff
+  sshow = -c diff.external=difft show --ext-diff
+  # the single letter f is intentional
+  sdif = -c diff.external=difft diff
+  sdiff = -c diff.external=difft diff
 [credential "https://github.com"]
 	helper = 
 	helper = !/opt/homebrew/bin/gh auth git-credential
@@ -24,7 +31,7 @@
   # For the signing key, one per machine
   path = git-machine-specific-config
 [core]
-	pager = less -F -X
+  pager = delta #pager = less -F -X
 	editor = nvim
 	commentChar = ";"
 [init]
@@ -33,6 +40,32 @@
 [commit]
 	gpgsign = true
   template = ~/.config/git/git-commit-template
+[interactive]
+  diffFilter = delta --color-only
+[delta]
+  navigate = true
+  side-by-side = true
+  line-numbers = true
+  hyperlinks = true
+  features = decorations
+[delta "decorations"]
+  file-decoration-style = blue ul
+  hunk-header-decoration-style = blue box
+  hunk-header-style = file line-number syntax
+[diff]
+  # algorithm = histogram
+  # colorMoved = zebra
+  renames = true # ???
+[merge]
+  tool = nvimdiff
+  conflictstyle = zdiff3 # could be cool
+[mergetool]
+  prompt = false
+  keepBackup = false
+[mergetool "nvimdiff"]
+  cmd = nvim -d "$LOCAL" "$MERGED" "$REMOTE"
+[mergetool "opendiff"] # I don't mind the apple one, leave it as an optoin
+  cmd = opendiff -merge "$BASE" "$LOCAL" "$REMOTE" -merge "$MERGED"
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f

@@ -12,10 +12,14 @@ cargo-shuttle v0.46.0:
     cargo-shuttle
 codex-acp v0.2.4 (https://github.com/zed-industries/codex-acp#bf8f944c):
     codex-acp
+difftastic v0.67.0:
+    difft
 evcxr_jupyter v0.21.1:
     evcxr_jupyter
 evcxr_repl v0.21.1:
     evcxr
+git-delta v0.18.2:
+    delta
 hayagriva v0.8.1:
     hayagriva
 inkscape-figures-manager v0.2.0:
