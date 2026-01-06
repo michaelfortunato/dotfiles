@@ -5,7 +5,6 @@
 vim.lsp.set_log_level("ERROR")
 -- NOTE: vim.lsp.config does not start the lsp server. Simply configures it.
 -- no need to call vim.lsp.config if we are good with their defaults
-vim.lsp.enable("pyrefly")
 -- FIXME: For some reason some program is enabling ruff, mason automatic enable
 -- did not fix it.
 -- vim.lsp.enable("ruff") UPDATE: its LazyVim's fault. Please see tinymist
@@ -34,9 +33,12 @@ vim.lsp.config("tinymist", {
 })
 vim.lsp.enable("tinymist")
 vim.lsp.enable("rust-analyzer")
+vim.lsp.enable("ty") -- vim.lsp.enable("pyrefly")
 
--- Disable ruen for now its crating .rune files everytime I open a .typ file
-vim.lsp.config["rune"] = {
+------------------------------------------------------------------------------
+---                                   Rune LSP                             ---
+------------------------------------------------------------------------------
+vim.lsp.config("rune", {
   cmd = { "rune" },
   filetypes = { "typst" },
   -- Use the file's directory as the root; Rune will optionally walk to VAULT.typ
@@ -49,7 +51,7 @@ vim.lsp.config["rune"] = {
     completionTriggerCharacters = { '"', "(", "#", "[" },
   },
   cmd_env = { RUNE_DEBUG_HTTP = "1" },
-}
+})
 vim.lsp.enable("rune")
 --- @param command lsp.Command
 --- @param context? {bufnr?: integer}
@@ -71,6 +73,7 @@ end
 vim.api.nvim_create_user_command("RuneDebugViewer", function()
   rune_exec({ command = "rune.debugViewer.open", title = "Rune Debug Viewer" })
 end, {})
+------------------------------------------------------------------------------
 
 vim.lsp.inline_completion.enable(false)
 
