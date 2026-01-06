@@ -10,7 +10,7 @@ prepend_keymap = [
   { on = "<S-Enter>", run = ["enter", "quit"], desc = "Quit and cd to the selected directory" },
   { on = "?", run = "help", desc = "Open help" },
   { on = "e", run = "open", desc = "Open selected files" },
-  { on = "<c-h>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
+  { on = "<c-h>", run = ["hidden toggle", "plugin eza-preview toggle-hidden", "plugin eza-preview toggle-git-ignore"], desc = "Toggle hidden + git-ignored in panel/preview" },
   # { on = "<S-h>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
   { on = "`", run = "cd ~", desc = "Toggle the visibility of hidden files" },
   { on = ["<space>"], run = "noop", desc = "Noop (free <space>)" },
