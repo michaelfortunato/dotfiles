@@ -521,6 +521,39 @@ cdi() {
 # not sure if I want that&& builtin cd "$dir"
 }
 
+# edit file
+ei() {
+  local search_dirs
+  if [[ $# -eq 0 ]]; then
+    if [[ "$PWD" != "$HOME" ]]; then
+      search_dirs=("$PWD" "$HOME")
+    else
+      search_dirs=("$HOME")
+    fi
+  else
+    search_dirs=("$@")  # Use all provided arguments as base directories
+  fi
+  bfs "${search_dirs[@]}" -color -mindepth 1  \
+    -exclude \( \
+  -name ".git" \
+  -or -name "node_modules" \
+  -or -name "target/debug" \
+  -or -name "target/release" \
+  -or -name "obj" \
+  -or -name "build" \
+  -or -name "dist" \
+  -or -name ".cache" \
+  -or -name ".Trash" \
+  -or -name "$HOME/Library/Caches" \
+  -or -name "__pycache__"  \) -type f \
+  2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+  --preview 'bat -n --color=always {}' \
+  --cycle \
+  --bind 'ctrl-/:change-preview-window(down|hidden|)' \
+  --bind 'ctrl-y:become($EDITOR {})' \
+  --bind 'enter:become($EDITOR {})'
+}
+
 # fkill - kill process
 ki() {
   local pid
@@ -539,6 +572,19 @@ psi() {
 
 mani() {
   man -k . | fzf -q "$1" --prompt='man> '  --preview $'echo {} | tr -d \'()\' | awk \'{printf "%s ", $2} {print $1}\' | xargs -r man | col -bx | bat -l man -p --color always' | tr -d '()' | awk '{printf "%s ", $2} {print $1}' | xargs -r man
+}
+
+pueue-gui () {
+    (
+      local repo="$HOME/projects/pueue_webui"
+      cd "$repo/v2" || exit 1
+      if [ ! -d node_modules ]; then
+        npm install || exit 1
+      fi
+      cd "$repo/v2/server" || exit 1
+      cargo build || exit 1
+      ./target/debug/pueue-gui
+    )
 }
 
 # Custom cd function to integrate fzf
