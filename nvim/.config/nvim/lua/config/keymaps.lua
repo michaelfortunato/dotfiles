@@ -12,9 +12,6 @@ end
 local ui_input = Snacks.input or vim.ui.input
 local ui_notify = Snacks.notify or print
 
---- Pretty high level stuff, careful this goes against vim's sacred defaults!
-vim.keymap.set("x", "p", "P")
-vim.keymap.set("x", "P", "p")
 -- TODO: Get proper pasting in
 -- local function paste()
 --   local pasted = require("img-clip").paste_image()
