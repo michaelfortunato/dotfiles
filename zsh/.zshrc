@@ -684,9 +684,6 @@ alias-profile() {
       icon_key="MNF_ALIAS_PROFILE_${p}_ICON"; icon_val="${(P)icon_key-}"
       desc_key="MNF_ALIAS_PROFILE_${p}_DESC"; desc_val="${(P)desc_key-}"
       print "${on} ${p} --- ${desc_val} ${icon_val}"
-      # print $desc_key
-      # print $k
-      # print "${on:-0}  $p"
     done
     return 0
   fi

@@ -108,6 +108,7 @@
     per_directory_history   # Oh My Zsh per-directory-history local/global indicator
     # cpu_arch              # CPU architecture
     # time                  # current time
+    mnf_alias_profile
     # =========================[ Line #2 ]=========================
     newline
     # ip                    # ip address and bandwidth usage for a specified network interface
@@ -1838,6 +1839,29 @@
     # instant_prompt_example. This will give us the same `example` prompt segment in the instant
     # and regular prompts.
     prompt_nvim_terminal
+  }
+
+  function prompt_mnf_alias_profile() {
+    local k p on icon_key icon_val
+    local -a icons
+
+    for k in ${(ok)parameters[(I)MNF_ALIAS_PROFILE_*]}; do
+      # Skip metadata vars (we only want the boolean flags: MNF_ALIAS_PROFILE_<p>)
+      [[ "$k" == *_DESC || "$k" == *_ICON ]] && continue
+      p="${k#MNF_ALIAS_PROFILE_}"
+      on="${(P)k}"
+      (( on )) || continue
+
+      icon_key="MNF_ALIAS_PROFILE_${p}_ICON"
+      icon_val="${(P)icon_key-}"
+      [[ -n "$icon_val" ]] && icons+="$icon_val"
+    done
+
+    (( ${#icons[@]} )) || return 0
+    p10k segment -i "${(j: :)icons}"
+  }
+  function instant_prompt_mnf_alias_profile() {
+    prompt_mnf_alias_profile
   }
   # Example of a user-defined prompt segment. Function prompt_example will be called on every
   # prompt if `example` prompt segment is added to POWERLEVEL9K_LEFT_PROMPT_ELEMENTS or
