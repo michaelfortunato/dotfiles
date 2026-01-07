@@ -204,11 +204,22 @@ vim.keymap.set({ "n" }, "<Tab>7", "<Cmd>tabn 7<CR>", { desc = "Go to tab 7", nor
 vim.keymap.set({ "n" }, "<Tab>8", "<Cmd>tabn 8<CR>", { desc = "Go to tab 8", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
-
---- FIXME: Eh not great and a little slow?
--- map("n", "p", paste, { noremap = true, silent = true })
--- map("i", "<C-v>", paste, { noremap = true, silent = true })
--- map("i", "<M-v>", paste, { noremap = true, silent = true })
+------------------------------------------------------------------------------
+--                         MNF-TABDISCIPLINE
+--                         You get these keymaps back when
+--                         you start to learn to use stab sparingly
+------------------------------------------------------------------------------
+-- vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+-- WARN: Mapping <Tab> might conflict with <C-i>
+-- vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
+-- Consider this
+-- vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
+vim.keymap.set({ "n" }, "<Tab>p", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
+vim.keymap.set({ "n" }, "<Tab>n", "<Cmd>tabnext<CR>", { desc = "Nest Tab" })
+-- WARN: SUPER IMPORTANT, <Tab> and <C-i> are the same, its important therefore
+-- to get neovim to distinguish it. THis works on ghostty at least.
+vim.keymap.set({ "n", "t", "x", "o" }, "<C-i>", "<C-i>")
 
 -- map({ "n", "v", "o" }, "[s", "(", { desc = "For backwards (s)entece object navigation" })
 -- map({ "n", "v", "o" }, "]s", ")", { desc = "For forwards (s)entece object navigation" })
@@ -217,6 +228,7 @@ vim.keymap.set({ "n" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", n
 --
 --
 
+vim.keymap.set({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Last Accessed Buffer" })
 --- TODO: Try to settle on <leader>bd for delete buffer and some other
 --- <leader><lowercase><lowercase> keymap. Find such a keymap
 vim.keymap.set("n", "<leader>bd", function()
@@ -225,19 +237,6 @@ end, { desc = "Delete Buffer (Not Window)" })
 -- TODO: Make this smart so that we only delete the buffer and the window
 -- if there is at least one other window in the tab that holds a regular buffer
 vim.keymap.set("n", "<leader>bD", "<cmd>:bd<cr>", { desc = "Delete Buffer and Window" })
-
-vim.keymap.set({ "n", "v", "o" }, "<leader><Tab>", "<Cmd>e #<CR>", { desc = "Last Accessed Buffer" })
-vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
--- WARN: Mapping <Tab> might conflict with <C-i>
-vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
--- Consider this
-vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
-vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
-vim.keymap.set({ "n" }, "<Tab>p", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
-vim.keymap.set({ "n" }, "<Tab>n", "<Cmd>tabnext<CR>", { desc = "Nest Tab" })
--- WARN: SUPER IMPORTANT, <Tab> and <C-i> are the same, its important therefore
--- to get neovim to distinguish it. THis works on ghostty at least.
-vim.keymap.set({ "n", "t", "x", "o" }, "<C-i>", "<C-i>")
 
 -- NOTE: We are remapping LazyVim's <Tab> Commands
 -- TODO:  local wk = require("which-key")

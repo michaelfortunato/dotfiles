@@ -602,7 +602,7 @@ return {
               ["<D-p>"] = { "paste", mode = { "n", "i" } },
               -- Probably won't work given this is Tab
               ["<C-i>"] = { "print_path", mode = { "n", "i" } },
-              ["<C-t>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
+              -- MNF-TABDISCIPLINE: ["<C-t>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
               -- Open file in new tab in background?
               ["<C-S-t>"] = {
                 function(picker, item)
@@ -620,10 +620,10 @@ return {
               -- TODO: We should have an action like ctrl-enter that opens the file as a hidden buffer!
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
-              --
-              ["<S-enter>"] = { "tab", mode = { "n", "i" }, desc = "New tab" },
+              --- MNF-TABDISCIPLINE: ["<S-enter>"] = { "tabedit", mode = { "n", "i" }, desc = "New tab" },
+              ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "New tab" },
               ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
-              ["<C-S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
+              -- MNF-TABDISCIPLINE: ["<C-S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
               -- Note that it causes the Smart picker to duplicates for some reason
               ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
