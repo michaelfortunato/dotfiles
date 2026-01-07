@@ -201,7 +201,20 @@ return {
       vim.list_extend(keys, {
           -- TODO: See if we/should add an autocmd to these buffers that removes them on close so my list of opened does not get polluted
           -- Though, right now I have ff to show only modified buffeers which might be the right way to do it.
-          { "gd", function() transient_jump(Snacks.picker.lsp_definitions)() end, desc = "Goto Definition", has = "definition" },
+          {
+            "gd",
+            function()
+              -- NOTE: A little concerned this is slow. Though it did achove wahat I wanted
+              --   local pick = Snacks.picker.lsp_definitions()
+              --   if pick ~= nil and pick.finder:count() == 0 then
+              --    pcall(vim.cmd.normal, { args = { "gF" }, bang = true })
+              --   end
+              if pcall(vim.cmd.normal, { args = { "gF" }, bang = true }) then return end
+              return transient_jump(Snacks.picker.lsp_definitions)()
+            end,
+            desc = "Goto Definition",
+            has = "definition",
+          },
           { "gr", function() Snacks.picker.lsp_references() end, nowait = true, desc = "References" },
           { "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
           { "gi", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
