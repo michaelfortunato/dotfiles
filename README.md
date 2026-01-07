@@ -310,7 +310,7 @@ dependency stressors.
 ### How to do this above, _in Rust_
 
 See here <https://github.com/jmbuhr/otter.nvim/issues/208#issuecomment-2682553879>
-and checkout `templates/burn` in this repository for the tutorial.
+and checkout `_templates/burn` in this repository for the tutorial.
 
 ## How To Setup macOS To Always Open Files With Neovim
 

@@ -167,7 +167,7 @@ fi
 ## Set personal environment variables
 export MNF_NOTES_DIR=$HOME/notes
 export MNF_BIN_DIR=$HOME/bin
-export MNF_TEMPLATE_DIR=$HOME/dotfiles/templates #TODO: should be $HOME/.templates via symlink
+export MNF_TEMPLATE_DIR=$HOME/dotfiles/_templates #TODO: should be $HOME/.templates via symlink
 export MNF_BIB_DIR=$HOME/.local/share/zotero/bib
 export BIBINPUTS=$MNF_BIB_DIR
 

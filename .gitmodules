@@ -15,18 +15,18 @@
 	url = https://github.com/lukechilds/zsh-nvm
   branch = master
 [submodule "scripts/thirdparty/zsh-bench"]
-	path = scripts/thirdparty/zsh-bench
+	path = _scripts/thirdparty/zsh-bench
 	url = https://github.com/romkatv/zsh-bench.git
 [submodule "templates/typst/mnf-typst"]
-	path = templates/typst/mnf-typst
+	path = _templates/typst/mnf-typst
 	url = https://github.com/michaelfortunato/mnf-typst.git
   branch = main
 [submodule "scripts/personal/mnf-cli"]
-	path = scripts/personal/mnf-cli
+	path = _scripts/personal/mnf-cli
 	url = https://github.com/michaelfortunato/mnf-cli
 	branch = main
 [submodule "fonts/nerd-fonts"]
-	path = fonts/nerd-fonts
+	path = _fonts/nerd-fonts
 	url = https://github.com/ryanoasis/nerd-fonts.git
 	branch = master
 	shallow = true
