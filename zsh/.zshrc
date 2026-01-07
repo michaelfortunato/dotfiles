@@ -706,21 +706,36 @@ typeset -g MNF_ALIAS_PROFILE_cloud_DESC="nerdctl helpers"
 typeset -g MNF_ALIAS_PROFILE_cloud_ICON="☁️"
 mnf_alias_profile_cloud_on() {
   alias nps='nerdctl ps'
-  alias nimg='nerdctl images'
+  print 'nps="nerdctl ps"'
+  #
+  function nib() { nerdctl build --progress=plain -f ${1} -t ${3:-} ${2}; }
+  print 'nib()=nerdctl build --progress=plain -f ${1} -t ${3:-} ${2};'
+  #
+  alias nil='nerdctl images'
+  print 'nil="nerdctl images"'
+  #
   alias nrmc='nerdctl rm -f'
+  print 'nrmc="nerdctl rm -f"'
+  #
   alias nlog='nerdctl logs -f'
+  print 'nrmc="nerdctl rm -f"'
+  #
   alias nrun='nerdctl run --rm -it'
-  alias nsh='nerdctl exec -it'
-  nattach() {
+  print 'nsh="nerdctl exec -it"'
+  #
+  nca() {
     local img="${1:-python:3.12}" cmd="${2:-bash}";
     shift 2 2>/dev/null || { shift 1 2>/dev/null || true; };
     nerdctl run --rm -it "$img" "$cmd" "$@";
   }
+  print 'nca()=nerdctl run --rm -it $img "$cmd" $@"'
+
   MNF_ALIAS_PROFILE_cloud=1
 }
 
 mnf_alias_profile_cloud_off() {
   unalias nps nimg nrmc nlog nrun nsh 2>/dev/null
+  unfunction nbi 2>/dev/null
   unfunction nattach 2>/dev/null
   MNF_ALIAS_PROFILE_cloud=0
 }
