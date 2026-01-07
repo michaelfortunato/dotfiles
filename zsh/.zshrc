@@ -194,6 +194,10 @@ alias e="nvim" # This one is aggressive!
 alias c="clear"
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
 alias l='ls -ht'  #long list,human readable,sorted by date
+alias 'cd-'='cd -'
+alias 'cd-1'='cd -1'
+alias 'cd-2'='cd -2'
+alias 'cd-3'='cd -3'
 alias py="ipython" # better python shell
 alias ipy="ipython" # better python shell
 alias lg="lazygit" # lazygit
@@ -402,6 +406,7 @@ _fzf_compgen_dir() {
     -or -name "__pycache__"  \) -type d \
 }
 #export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
+# NOTE: Improve this. Its not create rn vs. the amazing aliaes cdj cdi ei ...
 export FZF_DEFAULT_COMMAND="bfs . $HOME -color -mindepth 1  -exclude \( -name '.git' -or -name 'node_modules' -or -name 'target/debug' -or -name 'target/release' -or -name 'obj' -or -name 'build' -or -name 'dist' -or -name '__pycache__'  \)"
 # NOTE: Consider adding --ignore-case, though probably best per command
 export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept' --bind 'ctrl-b:preview-page-up' --bind 'ctrl-f:preview-page-down' --bind 'ctrl-d:half-page-down' --bind 'ctrl-u:clear-query'"
@@ -553,6 +558,40 @@ ei() {
   --bind 'ctrl-y:become($EDITOR {})' \
   --bind 'enter:become($EDITOR {})'
 }
+
+# Consider this
+# ei() {
+#   local -a search_dirs
+#   if (( $# == 0 )); then
+#     if [[ "$PWD" != "$HOME" ]]; then
+#       search_dirs=("$PWD" "$HOME")
+#     else
+#       search_dirs=("$HOME")
+#     fi
+#   else
+#     search_dirs=("$@")
+#   fi
+#
+#   bfs "${search_dirs[@]}" -color -mindepth 1 \
+#     -exclude \( \
+#       -name ".git" \
+#       -or -name "node_modules" \
+#       -or -name "target/debug" \
+#       -or -name "target/release" \
+#       -or -name "obj" \
+#       -or -name "build" \
+#       -or -name "dist" \
+#       -or -name ".cache" \
+#       -or -name ".Trash" \
+#       -or -name "__pycache__" \
+#     \) -type f 2>/dev/null |
+#   fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi \
+#     --preview 'bat --paging=never -n --color=always --line-range :200 {}' \
+#     --cycle \
+#     --bind 'ctrl-/:change-preview-window(down|hidden|)' \
+#     --print0 |
+#   xargs -0 -o ${=EDITOR:-nvim} --
+# }
 
 # fkill - kill process
 ki() {
