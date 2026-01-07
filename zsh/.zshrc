@@ -671,6 +671,63 @@ cd() {
   [[ -n "$dir" ]] && builtin cd "$dir"
 }
 
+##############################################################################
+# Modal Aliases
+##############################################################################
+alias-profile() {
+  if [[ -z "${1:-}" || "${1:-}" == "list" ]]; then
+    local k p on icon desc
+    for k in ${(ok)parameters[(I)MNF_ALIAS_PROFILE_*]}; do
+      [[ "$k" == *_DESC || "$k" == *_ICON ]] && continue
+      p="${k#MNF_ALIAS_PROFILE_}"
+      on="${(P)k}"
+      icon_key="MNF_ALIAS_PROFILE_${p}_ICON"; icon_val="${(P)icon_key-}"
+      desc_key="MNF_ALIAS_PROFILE_${p}_DESC"; desc_val="${(P)desc_key-}"
+      print "${on} ${p} --- ${desc_val} ${icon_val}"
+      # print $desc_key
+      # print $k
+      # print "${on:-0}  $p"
+    done
+    return 0
+  fi
+
+  local p="$1"
+  local flag="MNF_ALIAS_PROFILE_${p}"
+  (( ${+parameters[$flag]} )) || { print "unknown profile: $p"; return 1; }
+
+  if (( ${(P)flag} )); then
+    "mnf_alias_profile_${p}_off" 2>/dev/null
+    print "$p: off"
+  else
+    "mnf_alias_profile_${p}_on" 2>/dev/null
+    print "$p: on"
+  fi
+}
+## Cloud Aliases
+typeset -g MNF_ALIAS_PROFILE_cloud=0
+typeset -g MNF_ALIAS_PROFILE_cloud_DESC="nerdctl helpers"
+typeset -g MNF_ALIAS_PROFILE_cloud_ICON="☁️"
+mnf_alias_profile_cloud_on() {
+  alias nps='nerdctl ps'
+  alias nimg='nerdctl images'
+  alias nrmc='nerdctl rm -f'
+  alias nlog='nerdctl logs -f'
+  alias nrun='nerdctl run --rm -it'
+  alias nsh='nerdctl exec -it'
+  nattach() {
+    local img="${1:-python:3.12}" cmd="${2:-bash}";
+    shift 2 2>/dev/null || { shift 1 2>/dev/null || true; };
+    nerdctl run --rm -it "$img" "$cmd" "$@";
+  }
+  MNF_ALIAS_PROFILE_cloud=1
+}
+
+mnf_alias_profile_cloud_off() {
+  unalias nps nimg nrmc nlog nrun nsh 2>/dev/null
+  unfunction nattach 2>/dev/null
+  MNF_ALIAS_PROFILE_cloud=0
+}
+
 
 eval "$(fzf --zsh)"
 eval "$(codex completion zsh)"
