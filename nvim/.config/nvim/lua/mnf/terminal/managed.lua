@@ -571,6 +571,8 @@ function M.terminal_write(id, text)
   terminal_write_to_buf(buffer_entry.buf, text)
 end
 
+local focus_terminal_buffer
+
 ---@param buf integer
 ---@param lines string[]
 ---@param range string
@@ -582,6 +584,23 @@ local function send_lines_to_buffer(buf, lines, range)
   local text = table.concat(lines, "\n") .. "\n"
   local bracketed_text = M.make_bracketed_paste(text)
   M.terminal_write_buf(buf, bracketed_text)
+end
+
+---@param buf integer
+---@param lines string[]
+---@param range string
+local function send_lines_to_buffer_and_focus(buf, lines, range)
+  if not check_if_safe_to_send_buffer(buf, range) then
+    return
+  end
+
+  local text = table.concat(lines, "\n") .. "\n"
+  local bracketed_text = M.make_bracketed_paste(text)
+  M.terminal_write_buf(buf, bracketed_text)
+  focus_terminal_buffer(buf)
+  if vim.api.nvim_get_current_buf() == buf and vim.bo[buf].buftype == "terminal" then
+    vim.cmd("startinsert")
+  end
 end
 
 ---@param buf integer
@@ -675,7 +694,9 @@ end
 
 -- Terminal buffer picker (all term:// buffers)
 ---@param callback fun(buf: integer): nil
-function M.pick_terminal_buffer(callback)
+---@param opts? {on_shift?: fun(buf: integer): nil, prompt?: string, shift_desc?: string}
+function M.pick_terminal_buffer(callback, opts)
+  opts = opts or {}
   local items = {}
   for _, entry in ipairs(collect_terminal_buffers()) do
     local indicator = entry.visible_in_current_tab and "●" or (entry.has_windows and "○" or " ")
@@ -699,11 +720,42 @@ function M.pick_terminal_buffer(callback)
     return
   end
 
+  local snacks_opts = nil
+  if opts.on_shift then
+    local shift_desc = opts.shift_desc or "Confirm + focus terminal"
+    snacks_opts = {
+      actions = {
+        confirm_shift = function(picker, item)
+          if not item or not item.item then
+            return
+          end
+          picker:close()
+          vim.schedule(function()
+            opts.on_shift(item.item.buf)
+          end)
+        end,
+      },
+      win = {
+        input = {
+          keys = {
+            ["<S-enter>"] = { "confirm_shift", mode = { "n", "i" }, desc = shift_desc },
+          },
+        },
+        list = {
+          keys = {
+            ["<S-enter>"] = { "confirm_shift", mode = { "n", "i" }, desc = shift_desc },
+          },
+        },
+      },
+    }
+  end
+
   vim.ui.select(items, {
-    prompt = "Select Terminal Buffer:",
+    prompt = opts.prompt or "Select Terminal Buffer:",
     format_item = function(item)
       return item.display
     end,
+    snacks = snacks_opts,
   }, function(choice)
     if choice then
       callback(choice.buf)
@@ -720,7 +772,29 @@ function M.send_visual_selection_to_terminal_picker()
 
   M.pick_terminal_buffer(function(buf)
     send_lines_to_buffer(buf, lines, "VISUAL_SELECTION")
-  end)
+  end, {
+    on_shift = function(buf)
+      send_lines_to_buffer_and_focus(buf, lines, "VISUAL_SELECTION")
+    end,
+    shift_desc = "Send + focus terminal",
+  })
+end
+
+---@return nil
+function M.send_line_to_terminal_picker()
+  local lines = get_current_line()
+  if not lines or #lines == 0 then
+    return
+  end
+
+  M.pick_terminal_buffer(function(buf)
+    send_lines_to_buffer(buf, lines, "LINE")
+  end, {
+    on_shift = function(buf)
+      send_lines_to_buffer_and_focus(buf, lines, "LINE")
+    end,
+    shift_desc = "Send + focus terminal",
+  })
 end
 
 ---@return nil
@@ -732,6 +806,54 @@ function M.send_file_to_terminal_picker()
 
   M.pick_terminal_buffer(function(buf)
     send_lines_to_buffer(buf, lines, "FILE")
+  end, {
+    on_shift = function(buf)
+      send_lines_to_buffer_and_focus(buf, lines, "FILE")
+    end,
+    shift_desc = "Send + focus terminal",
+  })
+end
+
+---@param buf integer
+focus_terminal_buffer = function(buf)
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
+
+  local wins = vim.fn.win_findbuf(buf)
+  if #wins > 0 then
+    local current_tab = vim.api.nvim_get_current_tabpage()
+    local target_win = nil
+
+    for _, win in ipairs(wins) do
+      if vim.api.nvim_win_is_valid(win) then
+        if vim.api.nvim_win_get_tabpage(win) == current_tab then
+          target_win = win
+          break
+        end
+        if not target_win then
+          target_win = win
+        end
+      end
+    end
+
+    if target_win then
+      local tab = vim.api.nvim_win_get_tabpage(target_win)
+      if vim.api.nvim_tabpage_is_valid(tab) then
+        vim.api.nvim_set_current_tabpage(tab)
+      end
+      vim.api.nvim_set_current_win(target_win)
+      return
+    end
+  end
+
+  vim.api.nvim_win_set_buf(0, buf)
+end
+
+---@return nil
+function M.pick_and_focus_terminal_buffer()
+  M.pick_terminal_buffer(function(buf)
+    focus_terminal_buffer(buf)
   end)
 end
 
