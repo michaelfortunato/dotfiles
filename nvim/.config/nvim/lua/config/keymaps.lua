@@ -178,7 +178,10 @@ vim.keymap.set({ "n" }, "f<Tab>", function()
   Snacks.picker.tabs()
 end, { desc = "Search open tabs", noremap = true, silent = true })
 
-vim.keymap.set({ "n" }, "<Tab>1", "<Cmd>tabn 1<CR>", { desc = "Go to tab 1", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>-tabmove<CR>", { desc = "Move tab left" })
+vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>+tabmove<CR>", { desc = "Move tab right" })
+
+vim.keymap.set({ "n" }, "<Tab>1", "<Cmd>tabn 1<CR>", { desc = "Go to tab 1", noremap = true })
 vim.keymap.set({ "n" }, "<Tab>2", "<Cmd>tabn 2<CR>", { desc = "Go to tab 2", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>3", "<Cmd>tabn 3<CR>", { desc = "Go to tab 3", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>4", "<Cmd>tabn 4<CR>", { desc = "Go to tab 4", noremap = true, silent = true })

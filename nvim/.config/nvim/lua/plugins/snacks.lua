@@ -1,3 +1,4 @@
+---@diagnostic disable: inject-field
 -- TODOs:
 --  - [ ] nvim/.config/nvim/lua/plugins/snacks.lua:548: override opts.picker.sources.keymaps.confirm to open item.file/item.pos when
 --    present (else vim.notify(...) + no-op).
@@ -379,11 +380,12 @@ return {
       --     - transform: post-process (e.g., unique_file to dedupe).
       -- image = {},
       picker = {
-        -- Navigation assumes the canonical Snacks layout: input + list stacked on the left,
-        -- preview on the right. It's a hard-coded pane cycle via filetypes (no geometry check),
-        -- so other layouts (e.g., preview above list in grep_buffers) can feel “off”.
-        -- TODO: add optional layout-aware direction mapping for non-canonical presets.
+        ---@type snacks.picker.actions
         actions = {
+          -- TODO: add optional layout-aware direction mapping for non-canonical presets.
+          -- Navigation assumes the canonical Snacks layout: input + list stacked on the left,
+          -- preview on the right. It's a hard-coded pane cycle via filetypes (no geometry check),
+          -- so other layouts (e.g., preview above list in grep_buffers) can feel “off”.
           focus_left = function(picker)
             local here = picker_cur_part()
             --- Note that this will not when the buffer
@@ -420,16 +422,22 @@ return {
             picker_focus_part(picker, "list")
           end,
 
-          hide_help = function(picker)
-            -- picker:help
+          maybe_close_help = function(picker)
+            -- If a Snacks help window is visible, close it; otherwise close the picker.
+            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+              local buf = vim.api.nvim_win_get_buf(win)
+              if vim.bo[buf].filetype == "snacks_win_help" then
+                vim.api.nvim_win_close(win, true)
+                return
+              end
+            end
           end,
-
           close_or_hide_help = function(picker)
             -- If a Snacks help window is visible, close it; otherwise close the picker.
             for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
               local buf = vim.api.nvim_win_get_buf(win)
               if vim.bo[buf].filetype == "snacks_win_help" then
-                picker:action("hide_help")
+                vim.api.nvim_win_close(win, true)
                 return
               end
             end
@@ -517,6 +525,36 @@ return {
             picker.list:set_target()
             picker:find()
           end,
+          cycle_diagnostics_severity = function(picker)
+            local order = {
+              "all",
+              vim.diagnostic.severity.ERROR,
+              vim.diagnostic.severity.WARN,
+              vim.diagnostic.severity.INFO,
+              vim.diagnostic.severity.HINT,
+            }
+
+            local current = picker.opts.severity or "all"
+            local idx = 1
+            for i, sev in ipairs(order) do
+              if sev == current then
+                idx = i
+                break
+              end
+            end
+
+            idx = (idx % #order) + 1
+            local next = order[idx]
+            if next == "all" then
+              ---@diagnostic disable-next-line: inject-field
+              picker.opts.severity = nil
+            else
+              picker.opts.severity = next
+            end
+            picker.list:set_target()
+            vim.notify("Picker: Set diagnostic severity level to " .. next)
+            picker:find()
+          end,
         },
         -- These two blocks control the look of tihngs, along with the hol
         -- group
@@ -539,7 +577,7 @@ return {
               -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
               -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
-              ["<Esc>"] = { "close", mode = { "n", "i" }, desc = "Close help or picker" },
+              ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<C-y>"] = { "confirm", mode = { "i", "n" } },
               ["<C-g><C-i>"] = { "toggle_ignored", mode = { "n", "i" }, desc = "Toggle ignored" },
               ["<C-g><C-h>"] = { "toggle_hidden", mode = { "n", "i" }, desc = "Toggle hidden" },
@@ -558,14 +596,25 @@ return {
               -- Probably won't work given this is Tab
               ["<C-i>"] = { "print_path", mode = { "n", "i" } },
               ["<C-t>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
+              -- Open file in new tab in background?
+              ["<C-S-t>"] = {
+                function(picker, item)
+                  vim.notify("Open in background tab is TODO", "error")
+                  return
+                  -- if item._path == nil then
+                  --   return
+                  -- end
+                end,
+                mode = { "n", "i" },
+                desc = "Edit in new (or existing) tab",
+              },
               ["<C-.>"] = { "cd", mode = { "n", "i" } },
               ["<C-;>"] = { "terminal", mode = { "n", "i" } },
               -- TODO: We should have an action like ctrl-enter that opens the file as a hidden buffer!
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
-              -- Maybe do one of these
-              -- TODO: Look into tab drop
-              ["<S-enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
+              --
+              ["<S-enter>"] = { "tab", mode = { "n", "i" }, desc = "New tab" },
               ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
               ["<C-S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
               -- Note that it causes the Smart picker to duplicates for some reason
@@ -637,7 +686,10 @@ return {
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus up" },
               ["<C-l>"] = false,
-              ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
+              ["<Esc>"] = false,
+              -- -- ["<Esc><Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
+              -- -- ["<Esc>"] = { "<Nop>", mode = { "n" } },
+              ["<Esc><Esc>"] = { "close", mode = { "n" }, desc = "Close help or picker" },
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
             },
@@ -683,6 +735,10 @@ return {
                   search = table.concat({ filename, parent or "", tostring(tabnr), filetype, buftype }, " "),
                   label = label,
                   comment = comment,
+                  -- preview = {
+                  --   -- TODO: Make this nuicer
+                  --   text = win_count,
+                  -- },
                 }
               end, vim.api.nvim_list_tabpages())
 
@@ -702,6 +758,7 @@ return {
               end
               picker:close()
             end,
+            ---@type snacks.picker.actions
             actions = {
               -- TODO: Get it so that the highlighted entry
               -- doesn't move arund after the fact
@@ -711,6 +768,44 @@ return {
                 end
                 vim.cmd(string.format("%dtabclose", item.tabnr))
                 picker:find()
+              end,
+              move_tab_up = function(picker, item)
+                vim.notify(
+                  "Not implemented yet, picker is scoped to current tab so difficult without nvim letting us move tabs that are not the current see :tabmove",
+                  "error"
+                )
+                return
+                -- if item == nil then
+                --   vim.notify("Null item", "warn")
+                --   return
+                -- end
+                -- local current_tabpage = vim.api.nvim_get_current_tabpage()
+                -- local tabnr = item.tabnr
+                -- if not item.is_current then
+                --   vim.api.nvim_set_current_tabpage(item.tabpage)
+                -- end
+                -- vim.cmd("-tabmove")
+                -- vim.api.nvim_set_current_tabpage(current_tabpage)
+                -- picker:find()
+              end,
+              move_tab_down = function(picker, item)
+                vim.notify(
+                  "Not implemented yet, picker is scoped to current tab so difficult without nvim letting us move tabs that are not the current see :tabmove",
+                  "error"
+                )
+                return
+                -- if item == nil then
+                --   vim.notify("Null item", "warn")
+                --   return
+                -- end
+                -- local current_tabpage = vim.api.nvim_get_current_tabpage()
+                -- local tabnr = item.tabnr
+                -- if not item.is_current then
+                --   vim.api.nvim_set_current_tabpage(item.tabpage)
+                -- end
+                -- vim.cmd("+tabmove")
+                -- vim.api.nvim_set_current_tabpage(current_tabpage)
+                -- picker:find()
               end,
             },
             win = {
@@ -722,6 +817,10 @@ return {
               input = {
                 keys = {
                   ["<c-d>"] = { "close_tab", mode = { "n", "i" } },
+                  -- Change this to <C-S-j> after debugging
+                  ["<C-S-j>"] = { "move_tab_down", mode = { "n", "i" } },
+                  -- Change this to <C-S-k> after debugging
+                  ["<C-S-j>"] = { "move_tab_up", mode = { "n", "i" } },
                 },
               },
             },
@@ -731,12 +830,52 @@ return {
               input = {
                 keys = {
                   ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
+                  ["<Enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<C-y>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   -- TODO: Get <c-g><c-i> to toggle hidden buffers
+                },
+              },
+              list = {
+                keys = {
+                  ["<S-enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["dd"] = { "bufdelete", mode = { "n", "i" } },
+                },
+              },
+            },
+          },
+          files = {},
+          git_files = {},
+          recent = {},
+          diagnostics = {
+            win = {
+              input = {
+                keys = {
+                  ["<C-h>"] = { "cycle_diagnostics_severity", mode = { "n", "i" }, desc = "Cycle diagnostics severity" },
+                },
+              },
+              list = {
+                keys = {
+                  ["<C-h>"] = { "cycle_diagnostics_severity", mode = { "n", "i" }, desc = "Cycle diagnostics severity" },
+                },
+              },
+            },
+          },
+          diagnostics_buffer = {
+            win = {
+              input = {
+                keys = {
+                  ["<C-h>"] = { "cycle_diagnostics_severity", mode = { "n", "i" }, desc = "Cycle diagnostics severity" },
+                },
+              },
+              list = {
+                keys = {
+                  ["<C-h>"] = { "cycle_diagnostics_severity", mode = { "n", "i" }, desc = "Cycle diagnostics severity" },
                 },
               },
             },
           },
           scratch = {
+            ---@type snacks.picker.actions
             actions = {
               -- NOTE:  The confirm action for this picker is dfiferent so
               -- override the varioau sactions
@@ -854,6 +993,7 @@ return {
           --- Muckng around here. It would be nice to
           --- be able to see the filetype that set the keymap itself.
           keymaps = {
+            ---@type snacks.picker.actions
             actions = {
               debug = function(picker, item)
                 vim.print(item)
