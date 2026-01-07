@@ -182,6 +182,15 @@ end, { desc = "Search open tabs", noremap = true, silent = true })
 -- vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>-tabmove<CR>", { desc = "Move tab left" })
 -- vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>+tabmove<CR>", { desc = "Move tab right" })
 
+-- NOTE: It could be worth it to reconsider using tabs at all
+-- neovim just might not be made for the feature. I like the idea
+-- of having persistent layout I can do , but at the end of the day,
+-- buffers are NOT scoped to the tab. This one fact alone makes it impossible
+-- to comfrotably work with tabs in a meaningful way. I often find myself
+-- loading a buffer into tab y when that buffer is already placed--intentionally
+-- mind you-- into tab x.
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>tabprev<CR>", { desc = "Goto left tab" })
 vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>tabnext<CR>", { desc = "Goto rightl tab" })
 
