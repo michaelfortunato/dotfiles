@@ -33,10 +33,10 @@
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
     # os_icon               # os identifier
+    nvim_terminal           # neovim :terminal or not
     background_jobs         # presence of background jobs
     dir                     # current directory
     vcs                     # git status
-    nvim_terminal    # neovim :terminal or not
     # =========================[ Line #2 ]=========================
     newline                 # \n
     # prompt_char           # prompt symbol
