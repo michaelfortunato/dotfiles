@@ -552,7 +552,14 @@ return {
               picker.opts.severity = next
             end
             picker.list:set_target()
-            vim.notify("Picker: Set diagnostic severity level to " .. next)
+
+            local sev = picker.opts.severity
+            picker.opts.sev_all = sev == nil
+            picker.opts.sev_err = sev == vim.diagnostic.severity.ERROR
+            picker.opts.sev_warn = sev == vim.diagnostic.severity.WARN
+            picker.opts.sev_info = sev == vim.diagnostic.severity.INFO
+            picker.opts.sev_hint = sev == vim.diagnostic.severity.HINT
+            -- vim.notify("Picker: Set diagnostic severity level to " .. next)
             picker:find()
           end,
         },
@@ -847,6 +854,23 @@ return {
           git_files = {},
           recent = {},
           diagnostics = {
+            sev_all = true, -- initial
+            toggles = {
+              sev_all = { icon = "A" },
+              sev_err = { icon = "E" },
+              sev_warn = { icon = "W" },
+              sev_info = { icon = "I" },
+              sev_hint = { icon = "H" },
+            },
+            on_show = function(picker)
+              local sev = picker.opts.severity
+              picker.opts.sev_all = sev == nil
+              picker.opts.sev_err = sev == vim.diagnostic.severity.ERROR
+              picker.opts.sev_warn = sev == vim.diagnostic.severity.WARN
+              picker.opts.sev_info = sev == vim.diagnostic.severity.INFO
+              picker.opts.sev_hint = sev == vim.diagnostic.severity.HINT
+              picker:update_titles()
+            end,
             win = {
               input = {
                 keys = {
@@ -861,6 +885,23 @@ return {
             },
           },
           diagnostics_buffer = {
+            sev_all = true, -- initial
+            toggles = {
+              sev_all = { icon = "A" },
+              sev_err = { icon = "E" },
+              sev_warn = { icon = "W" },
+              sev_info = { icon = "I" },
+              sev_hint = { icon = "H" },
+            },
+            on_show = function(picker)
+              local sev = picker.opts.severity
+              picker.opts.sev_all = sev == nil
+              picker.opts.sev_err = sev == vim.diagnostic.severity.ERROR
+              picker.opts.sev_warn = sev == vim.diagnostic.severity.WARN
+              picker.opts.sev_info = sev == vim.diagnostic.severity.INFO
+              picker.opts.sev_hint = sev == vim.diagnostic.severity.HINT
+              picker:update_titles()
+            end,
             win = {
               input = {
                 keys = {
