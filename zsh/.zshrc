@@ -193,7 +193,8 @@ alias n="mnf daily" # This one is aggressive!
 alias e="nvim" # This one is aggressive!
 alias c="clear"
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
-alias l='ls -ht'  #long list,human readable,sorted by date
+alias l='ls -ht'  #human readable,sorted by date
+alias lr='ls -ht'  #human readable,sorted by date
 alias 'cd-'='cd -'
 alias 'cd-1'='cd -1'
 alias 'cd-2'='cd -2'
@@ -436,8 +437,10 @@ export FZF_CTRL_R_OPTS="
 bindkey '\C-f' fzf-cd-widget
 
 gri() {
-  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
-  INITIAL_QUERY="${*:-}"
+  # NOTE: at start:reload place --hidden before q if you want it to be default
+  # TODO: Toggle hidden ? --bind "ctrl-h:reload:sleep 0.1; $RG_PREFIX '--hidden' {q} || true" \
+  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case"
+  INITIAL_QUERY="${1:-}"
   fzf --ansi --disabled --query "$INITIAL_QUERY" \
       --bind "start:reload:$RG_PREFIX {q}" \
       --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
@@ -448,8 +451,8 @@ gri() {
       --delimiter : \
       --preview 'bat --color=always {1} --highlight-line {2}' \
       --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
-      --bind 'enter:become(nvim {1} +{2})' \
-      --bind 'ctrl-y:become(nvim {1} +{2})'
+      --bind 'enter:become($EDITOR {1} +{2})' \
+      --bind 'ctrl-y:become($EDITOR {1} +{2})'
 }
 
 cdj() {
