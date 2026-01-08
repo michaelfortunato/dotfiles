@@ -206,7 +206,7 @@ vim.keymap.set({ "n" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", nor
 vim.keymap.set({ "n" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
 -- vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 -- WARN: Mapping <Tab> might conflict with <C-i>
-vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
+-- vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
 -- Consider this
 vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
