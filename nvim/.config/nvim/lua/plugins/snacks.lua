@@ -520,11 +520,12 @@ return {
               Snacks.win.new({ buf = buf, style = "bigfloat" })
 
               vim.keymap.set("n", "q", function()
-                if #vim.fn.win_findbuf(buf) == 1 then
-                  vim.cmd("bwipeout")
-                else
-                  vim.cmd("close")
-                end
+                -- if #vim.fn.win_findbuf(buf) == 1 then
+                --   vim.cmd("close")
+                -- else
+                --   vim.cmd("close")
+                -- end
+                vim.cmd("close")
               end, { buffer = buf, nowait = true, silent = true })
             end)
           end,
@@ -556,9 +557,9 @@ return {
 
               -- I thought about <Esc> too like this but too senstive.
               vim.keymap.set("n", "q", function()
-                if #vim.fn.win_findbuf(buf) == 1 then
-                  vim.cmd("bwipeout")
-                end
+                -- if #vim.fn.win_findbuf(buf) == 1 then
+                --   vim.cmd("tabclose")
+                -- end
                 vim.cmd("tabclose")
               end, { buffer = buf, nowait = true, silent = true })
             end)
