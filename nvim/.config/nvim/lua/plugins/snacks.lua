@@ -197,6 +197,9 @@ return {
           wo = {
             colorcolumn = "",
           },
+          -- make it big
+          width = 0.86,
+          height = 0.86,
           on_close = function(win)
             assert(win and win.buf, "We need this to be not none here")
             local buf = win.buf
@@ -604,7 +607,7 @@ return {
             picker:find()
           end,
           debug = function(picker, item)
-            vim.notify(vim.inspect(item))
+            vim.notify(vim.inspect(item), { timeout = 5000 })
           end,
         },
         -- These two blocks control the look of tihngs, along with the hol
@@ -1080,19 +1083,179 @@ return {
               },
             },
           },
-          --- Muckng around here. It would be nice to
-          --- be able to see the filetype that set the keymap itself.
           keymaps = {
+            -- keep Snacks’ original knobs (so the picker is runnable)
+            global = true,
+            plugs = false,
+            ["local"] = true,
+            modes = { "n", "v", "x", "s", "o", "i", "c", "t" },
+            format = "keymap",
+            preview = "preview",
+
             ---@type snacks.picker.actions
             actions = {
-              debug = function(picker, item)
-                vim.print(item)
+              goto_source = function(picker, item)
+                picker:norm(function()
+                  item = item or picker:selected({ fallback = true })[1]
+                  if not item then
+                    return
+                  end
+
+                  local file = item._path or item.file
+                  if not file or file == "" then
+                    vim.notify_once(
+                      "No source file recorded for this keymap."
+                        .. "Rerun neovim with: `nvim -V1`\n"
+                        .. "(Note this will have performance degradation)\n"
+                        .. "See issue github:neovim#23719 and \n"
+                        .. "read `:help :verbose-cmd-V1` for more.",
+                      vim.log.levels.WARN,
+                      { timeout = 7000 }
+                    )
+                    return
+                  end
+
+                  local pos = item.pos
+                  local search = item.search
+
+                  picker:close()
+                  vim.schedule(function()
+                    vim.cmd("edit " .. vim.fn.fnameescape(file))
+                    if type(pos) == "table" and type(pos[1]) == "number" and pos[1] > 0 then
+                      vim.api.nvim_win_set_cursor(0, { pos[1], pos[2] or 0 })
+                    elseif type(search) == "string" and search ~= "" then
+                      pcall(vim.cmd, search)
+                    end
+                  end)
+                end)
+              end,
+
+              -- preserve original toggles (so <a-g>/<a-b> still work)
+              toggle_global = function(picker)
+                picker.opts.global = not picker.opts.global
+                picker:find()
+              end,
+              toggle_buffer = function(picker)
+                picker.opts["local"] = not picker.opts["local"]
+                picker:find()
               end,
             },
+
+            -- This is AI generated not sure if its necessary
+            ---@param opts snacks.picker.keymaps.Config
+            finder = function(opts)
+              local items = {} ---@type snacks.picker.finder.Item[]
+              local maps = {} ---@type vim.api.keyset.get_keymap[]
+
+              for _, mode in ipairs(opts.modes) do
+                if opts.global then
+                  vim.list_extend(maps, vim.api.nvim_get_keymap(mode))
+                end
+                if opts["local"] then
+                  vim.list_extend(maps, vim.api.nvim_buf_get_keymap(0, mode))
+                end
+              end
+
+              local done = {} ---@type table<string, boolean>
+
+              -- Cache sid -> script filename
+              local sid_cache = {} ---@type table<integer, string|false>
+              local function sid_name(sid)
+                if type(sid) ~= "number" or sid <= 0 then
+                  return nil
+                end
+                local cached = sid_cache[sid]
+                if cached ~= nil then
+                  return cached or nil
+                end
+                local ok, res = pcall(vim.fn.getscriptinfo, { sid = sid })
+                local name = ok and res and res[1] and res[1].name or nil
+                sid_cache[sid] = name or false
+                return name
+              end
+
+              for _, km in ipairs(maps) do
+                local key = Snacks.picker.util.text(km, { "mode", "lhs", "buffer" })
+
+                local keep = true
+                if opts.plugs == false and km.lhs:match("^<Plug>") then
+                  keep = false
+                end
+
+                if keep and not done[key] then
+                  done[key] = true
+
+                  local item = {
+                    mode = km.mode,
+                    item = km,
+                    key = km.lhs,
+                    preview = { text = vim.inspect(km), ft = "lua" },
+                  }
+
+                  -- 1) Best: Neovim-recorded provenance (sid/lnum)
+                  if type(km.sid) == "number" and type(km.lnum) == "number" and km.lnum > 0 then
+                    local file = sid_name(km.sid)
+                    if file and file ~= "" then
+                      if file:sub(1, 1) == "@" then
+                        file = file:sub(2)
+                      end
+                      if file:find("^vim/") then
+                        file = file:gsub("^vim/", (vim.env.VIMRUNTIME or "") .. "/lua/vim/")
+                      end
+                      item.file = file
+                      item.pos = { km.lnum, 0 }
+                      item.preview = "file"
+                    end
+                  end
+
+                  -- 2) Fallback: Lua callback debug info
+                  if not item.file and km.callback then
+                    local info = debug.getinfo(km.callback, "S")
+                    item.info = info
+                    if info and info.what == "Lua" and type(info.source) == "string" then
+                      local source = info.source
+                      if source:sub(1, 1) == "@" then
+                        source = source:sub(2)
+                      end
+                      local file = source
+                      if file:find("^vim/") then
+                        file = file:gsub("^vim/", (vim.env.VIMRUNTIME or "") .. "/lua/vim/")
+                      end
+                      item.file = file
+                      if source:find("^vim/") and (info.linedefined or 0) == 0 then
+                        item.search = "/vim\\.keymap\\.set.*['\"]" .. km.lhs
+                      else
+                        item.pos = { info.linedefined or 1, 0 }
+                      end
+                      item.preview = "file"
+                    end
+                  end
+
+                  -- Always present, so your bindings can depend on it
+                  item._path = item.file or ""
+
+                  item.text = Snacks.util.normkey(km.lhs)
+                    .. " "
+                    .. Snacks.picker.util.text(km, { "mode", "lhs", "rhs", "desc" })
+                    .. (item.file or "")
+
+                  items[#items + 1] = item
+                end
+              end
+              return items
+            end,
             win = {
               input = {
                 keys = {
-                  ["<c-y>"] = { "debug", mode = { "n", "i" } },
+                  ["<c-h>"] = { "toggle_global", mode = { "n", "i" }, desc = "Toggle Global Keymaps" },
+                  ["<Enter>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
+                  ["<C-y>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
+                },
+              },
+              list = {
+                keys = {
+                  ["<C-y>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
+                  ["<Enter>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
                 },
               },
             },
