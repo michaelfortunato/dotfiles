@@ -603,6 +603,9 @@ return {
             -- vim.notify("Picker: Set diagnostic severity level to " .. next)
             picker:find()
           end,
+          debug = function(picker, item)
+            vim.notify(vim.inspect(item))
+          end,
         },
         -- These two blocks control the look of tihngs, along with the hol
         -- group
@@ -643,7 +646,6 @@ return {
               ["<D-c>"] = { "yank", mode = { "n", "i" } },
               ["<D-p>"] = { "paste", mode = { "n", "i" } },
               -- Probably won't work given this is Tab
-              ["<C-i>"] = { "print_path", mode = { "n", "i" } },
               ["<Tab><Enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
               ["<C-t>"] = { "tabe", mode = { "n", "i" }, desc = "Edit in new tab" },
               -- Open file in new tab in background?
@@ -666,11 +668,13 @@ return {
               ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
               ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
               -- ["<C-S-enter>"] = { "...", mode = { "n", "i" }, desc = "..." },
-              -- Note that it causes the Smart picker to duplicates for some reason
+              --- Navigation
               ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = false,
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
+              ---- Debug
+              ["<C-i>"] = { "debug", mode = { "n", "i" } },
             },
           },
           list = {
