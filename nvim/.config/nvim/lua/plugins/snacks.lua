@@ -296,6 +296,7 @@ return {
         scratch_vsplit = { position = "right", width = 0.45, backdrop = false },
         scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false },
         scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75 },
+        big_float = { position = "float", width = 0.86, height = 0.86 },
         -- NOTE: We need to be careful here
         -- as zenmode will not restore the c-h etc. mappings once left
         -- See the `HACK` below on `on_close`.
@@ -364,6 +365,48 @@ return {
             require("smart-splits").move_cursor_right()
           end, { buffer = win.buf })
         end,
+      },
+      ---@type snacks.lazygit.Config
+      lazygit = {
+        auto_close = true,
+        ---@type snacks.win.Config
+        win = {
+          on_buf = function(self)
+            vim.keymap.set("t", "<Esc>", function()
+              local buf = vim.api.nvim_get_current_buf()
+              local job = vim.b[buf].terminal_job_id
+                or (
+                  pcall(vim.api.nvim_buf_get_var, buf, "terminal_job_id")
+                  and vim.api.nvim_buf_get_var(buf, "terminal_job_id")
+                )
+              if job then
+                vim.api.nvim_chan_send(job, "\x1b")
+              end
+            end, { buffer = self.buf })
+          end,
+          keys = {
+            term_normal = {
+              "<Esc>",
+              function()
+                local buf = vim.api.nvim_get_current_buf()
+                local job = vim.b[buf].terminal_job_id
+                  or (
+                    pcall(vim.api.nvim_buf_get_var, buf, "terminal_job_id")
+                    and vim.api.nvim_buf_get_var(buf, "terminal_job_id")
+                  )
+                if job then
+                  vim.api.nvim_chan_send(job, "\x1b")
+                end
+              end,
+              mode = { "n" },
+            },
+          },
+        },
+        -- win = {
+        --   on_buf = function(self)
+        --     vim.keymap.set({ "t", "n" }, "<esc>", "<Esc>", { expr = true, buffer = self.buf, nowait = true })
+        --   end,
+        -- },
       },
       --
       -- Concepts
@@ -469,11 +512,9 @@ return {
 
               if not existed then
                 vim.bo[buf].buflisted = false
-                vim.bo[buf].bufhidden = "wipe"
-                -- vim.bo[buf].swapfile = false
               end
 
-              Snacks.win.new({ buf = buf, position = "float", width = 0.86, height = 0.86 })
+              Snacks.win.new({ buf = buf, style = "bigfloat" })
 
               vim.keymap.set("n", "q", function()
                 if #vim.fn.win_findbuf(buf) == 1 then
@@ -595,6 +636,7 @@ return {
               ["<C-d>"] = false,
               ["<C-a>"] = false,
               ["<C-g>"] = false, -- no need
+              ["<Tab>"] = false,
               ["<Del>"] = { "bufdelete", mode = { "n", "i" } },
               ["<C-c>"] = { "yank", mode = { "n", "i" } },
               ["<C-/>"] = { "cycle_win", mode = { "n", "i" } },
@@ -602,7 +644,8 @@ return {
               ["<D-p>"] = { "paste", mode = { "n", "i" } },
               -- Probably won't work given this is Tab
               ["<C-i>"] = { "print_path", mode = { "n", "i" } },
-              -- MNF-TABDISCIPLINE: ["<C-t>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
+              ["<Tab><Enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
+              ["<C-t>"] = { "tabe", mode = { "n", "i" }, desc = "Edit in new tab" },
               -- Open file in new tab in background?
               ["<C-S-t>"] = {
                 function(picker, item)
@@ -620,10 +663,9 @@ return {
               -- TODO: We should have an action like ctrl-enter that opens the file as a hidden buffer!
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
-              --- MNF-TABDISCIPLINE: ["<S-enter>"] = { "tabedit", mode = { "n", "i" }, desc = "New tab" },
-              ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "New tab" },
+              ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
               ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
-              -- MNF-TABDISCIPLINE: ["<C-S-enter>"] = { "oneoff_tab", mode = { "n", "i" }, desc = "One off edit (tab)" },
+              -- ["<C-S-enter>"] = { "...", mode = { "n", "i" }, desc = "..." },
               -- Note that it causes the Smart picker to duplicates for some reason
               ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
@@ -645,6 +687,7 @@ return {
               ["<C-j>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus up" },
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
+              ["yy"] = { "yank", mode = { "n" }, desc = "Copy entry" },
             },
           },
           preview = {
@@ -837,14 +880,16 @@ return {
               input = {
                 keys = {
                   ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
-                  ["<Enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
-                  ["<C-y>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  -- NOTE snacks default cr action refocuses the buffer to its oprior slot even if
+                  -- its no longer vissible, at least for terminals super fuckign annoying
+                  ["<Enter>"] = { "confirm", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   -- TODO: Get <c-g><c-i> to toggle hidden buffers
                 },
               },
               list = {
                 keys = {
-                  ["<S-enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   ["dd"] = { "bufdelete", mode = { "n", "i" } },
                 },
               },
