@@ -707,8 +707,12 @@ typeset -g MNF_ALIAS_PROFILE_cloud_ICON="☁️"
 mnf_alias_profile_cloud_on() {
   alias nps='nerdctl ps'
   print 'nps="nerdctl ps"'
+  #
   alias ncl='nerdctl ps'
   print 'ncl="nerdctl ps"'
+  #
+  alias nck='nerdctl container kill'
+  print 'nck="nerdctl container kill"'
   #
   function nib() { nerdctl build --progress=plain -f ${1} -t ${3:-} ${2}; }
   print 'nib()=nerdctl build --progress=plain -f ${1} -t ${3:-} ${2};'
@@ -725,21 +729,35 @@ mnf_alias_profile_cloud_on() {
   alias ncachekill='nerdctl builder prune'
   print 'ncachekill="nerdctl builder prune"'
   #
-  alias nrun='nerdctl run --rm -it'
-  print 'nsh="nerdctl exec -it"'
-  #
-  nca() {
+  ncr() {
     local img="${1:-python:3.12}" cmd="${2:-bash}";
     shift 2 2>/dev/null || { shift 1 2>/dev/null || true; };
     nerdctl run --rm -it "$img" "$cmd" "$@";
   }
-  print 'nca()=nerdctl run --rm -it $img "${cmd-bash}" ${@:-}"'
-
+  print 'ncr()=nerdctl run --rm -it $img "${cmd-bash}" ${@:-}" # usage: ncr <image> <cmd> [args...]'
+  #
+  nce() {
+    local ctr="${1:-}"
+    local cmd="${2:-bash}"
+    [[ -z "$ctr" ]] && { echo "usage: nce <container> [cmd] [args...]" >&2; return 2; }
+    shift 2 2>/dev/null || { shift 1 2>/dev/null || true; }
+    nerdctl exec -it "$ctr" "$cmd" "$@"
+  }
+  print 'nce=nerdctl exec -it "$ctr" "$cmd" "$@" # usage: nce <container> [cmd] [args...]'
+  # nca: nerdctl container attach (attach to PID 1 stdio)
+  # usage: nca <container>
+  nca() {
+    local ctr="${1:-}"
+    [[ -z "$ctr" ]] && { echo "usage: nca <container>" >&2; return 2; }
+    shift 1
+    nerdctl attach "$ctr" "$@"
+  }
+  print 'nca=nerdctl attach "$ctr" "$@" # usage: nca <container>'
   MNF_ALIAS_PROFILE_cloud=1
 }
 
 mnf_alias_profile_cloud_off() {
-  unalias nps nib nil nca nrun ncacheclear ncachekill 2>/dev/null
+  unalias nps ncl nck nib nil nca nrun ncacheclear ncachekill 2>/dev/null
   unfunction nib 2>/dev/null
   unfunction nca 2>/dev/null
   MNF_ALIAS_PROFILE_cloud=0
