@@ -530,7 +530,7 @@ return {
                 vim.bo[buf].buflisted = false
               end
 
-              Snacks.win.new({ buf = buf, style = "bigfloat" })
+              Snacks.win.new({ buf = buf, style = "big_float" })
 
               vim.keymap.set("n", "q", function()
                 -- if #vim.fn.win_findbuf(buf) == 1 then
