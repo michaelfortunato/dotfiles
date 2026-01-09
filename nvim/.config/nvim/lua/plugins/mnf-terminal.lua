@@ -31,8 +31,60 @@ return {
         end, { desc = "Send To Terminal " .. i })
       end
 
+      -- vim.keymap.set("n", "fg", function()
+      --   vim.t.mnf_float = vim.t.mnf_float or { win = nil, buf = nil }
+      --   local win = vim.t.mnf_float.win
+      --   local buf = vim.t.mnf_float.buf
+      --   if win ~= nil and vim.api.nvim_win_is_valid(win) then
+      --     vim.api.nvim_win_close(win, false)
+      --     return
+      --   end
+      --   if buf ~= nil and vim.api.nvim_buf_is_valid(buf) then
+      --     vim.t.mnf_float.buf = buf
+      --   else
+      --     vim.notify(vim.api.nvim_get_current_buf())
+      --     vim.t.mnf_float.buf = vim.api.nvim_get_current_buf()
+      --     vim.notify("Here")
+      --   end
+      --   vim.notify(vim.t.mnf_float.buf)
+      --   vim.t.mnf_float.win = require("snacks").win.new({
+      --     style = "bigfloat",
+      --     buf = vim.t.mnf_float.buf,
+      --     on_close = function(window)
+      --       vim.t.mnf_float.buf = window.buf
+      --       vim.t.mnf_float.win = nil
+      --     end,
+      --   }).win
+      -- end, { desc = "Send File To Terminal (pick)" })
+
+      vim.keymap.set("n", "fg", function()
+        vim.t.mnf_float = vim.t.mnf_float or { win = nil, buf = nil }
+        local state = vim.t.mnf_float
+        if state.win and vim.api.nvim_win_is_valid(state.win) then
+          vim.api.nvim_win_close(state.win, true)
+          vim.notify("Closing " .. state.win)
+          state.win = nil
+          return
+        end
+
+        local cur = vim.api.nvim_get_current_buf()
+        state.buf = cur
+        local obj = require("snacks").win.new({
+          style = "big_float",
+          buf = state.buf,
+          on_close = function(_)
+            -- do NOT overwrite state.buf here
+            state.win = nil
+          end,
+        })
+        state.win = obj.win or obj
+      end, { desc = "Toggle float for current buffer (tab-scoped)" })
+      vim.keymap.set("n", "fh", function()
+        vim.notify(vim.api.nvim_get_current_win())
+      end)
+
       vim.keymap.set("n", ";;", function()
-        require("mnf.terminal.managed").send_file_to_terminal_picker()
+        require("mnf.terminal.managed").toggle_terminal(1)
       end, { desc = "Send File To Terminal (pick)" })
 
       vim.keymap.set("t", ";;", function()

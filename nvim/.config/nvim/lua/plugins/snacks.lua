@@ -161,6 +161,7 @@ return {
   {
     "michaelfortunato/snacks.nvim",
     dev = true,
+    ---@type snacks.Config
     opts = {
       scratch = {
         -- Per-filetype scratch actions (kept in your config; no Snacks patches).
@@ -295,11 +296,15 @@ return {
         },
         math = { enabled = false },
       },
+      ---@type table<string, snacks.win.Config>
       styles = {
-        scratch_vsplit = { position = "right", width = 0.45, backdrop = false },
-        scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false },
-        scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75 },
-        big_float = { position = "float", width = 0.86, height = 0.86 },
+        scratch_vsplit = { position = "right", width = 0.45, backdrop = false, fixbuf = false },
+        scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false, fixbuf = false },
+        scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75, fixbuf = false },
+        --- TODO: Figure out a way to make sure ever buffer in a floating window, even not the first buffer
+        --- gets the q --> quit keymap. That will require adding a BufWinEnter to add q to the buffer
+        --- and BufWinLeave to remove it, so that the buffer is not effeced anywhere else.
+        big_float = { position = "float", width = 0.86, height = 0.86, fixbuf = false, w = { snacks_main = true } },
         -- NOTE: We need to be careful here
         -- as zenmode will not restore the c-h etc. mappings once left
         -- See the `HACK` below on `on_close`.
@@ -426,6 +431,14 @@ return {
       --     - transform: post-process (e.g., unique_file to dedupe).
       -- image = {},
       picker = {
+        -- doing this gives us a whole lot of beneifts
+        -- According to AI,
+        -- - current=true -> use the window you launched the picker from
+        -- - float=true ->allow floats
+        -- - file=false -> let terminals/nofile buffers be replaced too
+        -- So float = true is what we want (fcurrent = false, file = true, float = false)
+        -- is default.
+        main = { current = true, float = true, file = true },
         ---@type snacks.picker.actions
         actions = {
           -- TODO: add optional layout-aware direction mapping for non-canonical presets.
@@ -884,6 +897,10 @@ return {
             },
           },
           buffers = {
+            hidden = false,
+            unloaded = true,
+            current = true,
+            sort_lastused = true,
             win = {
               input = {
                 keys = {
