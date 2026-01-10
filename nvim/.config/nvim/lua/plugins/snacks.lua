@@ -398,8 +398,10 @@ return {
           end,
           keys = {
             term_normal = {
-              --- make sure snacks doesn't map <Esc> get this in terminal mode
-              --- brutal
+              -- HACK:
+              -- make sure snacks doesn't map <Esc> get this in terminal mode
+              -- brutal
+              -- See the culprit at /Users/michaelfortunato/projects/neovim-plugins/snacks.nvim/lua/snacks/terminal.lua:32-67
               "<Esc>",
               false,
             },
