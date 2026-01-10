@@ -79,9 +79,13 @@ vim.api.nvim_create_autocmd("TermOpen", {
   pattern = { "term://*" },
   callback = function(ev)
     vim.b[ev.buf].mnf_term_last_mode = "terminal"
+    local name = vim.api.nvim_buf_get_name(ev.buf)
+    if name:match("lazygit") then
+      vim.keymap.set("n", "<Esc>", "<Cmd>close<CR>", { buffer = ev.buf, desc = "Exit terminal mode" })
+      vim.cmd("startinsert")
+      return
+    end
     vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
-    -- TODO: Configure a timeout here ??
-    -- This is so insert mode gets hit if the pattern matches
     vim.cmd("startinsert")
   end,
 })
