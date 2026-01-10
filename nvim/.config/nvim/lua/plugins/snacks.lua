@@ -384,41 +384,27 @@ return {
         ---@type snacks.win.Config
         win = {
           on_buf = function(self)
-            vim.keymap.set("t", "<Esc>", function()
-              local buf = vim.api.nvim_get_current_buf()
-              local job = vim.b[buf].terminal_job_id
-                or (
-                  pcall(vim.api.nvim_buf_get_var, buf, "terminal_job_id")
-                  and vim.api.nvim_buf_get_var(buf, "terminal_job_id")
-                )
-              if job then
-                vim.api.nvim_chan_send(job, "\x1b")
-              end
-            end, { buffer = self.buf })
+            -- NOTE: In the future if you ever need this
+            -- its super hacky but will win. Unless of course someone
+            -- timers longer or double schedules it!
+            -- -- Wrap it in vim.schedule so that
+            -- -- even the TermOpen autcmd fails in ../config/autocmds.lua fails
+            -- vim.schedule(function()
+            --   sc, desc = pcall(function()
+            --     vim.keymap.del("t", "<esc>", { buffer = self.buf })
+            --   end)
+            --   vim.notify("Properly deleted keymap? " .. (desc or ""))
+            -- end)
           end,
           keys = {
             term_normal = {
+              --- make sure snacks doesn't map <Esc> get this in terminal mode
+              --- brutal
               "<Esc>",
-              function()
-                local buf = vim.api.nvim_get_current_buf()
-                local job = vim.b[buf].terminal_job_id
-                  or (
-                    pcall(vim.api.nvim_buf_get_var, buf, "terminal_job_id")
-                    and vim.api.nvim_buf_get_var(buf, "terminal_job_id")
-                  )
-                if job then
-                  vim.api.nvim_chan_send(job, "\x1b")
-                end
-              end,
-              mode = { "n" },
+              false,
             },
           },
         },
-        -- win = {
-        --   on_buf = function(self)
-        --     vim.keymap.set({ "t", "n" }, "<esc>", "<Esc>", { expr = true, buffer = self.buf, nowait = true })
-        --   end,
-        -- },
       },
       --
       -- Concepts
