@@ -58,7 +58,9 @@ return {
     },
     window = { width = 32 },
   },
+  ---@type LazyKeysSpec[]
   keys = {
+    { "<leader>e", false },
     {
       "<leader>E",
       function()

@@ -1333,6 +1333,15 @@ return {
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
       { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
       { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
+      { "<leader>e", function() Snacks.picker.explorer({ 
+          layout = { preset = "dropdown", preview = false }, 
+          focus = "input", jump = { close = true }, 
+          win = { 
+            input = { keys = { ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, }, }, 
+            list = { keys = { ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, ["<Left>"] = { "confirm", mode = { "n"}, desc = "Confirm" }, }, }, 
+          }, 
+        }) end, desc = "Command History"
+      },
       -- find
       { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
