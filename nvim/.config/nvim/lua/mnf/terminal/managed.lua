@@ -164,8 +164,8 @@ M.terminal_state = {
   win = nil,
   buffers = {},
   current = nil,
-  layout = "vsplit",
-  create_window = create_vsplit_window,
+  layout = "floating",
+  create_window = create_floating_window,
   last_used_terminal = 1,
   commands = {},
 }
