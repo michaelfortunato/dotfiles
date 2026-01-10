@@ -108,13 +108,21 @@ return {
         },
       },
       { "filename", path = 3 }, -- 3: Absolute path, with tilde as the home directory
-      { "filetype", icon_only = false, separator = "", padding = { left = 1, right = 1 } },
+      { "location", padding = { left = 0, right = 1 } },
+      { "navic", color_correction = "dynamic" },
     }
     opts.sections.lualine_z = {
       function()
         local bufnum = vim.api.nvim_get_current_buf()
         return "📄 " .. bufnum
       end,
+      {
+        "filetype",
+        icon_only = false,
+        separator = "",
+        color = "StatusLine", -- <- key line
+        padding = { left = 1, right = 1 },
+      },
       {
         function()
           local tabs = vim.api.nvim_list_tabpages()
@@ -206,7 +214,6 @@ return {
     opts.sections.lualine_y = {
       -- LazyVim had this, not a fan.
       -- { "progress", separator = " ", padding = { left = 1, right = 0 } },
-      { "location", padding = { left = 0, right = 1 } },
     }
     -- Add a minimal winbar component rendered by lualine (top-right)
     -- Shows "MAX" and/or the tab count when > 1

@@ -153,6 +153,7 @@ return {
       keys[#keys + 1] = { "K", false }
 
       --- Maybe...
+      --- Yeah don't use thiis rn until its better
       local function transient_jump(picker_fn)
         return function()
           local actions = require("snacks.picker.actions")
@@ -210,7 +211,7 @@ return {
               --    pcall(vim.cmd.normal, { args = { "gF" }, bang = true })
               --   end
               if pcall(vim.cmd.normal, { args = { "gF" }, bang = true }) then return end
-              return transient_jump(Snacks.picker.lsp_definitions)()
+              return Snacks.picker.lsp_definitions()
             end,
             desc = "Goto Definition",
             has = "definition",
@@ -355,5 +356,81 @@ return {
     version = "^1.0.0",
     -- LazyVim overrides this ugh!
     opts = { automatic_installation = false, automatic_enable = false },
+  },
+  -- https://github.com/Bekaboo/dropbar.nvim
+  {
+    "SmiteshP/nvim-navic",
+    lazy = true,
+    init = function()
+      vim.g.navic_silence = true
+    end,
+    opts = function()
+      Snacks.util.lsp.on({ method = "textDocument/documentSymbol" }, function(buffer, client)
+        require("nvim-navic").attach(client, buffer)
+      end)
+      return {
+        separator = " › ",
+        highlight = true,
+        depth_limit = 5,
+        icons = LazyVim.config.icons.kinds,
+        lazy_update_context = false,
+      }
+    end,
+  },
+  {
+    "rmagatti/goto-preview",
+    dependencies = { "rmagatti/logger.nvim" },
+    event = "BufEnter",
+    keys = {
+      ---@type LazyKeysSpec
+      {
+        "gp",
+        function()
+          require("goto-preview").goto_preview_definition()
+        end,
+        desc = "Peak definition preview",
+      },
+    },
+    config = function()
+      require("goto-preview").setup({
+        default_mappings = false, -- Bind default mappings
+        width = 120, -- Width of the floating window
+        height = 15, -- Height of the floating window
+        border = { "↖", "─", "┐", "│", "┘", "─", "└", "│" }, -- Border characters of the floating window
+        debug = false, -- Print debug information
+        opacity = nil, -- 0-100 opacity level of the floating window where 100 is fully transparent.
+        resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
+        post_open_hook = function(buf, _)
+          vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })
+        end, -- A function taking two arguments, a buffer and a window to be ran as a hook.
+        post_close_hook = function(buf, _)
+          -- NOTE: This will usually fail  if the buffer will close, but
+          -- otherwise if the buffer is currently opened somehwere else
+          -- we want to remove it incase we use the buffer and want the
+          -- keymap freed later. This is a snacks issue too.
+          succ, result = pcall(function()
+            vim.keymap.del("n", "q", { buffer = buf })
+          end)
+          -- If you  ever want tracing
+          -- if not succ then
+          --   vim.notify_once("Goto preview keymap cleanup hook failed: " .. result, "debug")
+          -- end
+        end, -- A function taking two arguments, a buffer and a window to be ran as a hook.
+        references = { -- Configure the telescope UI for slowing the references cycling window.
+          provider = "snacks", -- telescope|fzf_lua|snacks|mini_pick|default
+          -- telescope = require("telescope.themes").get_dropdown({ hide_preview = false }),
+        },
+        -- These two configs can also be passed down to the goto-preview definition and implementation calls for one off "peak" functionality.
+        focus_on_open = true, -- Focus the floating window when opening it.
+        dismiss_on_move = false, -- Dismiss the floating window when moving the cursor.
+        force_close = true, -- passed into vim.api.nvim_win_close's second argument. See :h nvim_win_close
+        bufhidden = "wipe", -- the bufhidden option to set on the floating window. See :h bufhidden
+        stack_floating_preview_windows = true, -- Whether to nest floating windows
+        same_file_float_preview = true, -- Whether to open a new floating window for a reference within the current file
+        preview_window_title = { enable = true, position = "left" }, -- Whether to set the preview window title as the filename
+        zindex = 1, -- Starting zindex for the stack of floating windows
+        vim_ui_input = false, -- Whether to override vim.ui.input with a goto-preview floating window
+      })
+    end,
   },
 }
