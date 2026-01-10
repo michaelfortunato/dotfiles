@@ -705,20 +705,35 @@ typeset -g MNF_ALIAS_PROFILE_cloud=0
 typeset -g MNF_ALIAS_PROFILE_cloud_DESC="nerdctl helpers"
 typeset -g MNF_ALIAS_PROFILE_cloud_ICON="☁️"
 mnf_alias_profile_cloud_on() {
-  alias nps='nerdctl ps'
-  print 'nps="nerdctl ps"'
+  function nib() { 
+    local containerfile="${1}" ctx="${2}" ref="${3:-}"
+    local git_or_cwd=$(git -C "$ctx" rev-parse --show-toplevel 2>/dev/null || pwd)
+    local repo=$(basename "$git_or_cwd" | tr '[:upper:]' '[:lower:]')
+    if [ -z "$ref" ]; then
+      ref="${repo}:latest"
+    elif ! printf '%s' "$ref" | grep -q ':'; then
+      ref="${repo}:${ref}"
+    fi
+    nerdctl build --progress=plain -f "$containerfile" -t "$ref" "$ctx" "${@:4}"
+  }
+  print 'nib=nerdctl build --progress=plain -f ${1} -t ${3:"<reponame>:latest"} ${2}; # usage: nib [Containerfile] [build-ctx] [ref] [args...]  # ref defaults to <repo>:latest'
   #
-  alias ncl='nerdctl ps'
-  print 'ncl="nerdctl ps"'
-  #
-  alias nck='nerdctl container kill'
-  print 'nck="nerdctl container kill"'
-  #
-  function nib() { nerdctl build --progress=plain -f ${1} -t ${3:-} ${2}; }
-  print 'nib()=nerdctl build --progress=plain -f ${1} -t ${3:-} ${2};'
+  function nid() { 
+    local img="${1}"
+    printf '%s' "$img" | grep -q ':' || img="${img}:latest"
+    nerdctl image rm ${img} "${@:2}" 
+  }
+  print 'nid=nerdctl image rm ${1} # usage nid <image> [args ...]'
   #
   alias nil='nerdctl images'
   print 'nil="nerdctl images"'
+  # nili: nerdctl image list (interactive) -> prints selected repo:tag
+  nili() {
+    nerdctl images -a --format '{{.Repository}}:{{.Tag}} {{.ID}} {{.Size}} {{.CreatedSince}}' \
+    | fzf \
+    | awk '{print $1}'
+  }
+  print 'ncli: nerdctl container list interactive. # usage: ncli'
   #
   alias nlog='nerdctl logs -f'
   print 'nlog="nerdctl logs -f"'
@@ -729,30 +744,60 @@ mnf_alias_profile_cloud_on() {
   alias ncachekill='nerdctl builder prune'
   print 'ncachekill="nerdctl builder prune"'
   #
-  ncr() {
-    local img="${1:-python:3.12}" cmd="${2:-bash}";
-    shift 2 2>/dev/null || { shift 1 2>/dev/null || true; };
-    nerdctl run --rm -it "$img" "$cmd" "$@";
+  alias nps='nerdctl ps'
+  print 'nps="nerdctl ps"'
+  #
+  alias ncl='nerdctl ps'
+  print 'ncl="nerdctl ps"'
+  #
+  ncli() {
+    nerdctl container list -a --format '{{.ID}} {{.Image}} {{.Command}} {{.Status}}' \
+    | fzf \
+    | awk '{print $1}'
   }
-  print 'ncr()=nerdctl run --rm -it $img "${cmd-bash}" ${@:-}" # usage: ncr <image> <cmd> [args...]'
+  print 'ncli: nerdctl container list interactive. # usage: ncli'
+  #
+  alias nck='nerdctl container kill'
+  print 'nck="nerdctl container kill"'
+  #
+  ncd() {
+    container="${1:-$(ncli)}"
+    nerdctl container rm "$container"
+  }
+  print 'ncd="nerdctl container rm "${1:-$(ncli)}"'
+  #
+  #
+  ncr() {
+    if [ -z "${1}" ]; then
+      img=$(nili)
+      cmd="${2:-bash}"
+      print -z "nerdctl run --rm -it "${img}" "${cmd}" "${@:3}""
+    else
+      img="${1}"
+      cmd="${2:-bash}"
+      printf "Running: nerdctl run --rm -it "${img}" "${cmd}" "${@:3}"\n" >&2;
+      nerdctl run --rm -it "${img}" "${cmd}" "${@:3}"
+    fi
+  }
+  print 'ncr=nerdctl run --rm -it ${1:-$(nili)} "${2:-}" ${@:3}" # usage: ncr [image] [cmd] [args...]'
   #
   nce() {
-    local ctr="${1:-}"
-    local cmd="${2:-bash}"
-    [[ -z "$ctr" ]] && { echo "usage: nce <container> [cmd] [args...]" >&2; return 2; }
-    shift 2 2>/dev/null || { shift 1 2>/dev/null || true; }
-    nerdctl exec -it "$ctr" "$cmd" "$@"
+    if [ -z "${1}" ]; then
+      container=$(ncli)
+      cmd="${2:-bash}"
+      print -z "nerdctl exec -it "${container}" "${cmd}" "${@:3}""
+    else
+      container="${1}"
+      cmd="${2:-bash}"
+      printf "Running: nerdctl exec -it "${container}" "${cmd}" "${@:3}"\n" >&2;
+      nerdctl exec -it "${img}" "${cmd}" "${@:3}"
+    fi
   }
-  print 'nce=nerdctl exec -it "$ctr" "$cmd" "$@" # usage: nce <container> [cmd] [args...]'
+  print 'nce=nerdctl exec -it "${1:-$(ncli)}" "${2:-bash}" "${@:3}" # usage: nce [container] [cmd] [args...]'
   # nca: nerdctl container attach (attach to PID 1 stdio)
   # usage: nca <container>
-  nca() {
-    local ctr="${1:-}"
-    [[ -z "$ctr" ]] && { echo "usage: nca <container>" >&2; return 2; }
-    shift 1
-    nerdctl attach "$ctr" "$@"
-  }
-  print 'nca=nerdctl attach "$ctr" "$@" # usage: nca <container>'
+  nca() { nerdctl attach "${1:-$(ncli)}" "${@:2}"; }
+  print 'nca=nerdctl attach "${1:-$(ncli)}" "${@:2}" # usage: nca [container] [args...]'
   MNF_ALIAS_PROFILE_cloud=1
 }
 
@@ -760,6 +805,8 @@ mnf_alias_profile_cloud_off() {
   unalias nps ncl nck nib nil nca nrun ncacheclear ncachekill 2>/dev/null
   unfunction nib 2>/dev/null
   unfunction nca 2>/dev/null
+  unfunction nce 2>/dev/null
+  unfunction ncr 2>/dev/null
   MNF_ALIAS_PROFILE_cloud=0
 }
 
@@ -770,7 +817,6 @@ eval "$(uv generate-shell-completion zsh)"
 # ref: https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#native-completions
 source <(CARGO_COMPLETE=zsh cargo +nightly)
 eval "$(pueue completions zsh)"
-
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

@@ -112,6 +112,8 @@ return {
 
       vim.keymap.set({ "n", "v" }, ";a", function()
         require("mnf.terminal.managed").send_file_to_terminal_picker()
+        --TODO: Ensure we enter intsert mode upon navigating
+        --to terminal after execution
       end, { desc = "Send File To Terminal (pick)" })
 
       vim.keymap.set("v", ";;", function()

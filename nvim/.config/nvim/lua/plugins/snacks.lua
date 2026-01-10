@@ -163,6 +163,10 @@ return {
     dev = true,
     ---@type snacks.Config
     opts = {
+      explorer = {
+        replace_netrw = false, -- Replace netrw with the snacks explorer
+        trash = true, -- Use the system trash when deleting files
+      },
       scratch = {
         -- Per-filetype scratch actions (kept in your config; no Snacks patches).
         -- This mirrors Folke's lua scratch `<cr>` runner, but routes python to `mnf.scratch.python`.
@@ -768,6 +772,24 @@ return {
           },
         },
         sources = {
+          -- explorer = {
+          --   -- Floating explorer instead of sidebar + close on confirm.
+          --   layout = { preset = "dropdown", preview = false },
+          --   focus = "input",
+          --   jump = { close = true },
+          --   win = {
+          --     input = {
+          --       keys = {
+          --         ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
+          --       },
+          --     },
+          --     list = {
+          --       keys = {
+          --         ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
+          --       },
+          --     },
+          --   },
+          -- },
           tabs = {
             title = "Tabs",
             prompt = " ",
