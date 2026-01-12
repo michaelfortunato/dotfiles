@@ -89,6 +89,54 @@ vim.api.nvim_create_autocmd("TermOpen", {
     vim.cmd("startinsert")
   end,
 })
+
+local function apc_payload(seq, term)
+  local ESC = "\027"
+  local ST7 = ESC .. "\\" -- 7-bit ST
+  local ST8 = "\x9c" -- 8-bit ST (rare, but cheap to accept)
+  -- Neovim splits terminator out into ev.data.terminator
+  if seq:sub(1, 2) ~= ESC .. "_" then
+    return nil
+  end
+  if term ~= ST7 and term ~= ST8 then
+    return nil
+  end
+  return seq:sub(3) -- payload is the rest of the sequence (no terminator included)
+end
+
+vim.api.nvim_create_autocmd("TermRequest", {
+  group = vim.api.nvim_create_augroup("term_tui", { clear = true }),
+  desc = "Toggle :terminal TUI via APC ([appname:]tui=0|1)",
+  callback = function(ev)
+    local payload = apc_payload(ev.data.sequence, ev.data.terminator)
+    if not payload then
+      return
+    end
+
+    local app, state = payload:match("^([%w_.-]+):tui=([01])$")
+    if not state then
+      state = payload:match("^tui=([01])$")
+    end
+    if not state then
+      return
+    end
+
+    local buf = ev.buf
+    if state == "1" then
+      vim.b[buf].is_tui_job = true
+      vim.b[buf].tui_name = app or "unknown"
+      vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf })
+      -- For debugging: vim.notify(("Terminal buf %d marked as TUI (%s)"):format(buf, vim.b[buf].tui_name))
+    else
+      vim.b[buf].is_tui_job = nil
+      vim.b[buf].tui_name = nil
+      pcall(vim.keymap.del, "t", "<Esc>", { buffer = buf })
+      vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
+      -- For debugging: vim.notify(("Terminal buf %d unmarked as TUI"):format(buf))
+    end
+  end,
+})
+
 vim.api.nvim_create_autocmd("BufEnter", {
   group = term_group,
   pattern = { "term://*" },

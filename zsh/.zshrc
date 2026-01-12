@@ -326,9 +326,23 @@ git_ignore_local() {
   fi
 }
 
+function yazi() {
+	# 1. Signal Neovim: Enter TUI Mode (Only if in NVIM)
+	[[ -n "$NVIM" ]] && printf "\033_yazi:tui=1\033\\"
+	command yazi "$@"
+	local ret=$?
+	# 2. Signal Neovim: Leave TUI Mode (Only if in NVIM)
+	[[ -n "$NVIM" ]] && printf "\033_yazi:tui=0\033\\"
+	return $ret
+}
+
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	# 1. Signal Neovim: Enter TUI Mode (Only if in NVIM)
+  [[ -n "$NVIM" ]] && printf '\033_yazi:tui=1\033\\'
 	command yazi "$@" --cwd-file="$tmp"
+	# 2. Signal Neovim: Leave TUI Mode (Only if in NVIM)
+  [[ -n "$NVIM" ]] && printf '\033_yazi:tui=0\033\\'
 	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
 		builtin cd -- "$cwd"
 	fi
