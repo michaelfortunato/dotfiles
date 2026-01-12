@@ -210,8 +210,8 @@ return {
               --   if pick ~= nil and pick.finder:count() == 0 then
               --    pcall(vim.cmd.normal, { args = { "gF" }, bang = true })
               --   end
-              if pcall(vim.cmd.normal, { args = { "gF" }, bang = true }) then return end
-              return Snacks.picker.lsp_definitions()
+              -- if pcall(vim.cmd.normal, { args = { "gF" }, bang = true }) then return end
+              Snacks.picker.lsp_definitions()
             end,
             desc = "Goto Definition",
             has = "definition",

@@ -164,7 +164,7 @@ return {
     ---@type snacks.Config
     opts = {
       explorer = {
-        replace_netrw = false, -- Replace netrw with the snacks explorer
+        replace_netrw = true, -- Replace netrw with the snacks explorer
         trash = true, -- Use the system trash when deleting files
       },
       scratch = {
@@ -318,6 +318,25 @@ return {
             ["<C-j>"] = "",
             ["<C-k>"] = "",
             ["<C-l>"] = "",
+            ["<leader>ua"] = {
+              ---@param self snacks.win
+              function(self)
+                local statusline = self.meta.statusline
+                vim.notify("Zen sline: " .. (statusline or "nil"))
+                if statusline == false or statusline == nil then
+                  statusline = true
+                else
+                  statusline = false
+                end
+                vim.schedule(function()
+                  require("snacks").zen()
+                  require("snacks").zen({
+                    show = { statusline = statusline },
+                    win = { meta = { statusline = statusline } },
+                  })
+                end)
+              end,
+            },
           },
         },
       },
@@ -376,6 +395,9 @@ return {
             vim.cmd("stopinsert")
             require("smart-splits").move_cursor_right()
           end, { buffer = win.buf })
+          pcall(function()
+            vim.keymap.del("n", "<leader>ua", { buffer = win.buf })
+          end)
         end,
       },
       ---@type snacks.lazygit.Config
