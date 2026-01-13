@@ -349,6 +349,12 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+lazygit() {
+  [[ -n "$NVIM" ]] && printf '\033_yazi:tui=1\033\\'
+	command lazygit "$@"
+  [[ -n "$NVIM" ]] && printf '\033_yazi:tui=0\033\\'
+}
+
 lst() {
   #FIXME: `lst -a` does not work
   (cd "$MNF_TEMPLATE_DIR" && ls "$@")
