@@ -126,12 +126,27 @@ vim.api.nvim_create_autocmd("TermRequest", {
       vim.b[buf].is_tui_job = true
       vim.b[buf].tui_name = app or "unknown"
       vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf })
+      vim.keymap.set(
+        "t",
+        "<S-Esc>",
+        "<C-\\><C-n>",
+        { buffer = buf, desc = "A hidden way to enter normal mode in a TUI" }
+      )
+      vim.keymap.set("t", "<C-h>", "<C-h>", { buffer = buf })
+      vim.keymap.set("t", "<C-l>", "<C-l>", { buffer = buf })
+      vim.keymap.set("t", "<C-j>", "<C-j>", { buffer = buf })
+      vim.keymap.set("t", "<C-k>", "<C-k>", { buffer = buf })
       -- For debugging: vim.notify(("Terminal buf %d marked as TUI (%s)"):format(buf, vim.b[buf].tui_name))
     else
       vim.b[buf].is_tui_job = nil
       vim.b[buf].tui_name = nil
       pcall(vim.keymap.del, "t", "<Esc>", { buffer = buf })
       vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
+      -- Go to <C-w>h right? ? I forget..
+      -- vim.keymap.set("t", "<C-h>", "<C-h>", { buffer = buf })
+      -- vim.keymap.set("t", "<C-l>", "<C-l>", { buffer = buf })
+      -- vim.keymap.set("t", "<C-j>", "<C-j>", { buffer = buf })
+      -- vim.keymap.set("t", "<C-k>", "<C-k>", { buffer = buf })
       -- For debugging: vim.notify(("Terminal buf %d unmarked as TUI"):format(buf))
     end
   end,
