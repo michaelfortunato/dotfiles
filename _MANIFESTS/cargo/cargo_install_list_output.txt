@@ -33,6 +33,12 @@ miniserve v0.32.0:
 pueue v4.0.2:
     pueue
     pueued
+sql-cli v1.67.0:
+    action_debugger
+    action_logger
+    dataview_debug
+    sql-cli
+    sql-cli-chart
 sqlx-cli v0.8.2:
     cargo-sqlx
     sqlx

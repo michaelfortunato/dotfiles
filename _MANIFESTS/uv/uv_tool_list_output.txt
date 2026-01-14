@@ -8,5 +8,5 @@ pyrefly v0.46.3
 - pyrefly
 pyzotero-cli v0.1.5
 - zot
-ty v0.0.9
+ty v0.0.11
 - ty
