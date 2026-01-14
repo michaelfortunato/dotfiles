@@ -1348,7 +1348,7 @@ return {
           focus = "input", jump = { close = true }, 
           win = { 
             input = { keys = { ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, }, }, 
-            list = { keys = { ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, ["<Left>"] = { "confirm", mode = { "n"}, desc = "Confirm" }, }, }, 
+            list = { keys = { ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, ["<Right>"] = { "confirm", mode = { "n"}, desc = "Confirm" }, }, }, 
           }, 
         }) end, desc = "Command History"
       },
