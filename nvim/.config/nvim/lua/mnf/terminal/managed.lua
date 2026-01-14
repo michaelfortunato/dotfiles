@@ -228,10 +228,10 @@ local function get_or_create_terminal_buffer(id)
     vim.bo[buf].bufhidden = "wipe"
 
     -- ADD BUFFER-LOCAL KEYMAPS HERE
-    vim.keymap.set({ "n", "t" }, ";;", function()
-      local last_used_term = M.get_last_used_terminal()
-      M.toggle_terminal(last_used_term)
-    end, { buffer = buf, desc = "Toggle Terminal" })
+    -- vim.keymap.set({ "n", "t" }, ";;", function()
+    --   local last_used_term = M.get_last_used_terminal()
+    --   M.toggle_terminal(last_used_term)
+    -- end, { buffer = buf, desc = "Toggle Terminal" })
 
     -- Create terminal in buffer
     vim.api.nvim_buf_call(buf, function()

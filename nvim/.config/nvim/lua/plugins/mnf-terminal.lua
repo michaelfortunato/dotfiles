@@ -70,17 +70,19 @@ return {
         require("mnf.terminal.managed").send_line_to_terminal_picker()
       end, { desc = "Send Line To Terminal (pick)" })
 
-      vim.keymap.set("v", ";l", function()
-        require("mnf.terminal.managed").send_visual_selection_to_terminal_picker()
-      end, { desc = "Send Selection To Terminal (pick)" })
-
-      vim.keymap.set({ "n", "v" }, ";a", function()
+      vim.keymap.set({ "n" }, ";a", function()
         require("mnf.terminal.managed").send_file_to_terminal_picker()
         --TODO: Ensure we enter intsert mode upon navigating
         --to terminal after execution
       end, { desc = "Send File To Terminal (pick)" })
 
       vim.keymap.set("v", ";;", function()
+        require("mnf.terminal.managed").send_visual_selection_to_terminal_picker()
+      end, { desc = "Send Selection To Terminal (pick)" })
+      vim.keymap.set("v", ";l", function()
+        require("mnf.terminal.managed").send_visual_selection_to_terminal_picker()
+      end, { desc = "Send Selection To Terminal (pick)" })
+      vim.keymap.set("v", ";a", function()
         require("mnf.terminal.managed").send_visual_selection_to_terminal_picker()
       end, { desc = "Send Selection To Terminal (pick)" })
 
