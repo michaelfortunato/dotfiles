@@ -47,6 +47,7 @@
 
 # Appearance -------------------------------------------------------------
 theme = Catppuccin Mocha
+# theme = Github Light Default
 #theme = Github Light High Contrast
 #theme = Catppuccin Latte
 font-family = "JetBrains Mono NL"
@@ -78,7 +79,7 @@ keybind = cmd+enter=new_split:auto
 quick-terminal-space-behavior=remain
 quick-terminal-position=center
 quick-terminal-autohide=false
-quick-terminal-size=67%,67%
+quick-terminal-size=80%,80%
 quick-terminal-animation-duration=.100
 
 keybind = ctrl+1=goto_tab:1
@@ -122,8 +123,8 @@ keybind = ctrl+shift+k=goto_split:up
 keybind = ctrl+shift+j=goto_split:down
 keybind = cmd+k=toggle_command_palette
 
-keybind = ctrl+shift+arrow_up=scroll_page_lines:-3
-keybind = ctrl+shift+arrow_down=scroll_page_lines:3
+keybind = ctrl+shift+arrow_up=scroll_page_lines:-6
+keybind = ctrl+shift+arrow_down=scroll_page_lines:6
 
 keybind = global:cmd+/=toggle_quick_terminal
 
