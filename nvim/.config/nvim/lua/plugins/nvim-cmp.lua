@@ -5,8 +5,6 @@ vim.g.mnf_auto_show_ghost_text = false
 return {
   {
     "saghen/blink.cmp",
-
-    tag = "v1.6.0",
     -- optional: provides snippets for the snippet source
     -- WARN: I am using latest but the docs say to use
     -- dependencies = { "L3MON4D3/LuaSnip", version = "2.*" },
@@ -36,10 +34,6 @@ return {
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
-      enabled = function()
-        return true
-      end,
-
       -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
       -- 'super-tab' for mappings similar to vscode (tab to accept)
       -- 'enter' for enter to accept
@@ -231,6 +225,7 @@ return {
         },
         --- Custom providers
         providers = {
+          buffer = { score_offset = -5, max_items = 10 },
           lazydev = {
             name = "LazyDev",
             module = "lazydev.integrations.blink",
@@ -285,19 +280,19 @@ return {
       fuzzy = {
         implementation = "prefer_rust_with_warning",
         -- https://cmp.saghen.dev/configuration/fuzzy.html#sorting-priority-and-tie-breaking
-        sorts = {
-          -- This might slow things down not sure
-          function(a, b)
-            if a.source_id == "spell" and b.source_id == "spell" then
-              local sort = require("blink.cmp.fuzzy.sort")
-              return sort.label(a, b)
-            end
-          end,
-          "score", -- Primary sort: by fuzzy matching score
-          "sort_text", -- Secondary sort: by sortText field if scores are equal
-          "kind", -- Kind is better than label for pyrefly
-          "label", -- Tertiary sort: by label if still tied
-        },
+        -- sorts = {
+        --   -- This might slow things down not sure
+        --   function(a, b)
+        --     if a.source_id == "spell" and b.source_id == "spell" then
+        --       local sort = require("blink.cmp.fuzzy.sort")
+        --       return sort.label(a, b)
+        --     end
+        --   end,
+        --   "score", -- Primary sort: by fuzzy matching score
+        --   "sort_text", -- Secondary sort: by sortText field if scores are equal
+        --   "kind", -- Kind is better than label for pyrefly
+        --   "label", -- Tertiary sort: by label if still tied
+        -- },
       },
 
       cmdline = {
