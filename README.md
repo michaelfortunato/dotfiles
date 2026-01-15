@@ -133,6 +133,18 @@ You should not edit the files in it manually and you can largely
 ignore the contents as its only really helpful when I get a new computer. It is populated
 via the repos `pre-push` hook (see `./git/.config/git-hooks/pre-push/dotfiles` for the script responsible).
 
+### Double Linking on macOS
+
+See sioyek/.config/sioyek/README.md for how this is done.
+Upshot is:
+
+1. `rm -rf ~/Library/Application \Support/<mydir>`
+2. `ln -s ~/Library/Application \Support<mydir> ~/.config/<mydir>`
+3. `mkdir ~/dotfiles/<mydir>/.config/<mydir>`
+4. `cd ~/dotfiles && stow <mydir>`
+
+All done!
+
 <details>
 
 <summary>Archival Nix Commentary</summary>
