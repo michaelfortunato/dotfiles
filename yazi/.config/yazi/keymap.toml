@@ -4,13 +4,21 @@
 
 [mgr]
 prepend_keymap = [
-  { on = "<Esc>", run = ["close"], desc = "Close the current tab, or quit if it's last" },
+  { on = "<Esc>", run = ["close --no-cwd-file"], desc = "Close the current tab, or quit and return to original directory if it's last" },
+  # TODO: Whats the diff between close and quit command
+  { on = "<C-q>", run = "quit --no-cwd-file", desc = "Quit and return to original directory" },
+  { on = "q", run = "quit --no-cwd-file", desc = "Quit and return to orginal directory" },
+  { on = "Q", run = "quit", desc = "Quit and enter cwd" },
   { on = "<Enter>", run = "plugin smart-enter", desc = "Enter the child directory or open file" },
   { on = "<C-y>", run = "plugin smart-enter", desc = "Enter the child directory or open file" },
   { on = "<S-Enter>", run = ["enter", "quit"], desc = "Quit and cd to the selected directory" },
   { on = "?", run = "help", desc = "Open help" },
   { on = "e", run = "open", desc = "Open selected files" },
-  { on = "<c-h>", run = ["hidden toggle", "plugin eza-preview toggle-hidden", "plugin eza-preview toggle-git-ignore"], desc = "Toggle hidden + git-ignored in panel/preview" },
+  { on = "<c-h>", run = [
+    "hidden toggle",
+    "plugin eza-preview toggle-hidden",
+    "plugin eza-preview toggle-git-ignore"
+  ], desc = "Toggle hidden + git-ignored in panel/preview" },
   # { on = "<S-h>", run = "hidden toggle", desc = "Toggle the visibility of hidden files" },
   { on = "`", run = "cd ~", desc = "Toggle the visibility of hidden files" },
   { on = ["<space>"], run = "noop", desc = "Noop (free <space>)" },
@@ -20,8 +28,6 @@ prepend_keymap = [
   { on = "D", run = "noop", desc = "Noop (prevent accidental deletion)" },
   { on = "d", run = "noop", desc = "Noop (prevent accidental deletion)" },
   { on = "Z", run = "Noop", desc = "Noop (free Z)" },
-  { on = "<C-q>", run = "quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
-  { on = "q", run = "quit --no-cwd-file", desc = "Quit without outputting cwd-file" },
   { on = "<C-u>", run = "arrow -50%", desc = "Move cursor up half page" },
   { on = "<C-d>", run = "arrow 50%", desc = "Move cursor down half page" },
   { on = "<leader>sg", run = "plugin gri", desc = "Grep (root dir)" },
