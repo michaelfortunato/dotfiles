@@ -377,6 +377,8 @@ return {
       }
     end,
   },
+  -- FIXME: Godamnit this plugin is bugger as shit
+  -- consider forking.
   {
     "rmagatti/goto-preview",
     dependencies = { "rmagatti/logger.nvim" },
@@ -391,6 +393,7 @@ return {
         desc = "Peak definition preview",
       },
     },
+    -- Gotdamnit this plugin is bugger as shit, nothing works. see the FIXMEs
     config = function()
       require("goto-preview").setup({
         default_mappings = false, -- Bind default mappings
@@ -400,15 +403,14 @@ return {
         debug = false, -- Print debug information
         opacity = nil, -- 0-100 opacity level of the floating window where 100 is fully transparent.
         resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
+        -- FIXME: If you hover on a window witin a peaked window, these will break.
+        -- FIXME: if you hover, and then you type gp to launch the preview on the same token, these maps break.
         post_open_hook = function(buf, _)
           vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })
           return true
         end, -- A function taking two arguments, a buffer and a window to be ran as a hook.
+        -- FIXME: If you hover on a window witin a peaked window, these will break.
         post_close_hook = function(buf, _)
-          -- NOTE: This will usually fail  if the buffer will close, but
-          -- otherwise if the buffer is currently opened somehwere else
-          -- we want to remove it incase we use the buffer and want the
-          -- keymap freed later. This is a snacks issue too.
           succ, result = pcall(function()
             vim.keymap.del("n", "q", { buffer = buf })
           end)

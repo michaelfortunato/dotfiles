@@ -1,3 +1,4 @@
+-- FIXME: There is something that make this plugin slow on floating windows
 -- FIXME: Typst concealing messing up fixed cursor on <c-u> <c-d>
 -- Your treesitter math detection setup my custom concealer code
 function typst_concealer()
