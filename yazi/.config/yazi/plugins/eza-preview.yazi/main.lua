@@ -56,6 +56,7 @@ local function get_or_init_state(state)
 		icons = true,
 	}
 	state.tree = true
+	state.level_override = nil
 	state.initialized = true
 end
 
@@ -102,6 +103,45 @@ local dec_level = ya.sync(function(state)
 	end
 end)
 
+local get_level_override = ya.sync(function(state)
+	get_or_init_state(state)
+	return state.level_override
+end)
+
+local cycle_level = ya.sync(function(state)
+	get_or_init_state(state)
+
+	-- Cycle: off (list) -> base level -> 6 -> full -> off ...
+	if not state.tree then
+		state.tree = true
+		state.level_override = nil
+	elseif state.level_override == nil then
+		state.level_override = 6
+	elseif state.level_override == 6 then
+		state.level_override = "full"
+	else
+		state.tree = false
+		state.level_override = nil
+	end
+end)
+
+local cycle_level_rev = ya.sync(function(state)
+	get_or_init_state(state)
+
+	-- Cycle (reverse): off (list) -> full -> 6 -> base level -> off ...
+	if not state.tree then
+		state.tree = true
+		state.level_override = "full"
+	elseif state.level_override == nil then
+		state.tree = false
+		state.level_override = nil
+	elseif state.level_override == 6 then
+		state.level_override = nil
+	else
+		state.level_override = 6
+	end
+end)
+
 local toggle_follow_symlinks = ya.sync(function(state)
 	get_or_init_state(state)
 	state.opts.follow_symlinks = not state.opts.follow_symlinks
@@ -128,6 +168,10 @@ function M:entry(job)
 		inc_level()
 	elseif args == "dec-level" then
 		dec_level()
+	elseif args == "cycle-level" then
+		cycle_level()
+	elseif args == "cycle-level-rev" then
+		cycle_level_rev()
 	elseif args == "toggle-follow-symlinks" then
 		toggle_follow_symlinks()
 	elseif args == "toggle-hidden" then
@@ -145,6 +189,7 @@ end
 function M:peek(job)
 	local opts = get_opts()
 	local is_tree = is_tree_view_mode()
+	local level_override = get_level_override()
 	local args = {
 		"--color=always",
 		"--group-directories-first",
@@ -153,7 +198,10 @@ function M:peek(job)
 	}
 	if is_tree then
 		table.insert(args, "--tree")
-		table.insert(args, string.format("--level=%d", opts.level))
+		if level_override ~= "full" then
+			local level = level_override or opts.level
+			table.insert(args, string.format("--level=%d", level))
+		end
 	end
 	if opts then
 		if opts.icons then
