@@ -9,6 +9,12 @@ return {
           ["<Tab>"] = {
             ["<Tab>"] = "<Cmd>tabnext #<CR>",
           },
+          ["<Tab>"] = {
+            ["l"] = "<Cmd>tabnext<CR>",
+          },
+          ["<Tab>"] = {
+            ["h"] = "<Cmd>tabprev<CR>",
+          },
           [";"] = {
             -- [";"] = "<Cmd>close!<CR>",
             -- -- local mnf_terminal = require("mnf.terminal.managed")
