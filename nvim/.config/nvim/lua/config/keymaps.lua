@@ -191,6 +191,9 @@ end, { desc = "Search open tabs", noremap = true, silent = true })
 -- mind you-- into tab x.
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+vim.keymap.set({ "n" }, "<Tab>f", function()
+  Snacks.picker.tabs()
+end, { desc = "Search open tabs", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>tabprev<CR>", { desc = "Goto left tab" })
 vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>tabnext<CR>", { desc = "Goto rightl tab" })
 
