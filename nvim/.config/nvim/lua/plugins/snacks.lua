@@ -4,10 +4,6 @@
 --    present (else vim.notify(...) + no-op).
 --  - [ ] Same place: add a secondary key/action (e.g. <C-y>) to “execute keymap” (current behavior) via
 --    vim.api.nvim_input(item.item.lhs).
---  - [ ] nvim/.config/nvim/lua/plugins/snacks.lua:627: add a buffers-picker filter/state so terminal buffers (buftype == "terminal")
---    can be hidden by default and shown on demand.
---  - [ ] Bind sources.buffers.win.input.keys["<C-g><C-t>"] → actions.toggle_terminal (flip flag + picker:find()), and pick additional
---    <C-g><C-…> toggles for other kinds (nofile, help, quickfix, unlisted, modified-only, etc.).
 
 ---@module "snacks"
 ---@type LazyPluginSpec
@@ -597,6 +593,24 @@ return {
             picker.list:set_target()
             picker:find()
           end,
+          cycle_buffers_filter = function(picker)
+            local filter = picker.input and picker.input.filter
+            if not filter then
+              return
+            end
+
+            filter.meta.buf_filter_level = ((filter.meta.buf_filter_level or 1) % 3) + 1
+            local level = filter.meta.buf_filter_level
+
+            picker.opts.buf_files = level == 1
+            picker.opts.buf_terms = level == 2
+            picker.opts.buf_all = level == 3
+
+            picker.opts.nofile = level == 3
+
+            picker.list:set_target()
+            picker:find()
+          end,
           cycle_diagnostics_severity = function(picker)
             local order = {
               "all",
@@ -929,10 +943,82 @@ return {
             },
           },
           buffers = {
-            hidden = false,
+            hidden = true,
             unloaded = true,
             current = true,
             sort_lastused = true,
+            toggles = {
+              buf_files = { icon = "F" },
+              buf_terms = { icon = "T" },
+              buf_all = { icon = "A" },
+            },
+            on_show = function(picker)
+              local filter = picker.input.filter
+              local level = filter.meta.buf_filter_level
+              if level == nil then
+                level = picker.opts.nofile and 3 or 1
+                filter.meta.buf_filter_level = level
+              end
+
+              picker.opts.buf_files = level == 1
+              picker.opts.buf_terms = level == 2
+              picker.opts.buf_all = level == 3
+              picker:update_titles()
+            end,
+            finder = function(opts, ctx)
+              if ctx.filter.meta.buf_filter_level == nil then
+                ctx.filter.meta.buf_filter_level = opts.nofile and 3 or 1
+              end
+
+              local items = require("snacks.picker.source.buffers").buffers(opts, ctx)
+
+              local scratch_root = ctx.filter.meta.scratch_root
+              if scratch_root == nil then
+                scratch_root = vim.fn.stdpath("data") .. "/scratch/"
+                ctx.filter.meta.scratch_root = scratch_root
+              end
+
+              local scratch, rest = {}, {}
+              for _, item in ipairs(items) do
+                local name = item.name or item.file or ""
+                if type(name) == "string" and name:find(scratch_root, 1, true) == 1 then
+                  item.buftype = "scratch"
+                  item.text = Snacks.picker.util.text(item, { "buf", "name", "filetype", "buftype" })
+                  table.insert(scratch, item)
+                else
+                  table.insert(rest, item)
+                end
+              end
+              vim.list_extend(rest, scratch)
+              return rest
+            end,
+            filter = {
+              filter = function(item, filter)
+                local level = filter.meta.buf_filter_level or 1
+                local bt = item.buftype or ""
+
+                local scratch_root = filter.meta.scratch_root
+                if scratch_root == nil then
+                  scratch_root = vim.fn.stdpath("data") .. "/scratch/"
+                  filter.meta.scratch_root = scratch_root
+                end
+
+                local listed = item.buf and vim.bo[item.buf].buflisted
+                local name = item.name or item.file or ""
+                local is_scratch = type(name) == "string" and name:find(scratch_root, 1, true) == 1
+                if level ~= 3 and not (listed or is_scratch) then
+                  return false
+                end
+
+                if level == 1 then
+                  return bt == ""
+                end
+                if level == 2 then
+                  return bt == "" or bt == "terminal"
+                end
+                return true
+              end,
+            },
             win = {
               input = {
                 keys = {
@@ -941,12 +1027,14 @@ return {
                   -- its no longer vissible, at least for terminals super fuckign annoying
                   ["<Enter>"] = { "confirm", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
                   -- TODO: Get <c-g><c-i> to toggle hidden buffers
                 },
               },
               list = {
                 keys = {
                   ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
                   ["dd"] = { "bufdelete", mode = { "n", "i" } },
                 },
               },
@@ -1310,6 +1398,27 @@ return {
               },
             },
           },
+          explorer = {
+            layout = { preset = "dropdown", preview = false },
+            focus = "input",
+            jump = { close = true },
+            win = {
+              input = {
+                keys = {
+                  ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
+                  ["<C-d>"] = { "list_down", mode = { "n", "i" }, desc = "List down" },
+                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                },
+              },
+              list = {
+                keys = {
+                  ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
+                  ["<Right>"] = { "confirm", mode = { "n" }, desc = "Confirm" },
+                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -1343,15 +1452,32 @@ return {
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
       { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
       { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
-      { "<leader>e", function() Snacks.picker.explorer({ 
+      { "<leader>e", function() Snacks.picker.explorer(
+        { 
           layout = { preset = "dropdown", preview = false }, 
           focus = "input", jump = { close = true }, 
           win = { 
-            input = { keys = { ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, }, }, 
-            list = { keys = { ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, ["<Right>"] = { "confirm", mode = { "n"}, desc = "Confirm" }, }, }, 
+            input = { 
+              keys = { 
+                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, 
+                -- ["<C-d>"] = { "list_down", mode = { "n", "i" }, desc = "List down" }, 
+                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" }, 
+              }, 
+            }, 
+            list = { 
+              keys = { 
+                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, 
+                ["<Right>"] = { "confirm", mode = { "n"}, desc = "Confirm" }, 
+                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" }, 
+              }, 
+            }, 
           }, 
-        }) end, desc = "Command History"
+        }) end, desc = "File explorer"
       },
+      { "<leader>E", function() Snacks.picker.explorer( {dirs = {
+        vim.fs.dirname(vim.api.nvim_buf_get_name(0)) or vim.fn.getcwd()
+      }
+      }) end, desc = "File explorer (cwd)" },
       -- find
       { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
