@@ -43,6 +43,25 @@ vim.api.nvim_create_user_command("Make", function(params)
       "default",
     },
   })
+  if params.bang then
+    task:subscribe("on_exit", function(t, code)
+      if code == 0 then
+        return
+      end
+      vim.defer_fn(function()
+        local bufnr = t:get_bufnr()
+        local out = ""
+        if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+          local util = require("overseer.util")
+          out = table.concat(util.get_last_output_lines(bufnr, 25), "\n")
+        end
+        vim.notify(
+          ("Make failed (exit %d)\n%s"):format(code, out ~= "" and out or "(no output)"),
+          vim.log.levels.ERROR
+        )
+      end, 10)
+    end)
+  end
   task:start()
 end, {
   desc = "Run makeprg asynchronously (using Overseer)",
