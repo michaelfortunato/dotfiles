@@ -174,9 +174,10 @@ vim.keymap.del({ "n" }, "f")
 -- WARN: overloaded a really nice key combo for buffer search not sure how I feel
 -- abt it.
 vim.keymap.set({ "n" }, "fb", "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>")
-vim.keymap.set({ "n" }, "f<Tab>", function()
-  Snacks.picker.tabs()
-end, { desc = "Search open tabs", noremap = true, silent = true })
+--- A bit of discpline
+-- vim.keymap.set({ "n" }, "f<Tab>", function()
+--   Snacks.picker.tabs()
+-- end, { desc = "Search open tabs", noremap = true, silent = true })
 
 -- Find something else for tabmove. Well tabmove is not too helpful rn so leave it later.
 -- vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>-tabmove<CR>", { desc = "Move tab left" })
