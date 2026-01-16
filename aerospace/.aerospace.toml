@@ -287,6 +287,13 @@ run = "move-node-to-workspace C"  # mnemonics C - Chat
 
 [[on-window-detected]]
 if.app-id = "org.python.python"
+if.app-name-regex-substring = "python3"
+check-further-callbacks = true
+run = "layout floating"
+
+[[on-window-detected]]
+if.app-name-regex-substring = "python3"
+check-further-callbacks = true
 run = "layout floating"
 
 [workspace-to-monitor-force-assignment]
