@@ -36,19 +36,20 @@ vim.api.nvim_create_user_command("Make", function(params)
   if num_subs == 0 then
     cmd = cmd .. " " .. params.args
   end
+  local components = params.bang and {
+    { "on_output_quickfix", open = false, open_height = 8 },
+    "on_exit_set_status",
+  } or {
+    { "on_output_quickfix", open = true, open_height = 8 },
+    "default",
+  }
   local task = require("overseer").new_task({
     cmd = vim.fn.expandcmd(cmd),
-    components = {
-      { "on_output_quickfix", open = not params.bang, open_height = 8 },
-      "default",
-    },
+    components = components,
   })
-  if params.bang then
-    task:subscribe("on_exit", function(t, code)
-      if code == 0 then
-        return
-      end
-      vim.defer_fn(function()
+  task:subscribe("on_exit", function(t, code)
+    vim.defer_fn(function()
+      if code ~= 0 then
         local bufnr = t:get_bufnr()
         local out = ""
         if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
@@ -59,9 +60,10 @@ vim.api.nvim_create_user_command("Make", function(params)
           ("Make failed (exit %d)\n%s"):format(code, out ~= "" and out or "(no output)"),
           vim.log.levels.ERROR
         )
-      end, 10)
-    end)
-  end
+      end
+      pcall(t.dispose, t, true)
+    end, 10)
+  end)
   task:start()
 end, {
   desc = "Run makeprg asynchronously (using Overseer)",
