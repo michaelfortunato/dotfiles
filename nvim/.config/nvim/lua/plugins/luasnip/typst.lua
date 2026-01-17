@@ -1143,7 +1143,23 @@ $<>]],
     { condition = trigger_does_not_follow_alpha_char * in_mathzone }
   ),
   s(
+    { trig = "tI", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[italic(<>)<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char * in_mathzone }
+  ),
+  s(
     { trig = "tii", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[_<>_<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char * in_textzone }
+  ),
+  s(
+    { trig = "tI", wordTrig = false, snippetType = "autosnippet" },
     fmta([[_<>_<>]], {
       d(1, get_visual),
       i(0),
@@ -1159,7 +1175,23 @@ $<>]],
     { condition = trigger_does_not_follow_alpha_char * in_mathzone }
   ),
   s(
+    { trig = "tB", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[bold(<>)<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char * in_mathzone }
+  ),
+  s(
     { trig = "tbb", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[*<>*<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char * in_textzone }
+  ),
+  s(
+    { trig = "tB", wordTrig = false, snippetType = "autosnippet" },
     fmta([[*<>*<>]], {
       d(1, get_visual),
       i(0),
