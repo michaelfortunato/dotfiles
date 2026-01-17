@@ -537,10 +537,14 @@ local function terminal_write_to_buf(buf, text)
   end
 
   vim.schedule(function()
+    local last_mode = vim.b[buf].mnf_term_last_mode
     for _, win in ipairs(wins) do
       if vim.api.nvim_win_is_valid(win) then
         vim.fn.win_execute(win, "normal! G")
       end
+    end
+    if last_mode ~= nil then
+      vim.b[buf].mnf_term_last_mode = last_mode
     end
   end)
 end
