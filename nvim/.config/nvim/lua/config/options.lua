@@ -67,6 +67,7 @@ vim.o.showtabline = 0
 -- Don't show pending key sequences (e.g. "^Wc", "gj") in statusline
 vim.o.showcmd = false
 
+vim.o.scroll = 15
 -- Consider this for C-u c-d nav, a bit more tractable
 -- Causing visual issues
 -- vim.wo.scroll = 15

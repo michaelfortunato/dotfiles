@@ -9,8 +9,6 @@ end
 local del = function(...)
   return pcall(vim.keymap.del, ...)
 end
-local ui_input = Snacks.input or vim.ui.input
-local ui_notify = Snacks.notify or print
 
 -- TODO: Get proper pasting in
 -- local function paste()
@@ -357,7 +355,7 @@ end, {
 map({ "n", "v" }, "<leader>mm", "<Cmd>Make<CR>", { desc = "Run Make" })
 
 map("n", "<leader>mc", function()
-  return ui_input({ prompt = "Set makeprg" }, function(input)
+  return require("snacks").input({ prompt = "Set makeprg", default = vim.o.makeprg }, function(input)
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
@@ -430,7 +428,7 @@ wk.add({
 --- Let t (as in "task") namespace all of the various runner combinations
 map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run Make" })
 vim.keymap.set("n", "<leader>tmc", function()
-  return ui_input({ prompt = "Set makeprg" }, function(input)
+  return require("snacks").input({ prompt = "Set makeprg" }, function(input)
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
