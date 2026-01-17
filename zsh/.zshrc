@@ -586,6 +586,47 @@ ei() {
   --bind 'enter:become($EDITOR {})'
 }
 
+yi() {
+  local -a search_dirs
+  if (( $# == 0 )); then
+    if [[ "$PWD" != "$HOME" ]]; then
+      search_dirs=("$PWD" "$HOME")
+    else
+      search_dirs=("$HOME")
+    fi
+  else
+    search_dirs=("$@")
+  fi
+
+  local pick dir
+  pick=$(
+    bfs "${search_dirs[@]}" -color -mindepth 1 \
+      -exclude \( \
+        -name ".git" \
+        -or -name "node_modules" \
+        -or -name "target/debug" \
+        -or -name "target/release" \
+        -or -name "obj" \
+        -or -name "build" \
+        -or -name "dist" \
+        -or -name ".cache" \
+        -or -name ".Trash" \
+        -or -name "$HOME/Library/Caches" \
+        -or -name "__pycache__" \
+      \) \
+      2>/dev/null |
+    fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi \
+      --preview 'test -d {} && tree -C {} || bat -n --color=always {}' \
+      --cycle \
+      --bind 'ctrl-y:accept' \
+      --bind 'ctrl-/:change-preview-window(down|hidden|)'
+  ) || return $?
+
+  dir="$pick"
+  [[ -f "$pick" ]] && dir="${pick:h}"
+  y "$dir"
+}
+
 # Consider this
 # ei() {
 #   local -a search_dirs
