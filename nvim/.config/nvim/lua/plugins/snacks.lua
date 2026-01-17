@@ -51,15 +51,6 @@ local function picker_focus_part(picker, part)
   return false
 end
 
--- Capture the user's baseline window options at startup so we can reuse them
--- for picker preview windows instead of Snacks' defaults (which enable numbers).
-local preview_wo_defaults = {
-  number = vim.wo.number,
-  relativenumber = vim.wo.relativenumber,
-  signcolumn = vim.wo.signcolumn,
-  cursorline = vim.wo.cursorline,
-}
-
 -- Keep picker borders consistent (avoids the lighter input border tint).
 vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()
@@ -792,7 +783,14 @@ return {
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
             },
-            wo = preview_wo_defaults,
+            wo = {
+              number = vim.wo.number,
+              relativenumber = vim.wo.relativenumber,
+              signcolumn = vim.wo.signcolumn,
+              cursorline = vim.wo.cursorline,
+              wrap = true, -- Maybe?
+              colorcolumn = "",
+            },
           },
         },
         sources = {
@@ -983,7 +981,7 @@ return {
                 local name = item.name or item.file or ""
                 if type(name) == "string" and name:find(scratch_root, 1, true) == 1 then
                   item.buftype = "scratch"
-                  item.text = Snacks.picker.util.text(item, { "buf", "name", "filetype", "buftype" })
+                  item.text = Snacks.picker.util.text(item, { "buftype", "buf", "name", "filetype" })
                   table.insert(scratch, item)
                 else
                   table.insert(rest, item)
@@ -991,6 +989,16 @@ return {
               end
               vim.list_extend(rest, scratch)
               return rest
+            end,
+            format = function(item, picker)
+              local fmt = require("snacks.picker.format").buffer
+              if item.buftype == "scratch" then
+                local it = vim.tbl_extend("force", {}, item, { buftype = "" }) -- avoid trailing [scratch]
+                local ret = fmt(it, picker)
+                table.insert(ret, 1, { "[scratch] ", "SnacksPickerBufType" })
+                return ret
+              end
+              return fmt(item, picker)
             end,
             filter = {
               filter = function(item, filter)
@@ -1419,6 +1427,15 @@ return {
               },
             },
           },
+          help = {
+            win = {
+              preview = {
+                wo = {
+                  wrap = true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -1451,7 +1468,24 @@ return {
       { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
       { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-      { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
+      { "<leader>n", function()
+          wins = vim.api.nvim_tabpage_list_wins(0)
+          cur_buf = vim.api.nvim_get_current_buf()
+          cur_win = vim.api.nvim_get_current_win()
+          for _, win in ipairs(wins) do
+            local buf = vim.api.nvim_win_get_buf(win)
+            if vim.bo[buf].filetype == "snacks_notif" then
+              if win == cur_win then
+                vim.api.nvim_win_close(win, false)
+              else
+                vim.api.nvim_set_current_win(win)
+              end
+              return
+            end
+          end
+          Snacks.picker.notifications()
+        end, desc = "Notification History" 
+      },
       { "<leader>e", function() Snacks.picker.explorer(
         { 
           layout = { preset = "dropdown", preview = false }, 
