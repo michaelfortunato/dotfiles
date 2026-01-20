@@ -1487,25 +1487,25 @@ return {
         end, desc = "Notification History" 
       },
       { "<leader>e", function() Snacks.picker.explorer(
-        { 
-          layout = { preset = "dropdown", preview = false }, 
-          focus = "input", jump = { close = true }, 
-          win = { 
-            input = { 
-              keys = { 
-                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, 
+        {
+          layout = { preset = "dropdown", preview = false },
+          focus = "list", jump = { close = true },
+          win = {
+            input = {
+              keys = {
+                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
                 -- ["<C-d>"] = { "list_down", mode = { "n", "i" }, desc = "List down" }, 
-                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" }, 
-              }, 
-            }, 
-            list = { 
-              keys = { 
-                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" }, 
-                ["<Right>"] = { "confirm", mode = { "n"}, desc = "Confirm" }, 
-                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" }, 
-              }, 
-            }, 
-          }, 
+                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+              },
+            },
+            list = {
+              keys = {
+                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
+                ["<Right>"] = { "confirm", mode = { "n"}, desc = "Confirm" },
+                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+              },
+            },
+          },
         }) end, desc = "File explorer"
       },
       { "<leader>E", function() Snacks.picker.explorer( {dirs = {
