@@ -1135,6 +1135,14 @@ $<>]],
     { condition = trigger_does_not_follow_alpha_char * in_mathzone }
   ),
   s(
+    { trig = "tU", wordTrig = false, snippetType = "autosnippet" },
+    fmta([[#underline([<>])<>]], {
+      d(1, get_visual),
+      i(0),
+    }),
+    { condition = trigger_does_not_follow_alpha_char * in_textzone }
+  ),
+  s(
     { trig = "tii", wordTrig = false, snippetType = "autosnippet" },
     fmta([[italic(<>)<>]], {
       d(1, get_visual),
