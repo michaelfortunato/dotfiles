@@ -969,6 +969,32 @@ return {
               end
 
               local items = require("snacks.picker.source.buffers").buffers(opts, ctx)
+              local visible_tabs_width = 10
+              local tab_icon = "󰓩"
+              local function add_visible_tabs(item)
+                local wins = (item.info and item.info.windows) or {}
+                local tabs = {}
+                for _, winid in ipairs(wins) do
+                  if vim.api.nvim_win_is_valid(winid) then
+                    local tabpage = vim.api.nvim_win_get_tabpage(winid)
+                    if vim.api.nvim_tabpage_is_valid(tabpage) then
+                      tabs[vim.api.nvim_tabpage_get_number(tabpage)] = true
+                    end
+                  end
+                end
+                local tabnrs = vim.tbl_keys(tabs)
+                table.sort(tabnrs)
+                item.mnf_visible_tabs = tabnrs
+                if vim.tbl_isempty(tabnrs) then
+                  item.mnf_visible_tabs_label = Snacks.picker.util.align("", visible_tabs_width)
+                else
+                  local label = string.format("%s T:%s", tab_icon, table.concat(tabnrs, ","))
+                  item.mnf_visible_tabs_label = Snacks.picker.util.align(label, visible_tabs_width, { truncate = true })
+                end
+              end
+              for _, item in ipairs(items) do
+                add_visible_tabs(item)
+              end
 
               local scratch_root = ctx.filter.meta.scratch_root
               if scratch_root == nil then
@@ -991,14 +1017,35 @@ return {
               return rest
             end,
             format = function(item, picker)
+              local function inject_visible_tabs(ret)
+                local label = item.mnf_visible_tabs_label or Snacks.picker.util.align("", 10)
+                local idx_file = nil
+                for i, chunk in ipairs(ret) do
+                  if type(chunk) == "table" and (chunk.field == "file" or type(chunk.resolve) == "function") then
+                    idx_file = i
+                    break
+                  end
+                end
+
+                if idx_file then
+                  table.insert(ret, idx_file, { label, "SnacksPickerComment" })
+                  table.insert(ret, idx_file + 1, { " " })
+                  return ret
+                end
+
+                table.insert(ret, { label, "SnacksPickerComment" })
+                table.insert(ret, { " " })
+                return ret
+              end
+
               local fmt = require("snacks.picker.format").buffer
               if item.buftype == "scratch" then
                 local it = vim.tbl_extend("force", {}, item, { buftype = "" }) -- avoid trailing [scratch]
                 local ret = fmt(it, picker)
                 table.insert(ret, 1, { "[scratch] ", "SnacksPickerBufType" })
-                return ret
+                return inject_visible_tabs(ret)
               end
-              return fmt(item, picker)
+              return inject_visible_tabs(fmt(item, picker))
             end,
             filter = {
               filter = function(item, filter)
@@ -1033,8 +1080,9 @@ return {
                   ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
                   -- NOTE snacks default cr action refocuses the buffer to its oprior slot even if
                   -- its no longer vissible, at least for terminals super fuckign annoying
-                  ["<Enter>"] = { "confirm", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
-                  ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<Enter>"] = { "confirm", mode = { "n", "i" }, desc = "Open buffer here" },
+                  ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Open buffer here" },
+                  ["<C-Enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
                   -- TODO: Get <c-g><c-i> to toggle hidden buffers
                 },
@@ -1043,6 +1091,7 @@ return {
                 keys = {
                   ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
+                  ["<C-Enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   ["dd"] = { "bufdelete", mode = { "n", "i" } },
                 },
               },
@@ -1484,7 +1533,7 @@ return {
             end
           end
           Snacks.picker.notifications()
-        end, desc = "Notification History" 
+        end, desc = "Notification History"
       },
       { "<leader>e", function() Snacks.picker.explorer(
         {
