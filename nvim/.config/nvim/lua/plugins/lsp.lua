@@ -298,6 +298,7 @@ return {
         json = { "jq" },
         tex = { "tex-fmt" },
         toml = { "tombi" },
+        sql = { "sqruff" },
         python = {
           -- To fix auto-fixable lint errors.
           "ruff_fix",
@@ -321,6 +322,9 @@ return {
           -- So interesting this does not work
           -- Clearly, I misunderstand unix args
           -- prepend_args = { "format" },
+        },
+        sqruff = {
+          command = "sqruff fix -",
         },
         injected = {
           options = {
