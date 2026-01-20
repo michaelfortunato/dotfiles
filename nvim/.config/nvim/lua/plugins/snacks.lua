@@ -702,7 +702,7 @@ return {
               -- That way things like <leader>, will work.
               ["<C-space>"] = { "select_only", mode = { "n", "i" } },
               ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
-              ["<C-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "One off edit (float)" },
+              ["<C-enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
               -- ["<C-S-enter>"] = { "...", mode = { "n", "i" }, desc = "..." },
               --- Navigation
               ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
@@ -728,6 +728,7 @@ return {
               ["<C-k>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus up" },
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
               ["yy"] = { "yank", mode = { "n" }, desc = "Copy entry" },
+              ["<C-enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
             },
           },
           preview = {
