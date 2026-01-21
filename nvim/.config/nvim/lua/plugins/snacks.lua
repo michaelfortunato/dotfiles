@@ -270,6 +270,7 @@ return {
               action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})",
             },
             { icon = " ", key = "s", desc = "Restore Session", section = "session" },
+            { icon = " ", key = "t", desc = "Open New Terminal", action = ":term" },
             { icon = "󰒲 ", key = "L", desc = "Lazy", action = ":Lazy", enabled = package.loaded.lazy ~= nil },
             { icon = " ", key = "q", desc = "Quit", action = ":qa" },
           },
@@ -795,24 +796,6 @@ return {
           },
         },
         sources = {
-          -- explorer = {
-          --   -- Floating explorer instead of sidebar + close on confirm.
-          --   layout = { preset = "dropdown", preview = false },
-          --   focus = "input",
-          --   jump = { close = true },
-          --   win = {
-          --     input = {
-          --       keys = {
-          --         ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
-          --       },
-          --     },
-          --     list = {
-          --       keys = {
-          --         ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
-          --       },
-          --     },
-          --   },
-          -- },
           tabs = {
             title = "Tabs",
             prompt = " ",
@@ -1464,8 +1447,13 @@ return {
               input = {
                 keys = {
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
-                  ["<C-d>"] = { "list_down", mode = { "n", "i" }, desc = "List down" },
                   ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                  ["<C-d>"] = {
+                    { "focus_list", "list_scroll_down" },
+                    mode = { "n", "i" },
+                    desc = "Page down and enter the list",
+                  },
+                  ["<C-w>"] = { "layout_left", mode = { "n", "i" } },
                 },
               },
               list = {
@@ -1473,6 +1461,8 @@ return {
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
                   ["<Right>"] = { "confirm", mode = { "n" }, desc = "Confirm" },
                   ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                  ["<C-l>"] = false,
+                  ["<C-w>"] = { "layout_left", mode = { "n", "i" } },
                 },
               },
             },
@@ -1536,28 +1526,7 @@ return {
           Snacks.picker.notifications()
         end, desc = "Notification History"
       },
-      { "<leader>e", function() Snacks.picker.explorer(
-        {
-          layout = { preset = "dropdown", preview = false },
-          focus = "list", jump = { close = true },
-          win = {
-            input = {
-              keys = {
-                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
-                -- ["<C-d>"] = { "list_down", mode = { "n", "i" }, desc = "List down" }, 
-                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
-              },
-            },
-            list = {
-              keys = {
-                ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
-                ["<Right>"] = { "confirm", mode = { "n"}, desc = "Confirm" },
-                ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
-              },
-            },
-          },
-        }) end, desc = "File explorer"
-      },
+      { "<leader>e", function() Snacks.picker.explorer() end, desc = "File explorer" },
       { "<leader>E", function() Snacks.picker.explorer( {dirs = {
         vim.fs.dirname(vim.api.nvim_buf_get_name(0)) or vim.fn.getcwd()
       }

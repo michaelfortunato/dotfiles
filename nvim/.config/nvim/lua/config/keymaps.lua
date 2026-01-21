@@ -47,6 +47,18 @@ vim.keymap.set("n", "q", function()
   if require("trouble").is_open() then
     require("trouble").close()
   end
+
+  local sc, result = pcall(function()
+    if vim.api.nvim_win_get_var(0, "mnf-close-on-q") then
+      vim.cmd("close")
+      return true
+    end
+    return false
+  end)
+  if sc and result then
+    return
+  end
+
   for _, win in ipairs(vim.fn.getwininfo()) do
     if win.quickfix == 1 then
       vim.schedule(function()
@@ -364,6 +376,10 @@ map("n", "<leader>mc", function()
     return
   end)
 end, { desc = "Set makeprg" })
+
+vim.keymap.set("n", "<leader>pa", function()
+  require("snacks").picker.picker_actions()
+end, { desc = "Snacks picker actions" })
 
 -- quickfix list
 -- del("n", "<leader>ql")

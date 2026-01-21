@@ -398,6 +398,7 @@ return {
       },
     },
     -- Gotdamnit this plugin is bugger as shit, nothing works. see the FIXMEs
+    -- me now: ummm what were they again ?
     config = function()
       require("goto-preview").setup({
         default_mappings = false, -- Bind default mappings
@@ -407,22 +408,10 @@ return {
         debug = false, -- Print debug information
         opacity = nil, -- 0-100 opacity level of the floating window where 100 is fully transparent.
         resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
-        -- FIXME: If you hover on a window witin a peaked window, these will break.
-        -- FIXME: if you hover, and then you type gp to launch the preview on the same token, these maps break.
-        post_open_hook = function(buf, _)
-          vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = buf })
+        post_open_hook = function(buf, win)
+          --- This flag is checked in my global q map whihc will close this window
+          vim.api.nvim_win_set_var(win, "mnf-close-on-q", true)
           return true
-        end, -- A function taking two arguments, a buffer and a window to be ran as a hook.
-        -- FIXME: If you hover on a window witin a peaked window, these will break.
-        post_close_hook = function(buf, _)
-          succ, result = pcall(function()
-            vim.keymap.del("n", "q", { buffer = buf })
-          end)
-          return true
-          -- If you  ever want tracing
-          -- if not succ then
-          --   vim.notify_once("Goto preview keymap cleanup hook failed: " .. result, "debug")
-          -- end
         end, -- A function taking two arguments, a buffer and a window to be ran as a hook.
         references = { -- Configure the telescope UI for slowing the references cycling window.
           provider = "snacks", -- telescope|fzf_lua|snacks|mini_pick|default
