@@ -9,7 +9,7 @@ GIT_DIR="$(git rev-parse --git-dir)"
 
 function update_brewfile() {
   mkdir -p "$GIT_DIR/../_MANIFESTS/brew"
-  cd "$GIT_DIR/../_MANIFESTS/brew" && brew bundle dump --force
+  (cd "$GIT_DIR/../_MANIFESTS/brew" && brew bundle dump --force)
   # Kept for backwards compabability
   cp "$GIT_DIR/../_MANIFESTS/brew/Brewfile" "$GIT_DIR/../_brew"
 }
