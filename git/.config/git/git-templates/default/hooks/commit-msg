@@ -2,5 +2,9 @@
 # Called by "git commit" with one argument, the name of the file
 # that has the commit message.
 # Configure me by doing cp <my-path> $GIT_DIR/hooks
-
-source ~/.config/git/git-hooks/commit-msg/check-msg
+#
+# For instance you could do
+# source ~/.config/git/git-hooks/commit-msg/check-conv-commit
+# If you want to make sure you have a conventional commit
+# I am working on a small utility git-hooks to help with managing them better
+# in a repo.
