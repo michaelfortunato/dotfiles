@@ -189,6 +189,9 @@ return {
     ---@module  "mini.surround"
     "echasnovski/mini.surround",
     config = function()
+      -- NOTE: mini.surround follows vim-surround semantics:
+      -- - `(` adds padded parens: `( word )`
+      -- - `)` adds tight parens: `(word)`
       require("mini.surround").setup({
         mappings = {
           add = "ys",

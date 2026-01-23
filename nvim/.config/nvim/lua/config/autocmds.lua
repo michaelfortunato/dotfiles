@@ -58,6 +58,58 @@ vim.api.nvim_create_user_command("Make", function(params)
     return table.concat(lines, "\n")
   end
 
+  local function format_output_tail(max_lines)
+    if #output_lines == 0 then
+      return nil
+    end
+
+    max_lines = math.max(max_lines or 0, 0)
+    if max_lines == 0 then
+      return nil
+    end
+
+    local start_idx = math.max(1, #output_lines - max_lines + 1)
+    local tail = {}
+    for i = start_idx, #output_lines do
+      table.insert(tail, output_lines[i])
+    end
+    while #tail > 0 and tail[#tail]:match("^%s*$") do
+      table.remove(tail)
+    end
+    if #tail == 0 then
+      return nil
+    end
+    return table.concat(tail, "\n")
+  end
+
+  vim.g.mnf_make_verbose = vim.g.mnf_make_verbose or false
+  local verbose = vim.b.mnf_make_verbose
+  if verbose == nil then
+    verbose = vim.g.mnf_make_verbose
+  end
+  verbose = verbose == true
+
+  local stream_notify = params.bang and verbose
+  local stream_notify_id = nil
+  local stream_debounced = false
+
+  local function notify_running(t)
+    local msg = ("🛠️ Make: Running %s"):format(t.name)
+
+    if stream_notify then
+      local out = format_output_tail(12)
+      if out and out ~= "" then
+        msg = msg .. "\n" .. out
+      end
+    end
+
+    local ret = vim.notify(msg, vim.log.levels.INFO, {
+      replace = stream_notify_id,
+      timeout = false,
+    })
+    stream_notify_id = (ret and ret.id) or ret or stream_notify_id
+  end
+
   local expanded_cmd = vim.fn.expandcmd(cmd)
   local task = require("overseer").new_task({
     cmd = expanded_cmd,
@@ -73,11 +125,21 @@ vim.api.nvim_create_user_command("Make", function(params)
   })
 
   task:subscribe("on_start", function(t)
-    vim.notify(("🛠️ Make: Running %s"):format(t.name), vim.log.levels.INFO)
+    notify_running(t)
   end)
 
   task:subscribe("on_output_lines", function(_, lines)
     push_output(lines)
+    if not stream_notify or stream_debounced then
+      return
+    end
+    stream_debounced = true
+    vim.defer_fn(function()
+      stream_debounced = false
+      if task:is_running() then
+        notify_running(task)
+      end
+    end, 100)
   end)
 
   task:subscribe("on_complete", function(t, status)
@@ -103,7 +165,10 @@ vim.api.nvim_create_user_command("Make", function(params)
         msg = msg .. "\n" .. out
       end
 
-      vim.notify(msg, level)
+      local ret = vim.notify(msg, level, {
+        replace = stream_notify_id,
+      })
+      stream_notify_id = (ret and ret.id) or ret or stream_notify_id
       pcall(t.dispose, t, true)
     end)
   end)
@@ -207,6 +272,10 @@ vim.api.nvim_create_autocmd("TermRequest", {
       vim.b[buf].tui_name = nil
       pcall(vim.keymap.del, "t", "<Esc>", { buffer = buf })
       vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
+      vim.keymap.set("t", "<C-h>", "<C-\\><C-h>", { buffer = buf })
+      vim.keymap.set("t", "<C-l>", "<C-\\><C-l>", { buffer = buf })
+      vim.keymap.set("t", "<C-j>", "<C-\\><C-j>", { buffer = buf })
+      vim.keymap.set("t", "<C-k>", "<C-\\><C-k>", { buffer = buf })
       -- Go to <C-w>h right? ? I forget..
       -- vim.keymap.set("t", "<C-h>", "<C-h>", { buffer = buf })
       -- vim.keymap.set("t", "<C-l>", "<C-l>", { buffer = buf })

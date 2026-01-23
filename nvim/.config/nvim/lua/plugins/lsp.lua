@@ -221,6 +221,7 @@ return {
           { "gi", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
           { "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "Goto T[y]pe Definition" },
           { "<leader>ss", function() Snacks.picker.lsp_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Symbols", has = "documentSymbol" },
+          { "fs", function() Snacks.picker.lsp_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Symbols", has = "documentSymbol" },
           { "<leader>si", function() Snacks.picker.lsp_workspace_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Workspace Symbols", has = "workspace/symbols" },
           { "<leader>sS", function() Snacks.picker.lsp_workspace_symbols({ filter = LazyVim.config.kind_filter }) end, desc = "LSP Workspace Symbols", has = "workspace/symbols" },
           { "gai", function() Snacks.picker.lsp_incoming_calls() end, desc = "C[a]lls Incoming", has = "callHierarchy/incomingCalls" },
@@ -384,8 +385,9 @@ return {
   -- FIXME: Godamnit this plugin is bugger as shit
   -- consider forking.
   {
-    "rmagatti/goto-preview",
+    "michaelfortunato/goto-preview",
     dependencies = { "rmagatti/logger.nvim" },
+    dev = true,
     event = "BufEnter",
     keys = {
       ---@type LazyKeysSpec
@@ -408,6 +410,11 @@ return {
         debug = false, -- Print debug information
         opacity = nil, -- 0-100 opacity level of the floating window where 100 is fully transparent.
         resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
+        -- NOTE: goto-preview uses `WinClosed *` and `remove_win()` inspects the *current* window, so the plugin's
+        -- close hooks can fire for unrelated window closes (e.g. hover float) while the preview is still open.
+        -- See `~/.local/share/nvim/lazy/goto-preview/lua/goto-preview/lib.lua` (`setup_aucmds` / `remove_win`).
+        -- NOTE: Nested previews: opening goto-preview inside a preview and hitting `q` twice can return focus to the
+        -- wrong split. The plugin manages a preview-window stack but doesn't track the original caller window.
         post_open_hook = function(buf, win)
           --- This flag is checked in my global q map whihc will close this window
           vim.api.nvim_win_set_var(win, "mnf-close-on-q", true)

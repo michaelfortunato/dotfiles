@@ -345,21 +345,23 @@ local exrc_helper = require("config.exrc-helper")
 local template = exrc_helper.template
 map({ "n", "v" }, "<leader>mp", function()
   local filepath = LazyVim.root() .. "/.lazy.lua"
-  -- Check if file already exists
   if vim.loop.fs_stat(filepath) then
-    -- vim.notify(".lazy.lua already exists, skipping creation.", vim.log.levels.TRACE)
-    return "<Cmd>edit " .. filepath .. "<CR>"
-  end
-  local fd = io.open(filepath, "w")
-  if not fd then
-    vim.notify("Failed to create .lazy.lua", vim.log.levels.ERROR)
+    vim.cmd.edit(vim.fn.fnameescape(filepath))
     return
   end
-  fd:write(template)
-  fd:close()
-  return "<Cmd>edit " .. filepath .. "<CR>"
+
+  -- Bootstrap an unsaved buffer with the template; the user can :w when ready.
+  vim.cmd.edit(vim.fn.fnameescape(filepath))
+  local buf = vim.api.nvim_get_current_buf()
+  if vim.bo[buf].modified then
+    return
+  end
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+  if #lines ~= 1 or lines[1] ~= "" then
+    return
+  end
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(template, "\n", { plain = true, trimempty = false }))
 end, {
-  expr = true, -- treat the Lua return as a key‑sequence
   noremap = true,
   silent = true,
   desc = "Open .lazy.lua project local config",

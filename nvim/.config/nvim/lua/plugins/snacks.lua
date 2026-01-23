@@ -144,6 +144,87 @@ vim.keymap.set("n", "'rs", function()
   snacks_local.scratch.open({ ft = "rust" })
 end, { desc = "Rust scratch buffer" })
 
+local function scratch_open_current(opts)
+  local snacks_local = require("snacks")
+  opts = opts or {}
+  opts.win = vim.tbl_deep_extend("force", opts.win or {}, { position = "current", wo = { winhighlight = "" } })
+  return snacks_local.scratch.open(opts)
+end
+
+vim.api.nvim_create_user_command("Scratch", function(cmd)
+  local snacks_local = require("snacks")
+  local ft = cmd.args ~= "" and cmd.args or nil
+  local origin_win = vim.api.nvim_get_current_win()
+
+  if ft then
+    return scratch_open_current({ ft = ft })
+  end
+
+  return snacks_local.picker.scratch({
+    actions = {
+      scratch_open = function(picker, item)
+        picker:close()
+        if not item then
+          return
+        end
+        if vim.api.nvim_win_is_valid(origin_win) then
+          vim.api.nvim_set_current_win(origin_win)
+        end
+        scratch_open_current({ icon = item.item.icon, file = item.item.file, name = item.item.name, ft = item.item.ft })
+      end,
+      scratch_new = function(picker)
+        picker:close()
+        if vim.api.nvim_win_is_valid(origin_win) then
+          vim.api.nvim_set_current_win(origin_win)
+        end
+        scratch_open_current()
+      end,
+    },
+  })
+end, {
+  desc = "Scratch buffer (current win)",
+  nargs = "?",
+  complete = function(arglead)
+    return vim.fn.getcompletion(arglead, "filetype")
+  end,
+})
+
+vim.api.nvim_create_user_command("ScratchPython", function()
+  vim.cmd("Scratch python")
+end, { desc = "Python scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchJavaScript", function()
+  vim.cmd("Scratch javascript")
+end, { desc = "JavaScript scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchLua", function()
+  vim.cmd("Scratch lua")
+end, { desc = "Lua scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchTypst", function()
+  vim.cmd("Scratch typst")
+end, { desc = "Typst scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchTeX", function()
+  vim.cmd("Scratch tex")
+end, { desc = "TeX scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchMarkdown", function()
+  vim.cmd("Scratch markdown")
+end, { desc = "Markdown scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchSQL", function()
+  vim.cmd("Scratch sql")
+end, { desc = "SQL scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchSh", function()
+  vim.cmd("Scratch sh")
+end, { desc = "Shell scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchRust", function()
+  vim.cmd("Scratch rust")
+end, { desc = "Rust scratch buffer (current win)" })
+
 return {
   {
     "michaelfortunato/snacks.nvim",
@@ -433,13 +514,14 @@ return {
       --     - transform: post-process (e.g., unique_file to dedupe).
       -- image = {},
       picker = {
-        -- doing this gives us a whole lot of beneifts
-        -- According to AI,
+        -- Main target window (where `<CR>` opens the selection). This is a global default for all pickers.
+        -- Snacks normally prefers a "file" window and will skip `buftype ~= ""` (e.g. `:terminal`), which can make
+        -- selections open in some other split when you launch a picker from a terminal. `current=true` pins it.
+        -- NOTE: `drop`/`tabdrop` or `jump.reuse_win` can still intentionally open in an existing window.
+        -- According to AI (old note I found useful):
         -- - current=true -> use the window you launched the picker from
-        -- - float=true ->allow floats
+        -- - float=true -> allow floats
         -- - file=false -> let terminals/nofile buffers be replaced too
-        -- So float = true is what we want (fcurrent = false, file = true, float = false)
-        -- is default.
         main = { current = true, float = true, file = true },
         ---@type snacks.picker.actions
         actions = {
@@ -1084,6 +1166,10 @@ return {
           files = {},
           git_files = {},
           recent = {},
+          -- NOTE: Snacks' built-in LSP pickers default to `jump.reuse_win=true`, so `<Enter>`/`<C-y>` (confirm) can
+          -- jump to an *existing* window already showing the selected buffer (i.e. it can feel like it "opened in
+          -- another window"). If you ever want a strict "always open in the picker origin window" invariant, override
+          -- the LSP sources here with `jump = { reuse_win = false }`.
           diagnostics = {
             sev_all = true, -- initial
             toggles = {
@@ -1527,10 +1613,11 @@ return {
         end, desc = "Notification History"
       },
       { "<leader>e", function() Snacks.picker.explorer() end, desc = "File explorer" },
-      { "<leader>E", function() Snacks.picker.explorer( {dirs = {
-        vim.fs.dirname(vim.api.nvim_buf_get_name(0)) or vim.fn.getcwd()
-      }
-      }) end, desc = "File explorer (cwd)" },
+      { "<leader>E", function()
+        local bufname = vim.api.nvim_buf_get_name(0)
+        local dir = bufname ~= "" and vim.fs.dirname(bufname) or vim.fn.getcwd()
+        Snacks.picker.explorer({ cwd = dir })
+      end, desc = "File explorer (buffer dir)" },
       -- find
       { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>fB", function() Snacks.picker.buffers({ hidden = true, nofile = true }) end, desc = "Buffers (all)" },
@@ -1567,6 +1654,7 @@ return {
       { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocmds" },
       { "<leader>sc", function() Snacks.picker.commands() end, desc = "Commands" },
       { "<leader>sC", function() Snacks.picker.command_history() end, desc = "Command History" },
+      { "fd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
       { "<leader>sd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
       { "<leader>sD", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
       { "<leader>sh", function() Snacks.picker.help() end, desc = "Help Pages" },

@@ -137,6 +137,8 @@ bindkey "^[[1;3A" up-line-or-history    # ALT-UP
 bindkey "^[[1;3B" down-line-or-history  # ALT-DOWN
 bindkey '\C-h' backward-kill-word
 
+# An absolute GOAT map, Ctrl-space. wow. my god. no more tab overload
+bindkey '^@' fzf-completion
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"

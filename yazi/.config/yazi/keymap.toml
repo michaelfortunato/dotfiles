@@ -28,7 +28,7 @@ prepend_keymap = [
   { on = "cdj", run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
   { on = "s", run = "plugin fzf", desc = "Jump to a file/directory via fzf" },
   { on = "D", run = "noop", desc = "Noop (prevent accidental deletion)" },
-  { on = "d", run = "noop", desc = "Noop (prevent accidental deletion)" },
+  { on = "d", run = "remove", desc = "Delete (move to trash) with confirmation" },
   { on = "Z", run = "Noop", desc = "Noop (free Z)" },
   { on = "<C-u>", run = "arrow -50%", desc = "Move cursor up half page" },
   { on = "<C-d>", run = "arrow 50%", desc = "Move cursor down half page" },

@@ -7,10 +7,12 @@ return {
     "michaelfortunato/LazyVim",
     dependencies = {
       { "projekt0n/github-nvim-theme", name = "github-theme" },
+      { "miikanissi/modus-themes.nvim" },
     },
     opts = {
       -- colorscheme = "github_dark_high_contrast",
       -- colorscheme = "github_light",
+      -- colorscheme = "catppuccin-latte",
       colorscheme = "catppuccin-mocha",
       -- colorscheme = "tokyonight-night",
       -- colorscheme = "default",
@@ -73,6 +75,22 @@ return {
         -- change a keymap
         mode = { "n" },
         "<leader>wm",
+        "<cmd>Maximize<cr>",
+        desc = "Toggle Maximize",
+      },
+      {
+
+        -- change a keymap
+        mode = { "n" },
+        "<leader>um",
+        "<cmd>Maximize<cr>",
+        desc = "Toggle Maximize",
+      },
+      {
+
+        -- change a keymap
+        mode = { "n" },
+        "<C-Shift-Space>",
         "<cmd>Maximize<cr>",
         desc = "Toggle Maximize",
       },
