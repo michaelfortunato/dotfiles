@@ -41,6 +41,9 @@ vim.keymap.set({ "c", "i" }, "<A-Left>", "<S-Right>")
 vim.keymap.set({ "c", "i" }, "<A-Right>", "<S-Right>")
 
 --- Close quickfix list if open
+--- FIXME: its . that is causing strangeness
+--- Basically . will enter macro recording mode
+--- see mnf.terminal for a start location for the bug
 vim.keymap.set("n", "q", function()
   -- Note, wrap it around vim.schedule if you want it an expression mapping
   -- but honestly this works well.
@@ -220,7 +223,7 @@ vim.keymap.set({ "n" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", nor
 vim.keymap.set({ "n" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
 -- vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 -- WARN: Mapping <Tab> might conflict with <C-i>
-vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
+-- vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
 -- Consider this
 vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
