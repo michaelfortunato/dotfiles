@@ -269,6 +269,7 @@ return {
         win = {
           wo = {
             colorcolumn = "",
+            winfixbuf = false,
           },
           -- make it big
           width = 0.86,
