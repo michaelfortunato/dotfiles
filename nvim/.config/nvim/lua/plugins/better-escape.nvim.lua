@@ -7,7 +7,7 @@ return {
       mappings = {
         t = {
           ["<Tab>"] = {
-            ["<Tab>"] = "<Cmd>tabnext #<CR>",
+            -- ["<Tab>"] = "<Cmd>tabnext #<CR>",
             ["l"] = "<Cmd>tabnext<CR>",
             ["h"] = "<Cmd>tabprev<CR>",
           },
