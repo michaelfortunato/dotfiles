@@ -713,9 +713,9 @@ sorting=ynt
     { condition = in_mathzone }
   ),
   -- --- Let "'" namespace operators
-  s({ trig = "'g", snippetType = "autosnippet" }, t("nabla"), { condition = in_mathzone }),
-  s({ trig = "'p", snippetType = "autosnippet" }, t("partial"), { condition = in_mathzone }),
-  s({ trig = "'c", snippetType = "autosnippet" }, t("compose"), { condition = in_mathzone }),
+  s({ trig = "'g", snippetType = "autosnippet" }, t("\\nabla"), { condition = in_mathzone }),
+  s({ trig = "'p", snippetType = "autosnippet" }, t("\\partial"), { condition = in_mathzone }),
+  s({ trig = "'c", snippetType = "autosnippet" }, t("\\circ"), { condition = in_mathzone }),
   s(
     {
       trig = "@",
