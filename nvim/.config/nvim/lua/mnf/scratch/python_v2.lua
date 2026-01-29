@@ -12,7 +12,15 @@
 ---@class MNF.Scratch.Python
 local M = {}
 
-local ns = vim.api.nvim_create_namespace("mnf_scratch_python_v2")
+local ns = vim.api.nvim_create_namespace("mnf_scratch_python")
+
+---@class MNF.Scratch.Python.GhostStateItem
+---@field id integer
+---@field virt_lines string[][][]
+---@field truncated boolean
+
+---@type table<number, table<number, MNF.Scratch.Python.GhostStateItem>>
+local ghost_state = {}
 
 ---@class MNF.Scratch.Python.BufState
 ---@field run_id integer
@@ -60,6 +68,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 local function reset(buf)
   vim.diagnostic.reset(ns, buf)
   vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+  ghost_state[buf] = nil
   if vim.g.mnf_scratch_python_plots ~= 0 then
     pcall(function()
       require("snacks").image.placement.clean(buf)
@@ -76,14 +85,136 @@ local function ghost(buf, line, text, stream)
     return
   end
   local hl = stream == "stderr" and "MnfScratchPythonError" or "MnfScratchPythonPrint"
-  ---@type string[][][]
-  local virt_lines = {}
-  for _, l in ipairs(vim.split(text, "\n", { plain = true })) do
-    virt_lines[#virt_lines + 1] = { { "  │ ", "MnfScratchPythonIndent" }, { l, hl } }
+
+  local function safe(call)
+    if type(vim.in_fast_event) == "function" and vim.in_fast_event() then
+      vim.schedule(call)
+    else
+      call()
+    end
   end
-  vim.schedule(function()
+
+  local prefix = "  │ "
+  local prefix_w = vim.fn.strdisplaywidth(prefix)
+
+  local function text_width()
+    local wins = vim.fn.win_findbuf(buf)
+    local best = nil ---@type integer|nil
+    if type(wins) == "table" then
+      for _, win in ipairs(wins) do
+        if type(win) == "number" and vim.api.nvim_win_is_valid(win) then
+          local win_w = vim.api.nvim_win_get_width(win)
+          local info = vim.fn.getwininfo(win)[1]
+          local textoff = info and tonumber(info.textoff) or 0
+          local w = win_w - textoff
+          w = w > 0 and w or win_w
+          best = not best and w or math.min(best, w)
+        end
+      end
+    end
+    return best or vim.o.columns
+  end
+
+  local function wrap_line(s, max_w)
+    if type(s) ~= "string" or s == "" or max_w <= 0 then
+      return { tostring(s or "") }
+    end
+    local n = vim.fn.strchars(s)
+    local out = {}
+    local i = 0
+    while i < n do
+      local remaining = n - i
+      local low, high = 1, remaining
+      local best = 0
+      while low <= high do
+        local mid = math.floor((low + high) / 2)
+        local part = vim.fn.strcharpart(s, i, mid)
+        if vim.fn.strdisplaywidth(part) <= max_w then
+          best = mid
+          low = mid + 1
+        else
+          high = mid - 1
+        end
+      end
+      if best <= 0 then
+        best = 1
+      end
+      out[#out + 1] = vim.fn.strcharpart(s, i, best)
+      i = i + best
+    end
+    return out
+  end
+
+  -- Basic hardening: prevent pathological output from allocating huge extmarks.
+  local max_bytes = tonumber(vim.g.mnf_scratch_python_ghost_max_bytes) or 20000
+  if type(text) ~= "string" then
+    text = tostring(text or "")
+  end
+  if #text > max_bytes then
+    text = text:sub(1, max_bytes) .. ("… [truncated %d bytes]"):format(#text - max_bytes)
+  end
+
+  local max_lines = tonumber(vim.g.mnf_scratch_python_ghost_max_lines) or 200
+  local wrap = vim.g.mnf_scratch_python_ghost_wrap ~= 0
+  local max_w = math.max(1, (text_width() - prefix_w) - 2)
+
+  line = tonumber(line) or 1
+  line = math.max(line, 1)
+
+  local per_buf = ghost_state[buf]
+  if not per_buf then
+    per_buf = {}
+    ghost_state[buf] = per_buf
+  end
+
+  local entry = per_buf[line]
+  if not entry then
+    entry = { id = 0, virt_lines = {}, truncated = false }
+    per_buf[line] = entry
+  end
+
+  if entry.truncated or max_lines <= 0 then
+    return
+  end
+
+  local needs_update = false
+  for _, l in ipairs(vim.split(text, "\n", { plain = true, trimempty = false })) do
+    local chunks = wrap and wrap_line(l, max_w) or { l }
+    for _, c in ipairs(chunks) do
+      if #entry.virt_lines >= max_lines then
+        entry.truncated = true
+        break
+      end
+      entry.virt_lines[#entry.virt_lines + 1] = { { prefix, "MnfScratchPythonIndent" }, { c, hl } }
+      needs_update = true
+    end
+    if entry.truncated then
+      break
+    end
+  end
+
+  if entry.truncated and max_lines > 0 then
+    entry.virt_lines[max_lines] = {
+      { prefix, "MnfScratchPythonIndent" },
+      { ("… [truncated after %d lines]"):format(max_lines), hl },
+    }
+    needs_update = true
+  end
+
+  if not needs_update then
+    return
+  end
+
+  safe(function()
     if vim.api.nvim_buf_is_valid(buf) then
-      pcall(vim.api.nvim_buf_set_extmark, buf, ns, math.max(line - 1, 0), 0, { virt_lines = virt_lines })
+      local row = math.max(line - 1, 0)
+      local ok, id = pcall(vim.api.nvim_buf_set_extmark, buf, ns, row, 0, {
+        id = entry.id > 0 and entry.id or nil,
+        virt_lines = entry.virt_lines,
+      })
+      if ok and type(id) == "number" and id > 0 then
+        entry.id = id
+      end
     end
   end)
 end
@@ -101,7 +232,15 @@ local function diag_error(buf, line, message, trace, meta)
   if meta and type(meta.run_id) == "number" then
     diag_message = ("run %d: %s"):format(meta.run_id, diag_message)
   end
-  vim.schedule(function()
+  local function safe(call)
+    if type(vim.in_fast_event) == "function" and vim.in_fast_event() then
+      vim.schedule(call)
+    else
+      call()
+    end
+  end
+
+  safe(function()
     if not vim.api.nvim_buf_is_valid(buf) then
       return
     end
@@ -231,10 +370,10 @@ end
 
 ---@return string? runner, string? err
 local function uv_runner()
-  local matches = vim.api.nvim_get_runtime_file("python/mnf_scratch_uv_runner_v2.py", false)
+  local matches = vim.api.nvim_get_runtime_file("python/mnf_scratch_uv_runner.py", false)
   local runner = matches and matches[1]
   if type(runner) ~= "string" or runner == "" then
-    return nil, "python/mnf_scratch_uv_runner_v2.py not found on runtimepath"
+    return nil, "python/mnf_scratch_uv_runner.py not found on runtimepath"
   end
   return runner, nil
 end
@@ -297,6 +436,7 @@ vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
   callback = function(ev)
     local buf = ev.buf
     buf_state[buf] = nil
+    ghost_state[buf] = nil
     drop_queued_for_buf(buf)
   end,
 })
@@ -306,6 +446,21 @@ vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
 local function handle_events(ctx, events)
   if type(events) ~= "table" then
     return
+  end
+
+  local buf = ctx and ctx.buf
+  local run_id = ctx and ctx.run_id
+  if type(buf) ~= "number" or not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
+  if type(run_id) == "number" and not is_current_run(buf, run_id) then
+    return
+  end
+
+  if type(ctx._reset) == "function" then
+    ctx._reset()
+  else
+    reset(buf)
   end
 
   for _, ev in ipairs(events) do
@@ -635,7 +790,12 @@ M.exec = function(ctx)
   local ahead = (uv_session.busy and 1 or 0) + #uv_session.queue
   uv_session.queue[#uv_session.queue + 1] = item
   if ahead > 0 and type(ctx.run_id) == "number" then
-    ctx.out(("▶ python scratch run %d queued (%d ahead)"):format(ctx.run_id, ahead), ctx.anchor, "stdout")
+    local msg = ("▶ python scratch run %d queued (%d ahead)"):format(ctx.run_id, ahead)
+    if type(ctx.note) == "function" then
+      ctx.note(msg, ctx.anchor, "stdout")
+    else
+      ctx.out(msg, ctx.anchor, "stdout")
+    end
   end
   drain_uv_queue()
 end
@@ -652,7 +812,6 @@ function M.run(opts)
   local run_id = bump_run_id(buf)
 
   local lines, anchor = get_lines(buf)
-  reset(buf)
   ensure_reset_autocmd(buf)
 
   if type(M.exec) ~= "function" then
@@ -665,21 +824,38 @@ function M.run(opts)
   end
 
   local code = table.concat(lines, "\n")
+  local did_reset = false
+  local function ensure_reset()
+    if did_reset then
+      return
+    end
+    did_reset = true
+    reset(buf)
+  end
   M.exec({
     buf = buf,
     code = code,
     anchor = anchor,
     run_id = run_id,
+    _reset = ensure_reset,
+    note = function(text, line, stream)
+      if not is_current_run(buf, run_id) then
+        return
+      end
+      ghost(buf, tonumber(line) or anchor, tostring(text or ""), stream)
+    end,
     out = function(text, line, stream)
       if not is_current_run(buf, run_id) then
         return
       end
+      ensure_reset()
       ghost(buf, tonumber(line) or anchor, tostring(text or ""), stream)
     end,
     err = function(message, line, trace)
       if not is_current_run(buf, run_id) then
         return
       end
+      ensure_reset()
       diag_error(buf, tonumber(line) or anchor, tostring(message or "Python error"), trace, { run_id = run_id })
     end,
   })

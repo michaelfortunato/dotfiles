@@ -105,27 +105,39 @@ def _configure_matplotlib(*, cache_dir: str, filename: str, anchor: int) -> None
     try:
         mplconf = os.path.join(cache_dir, "mnf", "matplotlib")
         os.makedirs(mplconf, exist_ok=True)
-        os.environ.setdefault("MPLCONFIGDIR", mplconf)
-
-        import matplotlib  # type: ignore
-
-        try:
-            matplotlib.use("module://mnf_scratch_mpl", force=True)
-        except Exception:
-            matplotlib.use("Agg", force=True)
-
-        import mnf_scratch_mpl
+        os.environ["MPLCONFIGDIR"] = mplconf
+        os.environ["MPLBACKEND"] = "module://mnf_scratch_mpl"
 
         plot_dir = os.path.join(cache_dir, "mnf", "scratch", "plots")
         os.makedirs(plot_dir, exist_ok=True)
+        import mnf_scratch_mpl
+
         mnf_scratch_mpl.configure(cache_dir=plot_dir, filename=filename, anchor=anchor)
+        mnf_scratch_mpl.clear_figures()
 
-        try:
-            import matplotlib.pyplot as plt  # type: ignore
+        # If Matplotlib is already imported in this long-lived runner process,
+        # enforce the backend switch using the supported API (no monkeypatching).
+        if "matplotlib" in sys.modules:
+            try:
+                import matplotlib  # type: ignore
 
-            plt.show = mnf_scratch_mpl.show
-        except Exception:
-            pass
+                try:
+                    matplotlib.use("module://mnf_scratch_mpl", force=True)
+                except Exception:
+                    matplotlib.use("Agg", force=True)
+            except Exception:
+                pass
+
+        if "matplotlib.pyplot" in sys.modules:
+            try:
+                import matplotlib.pyplot as plt  # type: ignore
+
+                try:
+                    plt.switch_backend("module://mnf_scratch_mpl")
+                except Exception:
+                    plt.switch_backend("Agg")
+            except Exception:
+                pass
     except Exception:
         return
 
