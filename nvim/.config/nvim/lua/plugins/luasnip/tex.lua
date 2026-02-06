@@ -300,6 +300,9 @@ return {
 \usepackage{nicematrix} % for matrix/block drawing
 \usepackage{float} % for [H] exact placement
 \usepackage[capitalize,noabbrev]{cleveref} %  use \cref{} instead of \ref
+\usepackage{aliascnt}
+% \usepackage{threeparttable}
+% \usepackage{graphicx}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Optional Packages
 % \usepackage{csquotes}
 % \usepackage[textsize=tiny]{todonotes} % usage: \todo[inline]{notehere}
@@ -310,12 +313,25 @@ return {
 %                           Theorems/Definitions/etc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
+\newaliascnt{lemma}{theorem}
+\newtheorem{lemma}[lemma]{Lemma}
+\aliascntresetthe{lemma}
+\newaliascnt{conjecture}{theorem}
+\newtheorem{conjecture}[conjecture]{Conjecture}
+\aliascntresetthe{conjecture}
+\newaliascnt{corollary}{theorem}
+\newtheorem{corollary}[corollary]{Corollary}
+\aliascntresetthe{corollary}
+\newaliascnt{proposition}{theorem}
+\newtheorem{proposition}[proposition]{Proposition}
+\aliascntresetthe{proposition}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
-
+\newaliascnt{assumption}{theorem}
+\newtheorem{assumption}[assumption]{Assumption}
+\aliascntresetthe{assumption}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                               CLEVERREF Configs
@@ -329,8 +345,18 @@ return {
 \Crefname{theorem}{Theorem}{Theorems}
 \crefname{lemma}{Lemma}{Lemmas}
 \Crefname{lemma}{Lemma}{Lemmas}
+\crefname{conjecture}{Conjecture}{Conjectures}
+\Crefname{conjecture}{Conjecture}{Conjectures}
+\crefname{corollary}{Corollary}{Corollaries}
+\Crefname{corollary}{Corollary}{Corollaries}
+\crefname{proposition}{Proposition}{Propositions}
+\Crefname{proposition}{Proposition}{Propositions}
+\crefname{assumption}{Assumption}{Assumptions}
+\Crefname{assumption}{Assumption}{Assumptions}
 \crefname{remark}{Remark}{Remarks}
 \Crefname{remark}{Remark}{Remarks}
+\crefname{nremark}{Remark}{Remarks}
+\Crefname{nremark}{Remark}{Remarks}
 %def
 \crefname{definition}{Definition}{Definitions}
 \Crefname{definition}{Definition}{Definitions}
