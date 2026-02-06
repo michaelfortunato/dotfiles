@@ -372,6 +372,31 @@ return {
       },
       ---@type table<string, snacks.win.Config>
       styles = {
+        jobs_vsplit = {
+          position = "right",
+          width = 0.4,
+          wo = {
+            winhighlight = "Normal:Normal",
+            wrap = false,
+            number = false,
+            relativenumber = false,
+            signcolumn = "no",
+            foldcolumn = "0",
+            colorcolumn = "",
+          },
+        },
+        jobs_hsplit = {
+          position = "bottom",
+          wo = {
+            winhighlight = "Normal:Normal",
+            wrap = false,
+            number = false,
+            relativenumber = false,
+            signcolumn = "no",
+            foldcolumn = "0",
+            colorcolumn = "",
+          },
+        },
         scratch_vsplit = { position = "right", width = 0.45, backdrop = false, fixbuf = false },
         scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false, fixbuf = false },
         scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75, fixbuf = false },
