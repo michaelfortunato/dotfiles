@@ -14,6 +14,14 @@ local M = {}
 
 local ns = vim.api.nvim_create_namespace("mnf_scratch_python")
 
+---@class MNF.Scratch.Python.GhostStateItem
+---@field id integer
+---@field virt_lines string[][][]
+---@field truncated boolean
+
+---@type table<number, table<number, MNF.Scratch.Python.GhostStateItem>>
+local ghost_state = {}
+
 ---@class MNF.Scratch.Python.BufState
 ---@field run_id integer
 local buf_state = {} ---@type table<number, MNF.Scratch.Python.BufState>
@@ -60,6 +68,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 local function reset(buf)
   vim.diagnostic.reset(ns, buf)
   vim.api.nvim_buf_clear_namespace(buf, ns, 0, -1)
+  ghost_state[buf] = nil
   if vim.g.mnf_scratch_python_plots ~= 0 then
     pcall(function()
       require("snacks").image.placement.clean(buf)
@@ -85,19 +94,26 @@ local function ghost(buf, line, text, stream)
     end
   end
 
-  local prefix = "  │ "
+  -- local prefix = "  │ "
+  local prefix = "    "
   local prefix_w = vim.fn.strdisplaywidth(prefix)
 
   local function text_width()
-    local win = vim.fn.win_findbuf(buf)[1]
-    if win and vim.api.nvim_win_is_valid(win) then
-      local win_w = vim.api.nvim_win_get_width(win)
-      local info = vim.fn.getwininfo(win)[1]
-      local textoff = info and tonumber(info.textoff) or 0
-      local w = win_w - textoff
-      return w > 0 and w or win_w
+    local wins = vim.fn.win_findbuf(buf)
+    local best = nil ---@type integer|nil
+    if type(wins) == "table" then
+      for _, win in ipairs(wins) do
+        if type(win) == "number" and vim.api.nvim_win_is_valid(win) then
+          local win_w = vim.api.nvim_win_get_width(win)
+          local info = vim.fn.getwininfo(win)[1]
+          local textoff = info and tonumber(info.textoff) or 0
+          local w = win_w - textoff
+          w = w > 0 and w or win_w
+          best = not best and w or math.min(best, w)
+        end
+      end
     end
-    return vim.o.columns
+    return best or vim.o.columns
   end
 
   local function wrap_line(s, max_w)
@@ -141,34 +157,65 @@ local function ghost(buf, line, text, stream)
 
   local max_lines = tonumber(vim.g.mnf_scratch_python_ghost_max_lines) or 200
   local wrap = vim.g.mnf_scratch_python_ghost_wrap ~= 0
-  local max_w = math.max(1, (text_width() - prefix_w) - 1)
+  local max_w = math.max(1, (text_width() - prefix_w) - 2)
 
-  ---@type string[][][]
-  local virt_lines = {}
-  local truncated = false
+  line = tonumber(line) or 1
+  line = math.max(line, 1)
+
+  local per_buf = ghost_state[buf]
+  if not per_buf then
+    per_buf = {}
+    ghost_state[buf] = per_buf
+  end
+
+  local entry = per_buf[line]
+  if not entry then
+    entry = { id = 0, virt_lines = {}, truncated = false }
+    per_buf[line] = entry
+  end
+
+  if entry.truncated or max_lines <= 0 then
+    return
+  end
+
+  local needs_update = false
   for _, l in ipairs(vim.split(text, "\n", { plain = true, trimempty = false })) do
     local chunks = wrap and wrap_line(l, max_w) or { l }
     for _, c in ipairs(chunks) do
-      if #virt_lines >= max_lines then
-        truncated = true
+      if #entry.virt_lines >= max_lines then
+        entry.truncated = true
         break
       end
-      virt_lines[#virt_lines + 1] = { { prefix, "MnfScratchPythonIndent" }, { c, hl } }
+      entry.virt_lines[#entry.virt_lines + 1] = { { prefix, "MnfScratchPythonIndent" }, { c, hl } }
+      needs_update = true
     end
-    if truncated then
+    if entry.truncated then
       break
     end
   end
-  if truncated and max_lines > 0 then
-    virt_lines[max_lines] = {
+
+  if entry.truncated and max_lines > 0 then
+    entry.virt_lines[max_lines] = {
       { prefix, "MnfScratchPythonIndent" },
       { ("… [truncated after %d lines]"):format(max_lines), hl },
     }
+    needs_update = true
+  end
+
+  if not needs_update then
+    return
   end
 
   safe(function()
     if vim.api.nvim_buf_is_valid(buf) then
-      pcall(vim.api.nvim_buf_set_extmark, buf, ns, math.max(line - 1, 0), 0, { virt_lines = virt_lines })
+      local row = math.max(line - 1, 0)
+      local ok, id = pcall(vim.api.nvim_buf_set_extmark, buf, ns, row, 0, {
+        id = entry.id > 0 and entry.id or nil,
+        virt_lines = entry.virt_lines,
+      })
+      if ok and type(id) == "number" and id > 0 then
+        entry.id = id
+      end
     end
   end)
 end
@@ -390,6 +437,7 @@ vim.api.nvim_create_autocmd({ "BufUnload", "BufWipeout" }, {
   callback = function(ev)
     local buf = ev.buf
     buf_state[buf] = nil
+    ghost_state[buf] = nil
     drop_queued_for_buf(buf)
   end,
 })
@@ -640,6 +688,7 @@ local function ensure_uv_session(item)
   end
 
   uv_session.jobid = jobid
+  vim.notify("Starting uv server this might take a moment...")
   return true, nil
 end
 
