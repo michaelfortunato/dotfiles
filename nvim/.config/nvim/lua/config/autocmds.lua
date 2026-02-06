@@ -103,11 +103,15 @@ vim.api.nvim_create_user_command("Make", function(params)
       end
     end
 
+    local replace = stream_notify_id
+    local id = type(replace) == "table" and replace.id or replace
     local ret = vim.notify(msg, vim.log.levels.INFO, {
-      replace = stream_notify_id,
+      -- `replace` is for nvim-notify compatibility; `id` is for Snacks notifier updates.
+      replace = replace,
+      id = id,
       timeout = false,
     })
-    stream_notify_id = (ret and ret.id) or ret or stream_notify_id
+    stream_notify_id = ret or stream_notify_id
   end
 
   local expanded_cmd = vim.fn.expandcmd(cmd)
@@ -165,10 +169,14 @@ vim.api.nvim_create_user_command("Make", function(params)
         msg = msg .. "\n" .. out
       end
 
+      local replace = stream_notify_id
+      local id = type(replace) == "table" and replace.id or replace
       local ret = vim.notify(msg, level, {
-        replace = stream_notify_id,
+        -- `replace` is for nvim-notify compatibility; `id` is for Snacks notifier updates.
+        replace = replace,
+        id = id,
       })
-      stream_notify_id = (ret and ret.id) or ret or stream_notify_id
+      stream_notify_id = ret or stream_notify_id
       pcall(t.dispose, t, true)
     end)
   end)
