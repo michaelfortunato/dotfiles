@@ -39,6 +39,11 @@ function M.part(fn, ...)
   end
 end
 
+function M.sanitize_label(s)
+  -- Strip everything except ASCII letters and digits.
+  return (s or ""):gsub("[^A-Za-z0-9]", "")
+end
+
 -- This makes creation of pair-type snippets easier.
 function M.pair(pair_begin, pair_end, expand_func, ...)
   -- triggerd by opening part of pair, wordTrig=false to trigger anywhere.

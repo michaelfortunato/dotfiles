@@ -260,21 +260,8 @@ local generate_cases = function(args, snip)
   return sn(nil, nodes)
 end
 
----@param s string
-local function sanitize_label(s)
-  -- FIXME: caller does not work if you invoke a snippet, not this functions
-  -- issue but still should be addressed
-  -- I believe this is because we use the first node as the argument
-  -- but that id is not stable if we add a snippet while typing the name.
-  return s:gsub("%s", "-")
-    :gsub("%$", "")
-    :gsub(">", "")
-    :gsub("<", "")
-    :gsub("%?", "")
-    :gsub("%(", "")
-    :gsub("%)", "")
-    :gsub("%^", "")
-end
+-- Strip everything except ASCII letters and digits.
+local sanitize_label = require("plugins.luasnip._utils").sanitize_label
 
 return {
   -- NOTE: Remove auto snippet in the future,

@@ -141,20 +141,8 @@ local trigger_does_not_follow_alpha_num_char = make_trigger_does_not_follow_char
 local trigger_does_not_follow_alpha_char = make_trigger_does_not_follow_char("%a")
 --- FIXME: mnf_s is bullshit, and it fucking sucks!
 --- local mnf_s = ls.extend_decorator.apply(s, { wordTrig = false, condition = trigger_does_not_follow_alpha_num_char })
-local function sanitize_label(s)
-  -- FIXME: caller does not work if you invoke a snippet, not this functions
-  -- issue but still should be addressed
-  -- I believe this is because we use the first node as the argument
-  -- but that id is not stable if we add a snippet while typing the name.
-  return s:gsub("%s", "-")
-    :gsub("%$", "")
-    :gsub(">", "")
-    :gsub("<", "")
-    :gsub("%?", "")
-    :gsub("%(", "")
-    :gsub("%)", "")
-    :gsub("%^", "")
-end
+-- Strip everything except ASCII letters and digits.
+local sanitize_label = require("plugins.luasnip._utils").sanitize_label
 -- Math context detection
 local tex = {}
 tex.in_mathzone = function()
