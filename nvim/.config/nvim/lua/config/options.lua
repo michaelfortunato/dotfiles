@@ -68,6 +68,22 @@ vim.o.showtabline = 0
 vim.o.showcmd = false
 
 vim.o.scroll = 15
+
+-- I like this for my light theme
+-- vim.api.nvim_set_hl(0, "CursorInsert", { bg = "#1E66F6", fg = "#EFF1F6" })
+-- Apply per-mode cursor shapes + colors (no blink fields included)
+vim.opt.guicursor = table.concat({
+  -- "n:block-CursorNormal",
+  "i:block-CursorInsert",
+  -- "v:block-CursorVisual",
+  -- "c:block-CursorNormal",
+  -- "r:hor20-CursorNormal",  -- optional: replace mode underline
+}, ",")
+
+-- Dope. I wonder if there is a elegant way to have the
+-- cursor SLIGHTLY change color on mode switch.
+-- vim.opt.guicursor = "n-v-c-sm:block,i-ci-ve:block,r-cr-o:hor20"
+
 -- Consider this for C-u c-d nav, a bit more tractable
 -- Causing visual issues
 -- vim.wo.scroll = 15
