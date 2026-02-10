@@ -14,6 +14,7 @@ end
 require("eza-preview"):setup({
 	-- Start in list mode; use L to toggle tree view.
 	default_tree = false,
+	all = false,
 })
 
 -- This was good and robust, but we need yazi to emit tui=0 on shutdown

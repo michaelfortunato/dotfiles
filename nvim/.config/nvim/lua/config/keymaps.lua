@@ -376,7 +376,7 @@ map("n", "<leader>mc", function()
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
-      vim.cmd("let &makeprg='" .. input .. "'")
+      vim.opt_local.makeprg = input
     end
     return
   end)
@@ -453,7 +453,7 @@ vim.keymap.set("n", "<leader>tmc", function()
     if input == nil or input == "" then
       vim.cmd("set makeprg?")
     else
-      vim.cmd("let &makeprg='" .. input .. "'")
+      vim.opt_local.makeprg = input
     end
   end)
 end, { desc = "Set makeprg" })

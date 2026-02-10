@@ -66,8 +66,25 @@ vim.api.nvim_set_hl(0, "SnacksPickerInputBorder", { link = "SnacksPickerBoxBorde
 vim.api.nvim_set_hl(0, "SnacksPickerBorder", { link = "SnacksPickerBoxBorder" })
 vim.api.nvim_set_hl(0, "SnacksPickerPreviewBorder", { link = "SnacksPickerBoxBorder" })
 
+vim.api.nvim_create_autocmd("TabEnter", {
+  group = vim.api.nvim_create_augroup("MNF_StickyZen", { clear = true }),
+  desc = "Re-open Snacks Zen in sticky tabs",
+  callback = function()
+    if vim.t.sticky_zen ~= true then
+      return
+    end
+    vim.schedule(function()
+      if vim.t.sticky_zen == true then
+        require("snacks").zen()
+      end
+    end)
+  end,
+})
+
+vim.t.sticky_zen = false
 -- typical snacks w
 vim.keymap.set({ "n" }, "<Leader>uz", function()
+  vim.t.sticky_zen = not vim.t.sticky_zen
   require("snacks").zen()
 end, { desc = "Toggle Zen Mode" })
 vim.keymap.set({ "n" }, "<Leader>ux", function()
@@ -318,6 +335,18 @@ return {
             ["''"] = function(win) -- value is fun(self: snacks.win)
               win:close()
             end,
+            ["q"] = function(win)
+              -- `q` is buffer-local for Snacks windows. If this scratch buffer is being
+              -- reused inside another float (e.g. goto-preview same-file previews),
+              -- prefer closing the *current* float window first.
+              local ok, close_on_q = pcall(vim.api.nvim_win_get_var, 0, "mnf-close-on-q")
+              local ok2, is_goto_preview = pcall(vim.api.nvim_win_get_var, 0, "is-goto-preview-window")
+              if (ok and close_on_q) or (ok2 and is_goto_preview) then
+                vim.cmd("close")
+                return
+              end
+              win:close()
+            end,
           },
         },
       },
@@ -372,6 +401,12 @@ return {
       },
       ---@type table<string, snacks.win.Config>
       styles = {
+        notification = {
+          wo = {
+            wrap = true,
+            linebreak = true,
+          },
+        },
         jobs_vsplit = {
           position = "right",
           width = 0.4,
