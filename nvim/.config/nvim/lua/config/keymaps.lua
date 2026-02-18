@@ -4,6 +4,7 @@
 local map = function(...)
   return pcall(vim.keymap.set, ...)
 end
+
 --local del = vim.keymap.del
 --NOTE: makes me safe
 local del = function(...)
@@ -360,7 +361,8 @@ map({ "n", "v" }, "<leader>mp", function()
     return
   end
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  if #lines ~= 1 or lines[1] ~= "" then
+  -- If there is more than 1 line or there  is one non blank line, quit.
+  if #lines > 1 or lines[1] ~= "" then
     return
   end
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.split(template, "\n", { plain = true, trimempty = false }))

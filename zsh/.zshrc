@@ -6,17 +6,22 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
-(( ${+commands[direnv]} )) && emulate zsh -c "$(direnv export zsh)"
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
+
+# direnv: load after instant prompt so .envrc evaluation doesn't block prompt rendering
 (( ${+commands[direnv]} )) && emulate zsh -c "$(direnv hook zsh)"
 
 MNF_OS=$(uname -s)
 
 # HomeBrew completions See here: https://docs.brew.sh/Shell-Completion
 if [[ $MNF_OS = "Darwin" ]]; then
-  FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+  if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
+    FPATH="${HOMEBREW_PREFIX}/share/zsh/site-functions:${FPATH}"
+  else
+    FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
+  fi
 fi
 
 

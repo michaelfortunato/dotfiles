@@ -21,7 +21,22 @@ return {}
 -- vim.keymap.set("n", "<leader>f", "<cmd>Telescope find_files<CR>", { noremap = true, silent = true })
 
 -- =========================
--- 2. AUTOCOMMANDS
+-- 2. USER COMMANDS
+-- =========================
+
+-- vim.api.nvim_create_user_command('Upper',
+--   function(opts)
+--     print(string.upper(opts.fargs[1]))
+--   end,
+--   { nargs = 1,
+--     complete = function(ArgLead, CmdLine, CursorPos)
+--       -- return completion candidates as a list-like table
+--       return { "foo", "bar", "baz" }
+--     end,
+-- })
+
+-- =========================
+-- 3. AUTOCOMMANDS
 -- =========================
 
 -- vim.api.nvim_create_autocmd("BufWritePre", {
@@ -42,7 +57,7 @@ return {}
 -- })
 
 -- =========================
--- 3. Minimal lazy.nvim SPEC
+-- 4. Minimal lazy.nvim SPEC
 -- =========================
 
 -- return {
@@ -69,6 +84,11 @@ return {}
 --     opts         = {
 --       defaults = { layout_strategy = "horizontal" },
 --     },
+--   },
+--   -- A virtual plugin is helpful for custom code that need another plugin
+--   {
+--     "foo",
+--     virtual = true
 --   },
 -- }
 ]]
