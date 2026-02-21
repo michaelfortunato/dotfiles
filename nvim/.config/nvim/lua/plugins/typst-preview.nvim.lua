@@ -8,7 +8,7 @@ return {
     -- to firefox private or safari regular. This fixes it though
     -- port = 49811,
     --open_cmd = "open http://localhost:49811",
-    open_cmd = "open -a Firefox -u %s --args -P typst-preview --class typst-preview",
+    open_cmd = "open %s",
     debug = false,
     dependencies_bin = { ["tinymist"] = "tinymist" },
   },
