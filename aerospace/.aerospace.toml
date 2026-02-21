@@ -178,9 +178,9 @@ alt-shift-semicolon = "mode service"
 esc = ["reload-config", "mode main"]
 r = ["flatten-workspace-tree", "mode main"]  # reset layout
 # s= ['layout sticky tiling', 'mode main'] # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
+alt-shift-semicolon = "mode main"
 f = [
   "layout floating tiling",
-  "mode main",
 ]  # Toggle between floating and tiling layout
 backspace = ["close-all-windows-but-current", "mode main"]
 alt-shift-h = ["join-with left", "mode main"]
@@ -196,7 +196,7 @@ alt-shift-l = ["join-with right", "mode main"]
 # 3021  | com.apple.mail            | Mail
 # 4538  | md.obsidian               | Obsidian
 # 8358  | com.tinyspeck.slackmacgap | Slack
-# 61319 | org.mozilla.firefox           | Firefox
+# 61319 | org.mozilla.firefox       | Firefox
 # 82748 | us.zoom.xos               | zoom.us
 # 82110 | com.apple.iCal            | Calendar
 # 31354 | com.apple.Preview         | Preview
@@ -224,6 +224,19 @@ run = "move-node-to-workspace T"  # mnemonics T - Terminal
 [[on-window-detected]]
 if.app-id = "org.mozilla.firefox"
 run = "move-node-to-workspace G"  # G is leftover - Firefox
+
+## ###########################################################################
+# Zen Browser. Aerospace callbacks run top to bottom. So do the
+# more specific checks first.
+## ###########################################################################
+[[on-window-detected]]
+if.app-id = "app.zen-browser.zen"
+if.window-title-regex-substring = "Library"  # Floating windlow
+run = "layout floating"
+
+[[on-window-detected]]
+if.app-id = "app.zen-browser.zen"
+run = "move-node-to-workspace G"  # G is leftover - Zen (Firefox fork)
 
 [[on-window-detected]]
 if.app-id = "com.apple.iCal"
@@ -275,6 +288,10 @@ run = "move-node-to-workspace R"  # mnemonics R - Research
 
 [[on-window-detected]]
 if.app-id = "com.apple.QuickTimePlayerX"
+run = "layout floating"
+
+[[on-window-detected]]
+if.app-id = "com.colliderli.iina"
 run = "layout floating"
 
 [[on-window-detected]]
