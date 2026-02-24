@@ -324,7 +324,13 @@ return {
     "mason-org/mason-lspconfig.nvim",
     version = "^1.0.0",
     -- LazyVim overrides this ugh!
-    opts = { automatic_installation = false, automatic_enable = false },
+    opts = {
+      automatic_installation = false,
+      automatic_enable = false,
+      ---Pin it to @3.16.4
+      --- Due to this issue: https://github.com/folke/lazydev.nvim/issues/136
+      ensure_installed = { "lua_ls@3.16.4" },
+    },
   },
   -- https://github.com/Bekaboo/dropbar.nvim
   {
@@ -397,7 +403,7 @@ return {
         stack_floating_preview_windows = true, -- Whether to nest floating windows
         same_file_float_preview = true, -- Whether to open a new floating window for a reference within the current file
         preview_window_title = { enable = true, position = "center" }, -- Whether to set the preview window title as the filename
-        zindex = 1, -- Starting zindex for the stack of floating windows
+        zindex = 1, -- Get these floats to tie with zen and snacks.float
         vim_ui_input = false, -- Whether to override vim.ui.input with a goto-preview floating window
       })
     end,
