@@ -1,5 +1,7 @@
---- In process language server, quite useful
+--- In process language server, quite useful, debatable lol
 --- Written by codex resume 019a17c8-0188-7850-81ed-46e9650b15a5
+return {}
+--[[
 return {
   "nvimtools/none-ls.nvim",
   dependencies = {
@@ -246,3 +248,4 @@ return {
     })
   end,
 }
+--]]
