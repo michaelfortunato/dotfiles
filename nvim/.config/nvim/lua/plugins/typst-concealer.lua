@@ -814,5 +814,5 @@ function typst_concealer()
   })
 end
 --- actually invoke it
-typst_concealer()
+-- typst_concealer()
 return {}
