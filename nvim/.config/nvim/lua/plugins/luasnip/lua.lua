@@ -249,39 +249,4 @@ local generate_cases = function(args, snip)
   return sn(nil, nodes)
 end
 
-local basic = fmta(
-  [[
-s(
-  { trig="<>", snippetType="<>"},
-  fmta(<>, {<>}),
-  {<>})<>
-]],
-  { i(1), i(2, "autosnippet"), i(3), i(4), i(5), i(0) }
-)
-
-return {
-  s(
-    { trig = "otfsnippet", snippetType = "autosnippet" },
-    fmta(
-      [[
-local ls = require("luasnip")
-ls.add(<>)<>
-]],
-      { basic, i(0) }
-    ),
-    {}
-  ),
-  s(
-    { trig = "newsnippet", snippetType = "autosnippet" },
-    fmta(
-      [[
-s(
-  { trig="<>", snippetType="<>"},
-  fmta(<>, {<>}),
-  {<>})<>
-]],
-      { i(1), i(2, "autosnippet"), i(3), i(4), i(5), i(0) }
-    ),
-    {}
-  ),
-}
+return {}
