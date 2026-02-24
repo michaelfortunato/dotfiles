@@ -26,13 +26,19 @@ inkscape-figures-manager v0.2.0:
     inkscape-figures-manager
 irust v1.76.1:
     irust
+jnv v0.6.1:
+    jnv
 kodama v0.3.6 (https://github.com/kokic/kodama.git#5468c344):
     kodama
 miniserve v0.32.0:
     miniserve
+prek v0.2.29:
+    prek
 pueue v4.0.2:
     pueue
     pueued
+ralph-cli v2.0.9:
+    ralph
 sql-cli v1.67.0:
     action_debugger
     action_logger
@@ -42,6 +48,8 @@ sql-cli v1.67.0:
 sqlx-cli v0.8.2:
     cargo-sqlx
     sqlx
+sqruff v0.34.0:
+    sqruff
 tokio-console v0.1.14:
     tokio-console
 tree-sitter-cli v0.25.10:
