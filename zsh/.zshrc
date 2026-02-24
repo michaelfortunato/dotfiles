@@ -883,14 +883,42 @@ mnf_alias_profile_cloud_off() {
 }
 
 
-eval "$(fzf --zsh)"
-eval "$(codex completion zsh)"
-eval "$(uv generate-shell-completion zsh)"
-eval "$(typst completions zsh)"
+_mnf_cache_zsh_init() {
+  local cache_file="$1"
+  local watch_file="$2"
+  shift 2
+
+  [[ -n "$cache_file" ]] || return 0
+
+  local cache_dir="${cache_file:h}"
+  [[ -d "$cache_dir" ]] || command mkdir -p "$cache_dir"
+
+  local tmp="${cache_file}.tmp"
+  if [[ -n "${MNF_ZSH_CACHE_REGEN:-}" || ! -s "$cache_file" || ( -n "$watch_file" && "$watch_file" -nt "$cache_file" ) ]]; then
+    if "$@" >| "$tmp" 2>/dev/null; then
+      command mv -f "$tmp" "$cache_file"
+    else
+      command rm -f "$tmp" 2>/dev/null
+    fi
+  fi
+
+  if [[ -r "$cache_file" ]]; then
+    if [[ ! -s "${cache_file}.zwc" || "$cache_file" -nt "${cache_file}.zwc" ]]; then
+      autoload -Uz zrecompile
+      zrecompile -q -p "$cache_file" 2>/dev/null || true
+    fi
+    source "$cache_file"
+  fi
+}
+
+(( ${+commands[fzf]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/fzf.zsh" "${commands[fzf]}" fzf --zsh
+(( ${+commands[codex]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/codex-completion.zsh" "${commands[codex]}" codex completion zsh
+(( ${+commands[uv]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/uv-completion.zsh" "${commands[uv]}" uv generate-shell-completion zsh
+(( ${+commands[typst]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/typst-completion.zsh" "${commands[typst]}" typst completions zsh
 # ref: https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#native-completions
-source <(CARGO_COMPLETE=zsh cargo +nightly)
-eval "$(pueue completions zsh)"
-eval "$(mnf completion zsh)"
+(( ${+commands[cargo]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/cargo-nightly-completion.zsh" "${commands[cargo]}" env CARGO_COMPLETE=zsh cargo +nightly
+(( ${+commands[pueue]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/pueue-completion.zsh" "${commands[pueue]}" pueue completions zsh
+(( ${+commands[mnf]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/mnf-completion.zsh" "${commands[mnf]}" mnf completion zsh
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
