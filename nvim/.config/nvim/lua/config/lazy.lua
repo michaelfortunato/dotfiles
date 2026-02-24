@@ -23,6 +23,7 @@ require("lazy").setup({
     -- import/override with your plugins
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.editor.telescope", enabled = false },
+    { import = "lazyvim.plugins.extras.formatting.prettier", enabled = false },
     { import = "plugins" },
   },
   defaults = {

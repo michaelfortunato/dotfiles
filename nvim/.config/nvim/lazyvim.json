@@ -1,7 +1,7 @@
 {
   "extras": [
     "lazyvim.plugins.extras.editor.outline",
-    "lazyvim.plugins.extras.formatting.prettier",
+    "lazyvim.plugins.extras.formatting.biome",
     "lazyvim.plugins.extras.lang.markdown",
     "lazyvim.plugins.extras.lang.tex"
   ],
