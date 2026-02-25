@@ -4,6 +4,8 @@ local M = {}
 M.template = [[ 
 -- Example `~/.config/nvim/.lazy.lua` template
 -- Everything is commented out; uncomment and tweak as needed.
+-- TIP: See Section 4 for how to create your own inline plugin!
+
 return {}
 
 -- =========================
@@ -60,6 +62,7 @@ return {}
 -- 4. Minimal lazy.nvim SPEC
 -- =========================
 
+-- local M = {}
 -- return {
 --   {
 --     "nvim-treesitter/nvim-treesitter",
@@ -88,7 +91,17 @@ return {}
 --   -- A virtual plugin is helpful for custom code that need another plugin
 --   {
 --     "foo",
+--     lazy = false, -- Or some better choice
 --     virtual = true
+--     init = function()
+--       package.preload["foo"] = function()
+--         return M
+--       end
+--       -- Optional alias if you want a dot-name:
+--       -- package.preload["mnf.personal_website"] = package.preload[MOD]
+--     end,
+--     main = "foo",
+--     opts = {}
 --   },
 -- }
 ]]
