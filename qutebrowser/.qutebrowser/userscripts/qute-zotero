@@ -1,0 +1,465 @@
+#!/usr/bin/env python3
+# AI-generated userscript (OpenAI Codex/GPT-5), adapted for qutebrowser + Zotero Connector.
+from __future__ import annotations
+
+import json
+import html
+import os
+import re
+import socket
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+from pathlib import Path
+from typing import Any
+
+MAX_WAIT_SECONDS = 20
+DEFAULT_CONNECTOR_URL = "http://127.0.0.1:23119/connector/"
+
+
+class ConnectorConnectionError(RuntimeError):
+    pass
+
+
+class ConnectorTimeoutError(RuntimeError):
+    pass
+
+
+class WrongResponseError(RuntimeError):
+    def __init__(
+        self,
+        endpoint: str,
+        expected_status: int,
+        received_status: int,
+        response_body: str = "",
+    ) -> None:
+        self.endpoint = endpoint
+        self.expected_status = expected_status
+        self.received_status = received_status
+        self.response_body = response_body
+        super().__init__(
+            f"{endpoint}: expected HTTP {expected_status}, got HTTP {received_status}"
+        )
+
+
+def connector_url(endpoint: str) -> str:
+    base = os.environ.get("QUTE_ZOTERO_CONNECTOR_URL", DEFAULT_CONNECTOR_URL)
+    if not base.endswith("/"):
+        base += "/"
+    return urllib.parse.urljoin(base, endpoint)
+
+
+def connector_post(endpoint: str, expected_status: int, payload: dict[str, Any]) -> bytes:
+    request_data = json.dumps(payload).encode("utf-8")
+    request_headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    request = urllib.request.Request(
+        connector_url(endpoint),
+        data=request_data,
+        headers=request_headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=MAX_WAIT_SECONDS) as response:
+            status = response.getcode()
+            body = response.read()
+    except socket.timeout as error:
+        raise ConnectorTimeoutError from error
+    except urllib.error.HTTPError as error:
+        body = error.read().decode("utf-8", errors="replace")
+        raise WrongResponseError(endpoint, expected_status, error.code, body) from error
+    except urllib.error.URLError as error:
+        raise ConnectorConnectionError(str(error.reason)) from error
+
+    if status != expected_status:
+        body_text = body.decode("utf-8", errors="replace")
+        raise WrongResponseError(endpoint, expected_status, status, body_text)
+    return body
+
+
+def connector_post_stream(
+    endpoint: str, expected_status: int, body: bytes, headers: dict[str, str]
+) -> bytes:
+    request = urllib.request.Request(
+        connector_url(endpoint),
+        data=body,
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=MAX_WAIT_SECONDS) as response:
+            status = response.getcode()
+            response_body = response.read()
+    except socket.timeout as error:
+        raise ConnectorTimeoutError from error
+    except urllib.error.HTTPError as error:
+        response_body = error.read().decode("utf-8", errors="replace")
+        raise WrongResponseError(endpoint, expected_status, error.code, response_body) from error
+    except urllib.error.URLError as error:
+        raise ConnectorConnectionError(str(error.reason)) from error
+
+    if status != expected_status:
+        body_text = response_body.decode("utf-8", errors="replace")
+        raise WrongResponseError(endpoint, expected_status, status, body_text)
+    return response_body
+
+
+def save_snapshot(
+    url: str,
+    html: str | None = None,
+    pdf: bool = False,
+    title: str | None = None,
+    session_id: str | None = None,
+) -> None:
+    payload: dict[str, Any] = {"url": url}
+    if session_id:
+        payload["sessionID"] = session_id
+    if title:
+        payload["title"] = title
+    if pdf:
+        payload["pdf"] = True
+    elif html is not None:
+        payload["html"] = html
+    connector_post("saveSnapshot", 201, payload)
+
+
+def save_standalone_attachment(
+    url: str, mime_type: str, payload_bytes: bytes, title: str | None = None
+) -> bool:
+    session_id = uuid.uuid4().hex
+    metadata = {"url": url}
+    if title and title.isascii():
+        metadata["title"] = title
+
+    response = connector_post_stream(
+        f"saveStandaloneAttachment?sessionID={urllib.parse.quote(session_id)}",
+        201,
+        payload_bytes,
+        {
+            "Content-Type": mime_type,
+            "X-Metadata": json.dumps(metadata, ensure_ascii=True),
+        },
+    )
+    if not response:
+        return False
+    try:
+        parsed = json.loads(response.decode("utf-8"))
+    except json.JSONDecodeError:
+        return False
+    return bool(parsed.get("canRecognize"))
+
+
+def save_singlefile_snapshot(session_id: str, url: str, title: str, html_content: str) -> bool:
+    try:
+        connector_post(
+            "saveSingleFile",
+            201,
+            {
+                "sessionID": session_id,
+                "url": url,
+                "title": title,
+                "snapshotContent": html_content,
+            },
+        )
+        return True
+    except WrongResponseError:
+        return False
+
+
+def read_html_file(path: str) -> str:
+    return Path(path).read_text(encoding="utf-8", errors="replace")
+
+
+def parse_content_disposition_filename(content_disposition: str | None) -> str | None:
+    if not content_disposition:
+        return None
+
+    match = re.search(r"filename\*=([^;]+)", content_disposition, flags=re.IGNORECASE)
+    if match:
+        raw_value = match.group(1).strip().strip('"')
+        parts = raw_value.split("''", 1)
+        if len(parts) == 2:
+            charset, encoded_name = parts
+            charset = charset or "utf-8"
+            try:
+                return urllib.parse.unquote(encoded_name, encoding=charset, errors="replace")
+            except LookupError:
+                return urllib.parse.unquote(encoded_name)
+        return urllib.parse.unquote(raw_value)
+
+    match = re.search(
+        r'filename="([^"]+)"|filename=([^;]+)', content_disposition, flags=re.IGNORECASE
+    )
+    if not match:
+        return None
+    raw_name = (match.group(1) or match.group(2) or "").strip().strip('"')
+    return urllib.parse.unquote(raw_name) if raw_name else None
+
+
+def fetch_binary_resource(url: str) -> tuple[bytes, str, str | None]:
+    headers = {}
+    user_agent = os.environ.get("QUTE_USER_AGENT")
+    if user_agent:
+        headers["User-Agent"] = user_agent
+
+    request = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=MAX_WAIT_SECONDS) as response:
+            body = response.read()
+            content_type = (
+                response.headers.get("Content-Type", "application/octet-stream")
+                .split(";")[0]
+                .strip()
+                .lower()
+            )
+            filename = parse_content_disposition_filename(
+                response.headers.get("Content-Disposition")
+            )
+    except socket.timeout as error:
+        raise ConnectorTimeoutError from error
+    except urllib.error.URLError as error:
+        raise ConnectorConnectionError(str(error.reason)) from error
+
+    if not filename:
+        path = urllib.parse.urlparse(url).path
+        if path:
+            path_name = Path(path).name
+            if path_name:
+                filename = urllib.parse.unquote(path_name)
+    return body, content_type, filename
+
+
+def is_probably_pdf(url: str, content_type: str, payload_bytes: bytes) -> bool:
+    if "pdf" in content_type:
+        return True
+    if content_type == "application/octet-stream" and (url_is_pdf(url) or payload_bytes.startswith(b"%PDF")):
+        return True
+    return payload_bytes.startswith(b"%PDF")
+
+
+def extract_title(html_content: str, fallback: str) -> str:
+    match = re.search(
+        r"<title[^>]*>(.*?)</title>", html_content, flags=re.IGNORECASE | re.DOTALL
+    )
+    if not match:
+        return fallback
+    title = re.sub(r"\s+", " ", html.unescape(match.group(1))).strip()
+    return title or fallback
+
+
+def detect_translator_label(uri: str, html_content: str) -> str | None:
+    try:
+        body = connector_post("detect", 200, {"uri": uri, "html": html_content})
+        translators = json.loads(body.decode("utf-8"))
+    except (WrongResponseError, json.JSONDecodeError):
+        return None
+    if not translators:
+        return None
+    return translators[0].get("label")
+
+
+def url_is_pdf(url: str) -> bool:
+    return urllib.parse.urlparse(url).path.lower().endswith(".pdf")
+
+
+def first_nonempty(values: list[str] | None) -> str | None:
+    if not values:
+        return None
+    for value in values:
+        if value:
+            return value
+    return None
+
+
+def normalize_url_for_qutebrowser_pdfjs(url: str) -> tuple[str, bool, str | None]:
+    parsed = urllib.parse.urlparse(url)
+    if not (
+        parsed.scheme == "qute"
+        and parsed.netloc == "pdfjs"
+        and parsed.path.endswith("/viewer.html")
+    ):
+        return url, False, None
+
+    query = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+    source = first_nonempty(query.get("source"))
+    file_param = first_nonempty(query.get("file"))
+    filename = first_nonempty(query.get("filename"))
+    title = urllib.parse.unquote(filename) if filename else None
+
+    for candidate in (source, file_param):
+        if not candidate:
+            continue
+        decoded = urllib.parse.unquote(candidate)
+        if decoded.startswith(("http://", "https://", "file://")):
+            return decoded, True, title
+        if decoded.startswith("/"):
+            return Path(decoded).as_uri(), True, title
+        return decoded, True, title
+
+    return url, False, title
+
+
+def fetch_hint_target(url: str) -> tuple[str | None, bool]:
+    headers = {}
+    user_agent = os.environ.get("QUTE_USER_AGENT")
+    if user_agent:
+        headers["User-Agent"] = user_agent
+
+    request = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=MAX_WAIT_SECONDS) as response:
+            content_type = response.headers.get("Content-Type", "").lower()
+            is_pdf = "application/pdf" in content_type or url_is_pdf(url)
+            body = response.read()
+            charset = response.headers.get_content_charset() or "utf-8"
+    except socket.timeout as error:
+        raise ConnectorTimeoutError from error
+    except urllib.error.URLError as error:
+        raise ConnectorConnectionError(str(error.reason)) from error
+
+    if is_pdf:
+        return None, True
+    return body.decode(charset, errors="replace"), False
+
+
+def qute_notify(level: str, message: str) -> None:
+    fifo_path = os.environ.get("QUTE_FIFO")
+    if not fifo_path:
+        stream = sys.stderr if level == "error" else sys.stdout
+        print(message, file=stream)
+        return
+    escaped = message.replace("\\", "\\\\").replace('"', '\\"')
+    try:
+        with Path(fifo_path).open("w", encoding="utf-8") as fifo:
+            print(f'message-{level} "{escaped}"', file=fifo)
+    except OSError:
+        stream = sys.stderr if level == "error" else sys.stdout
+        print(message, file=stream)
+
+
+def notify(message: str) -> None:
+    qute_notify("info", message)
+
+
+def notify_error(message: str) -> None:
+    qute_notify("error", message)
+
+
+def run() -> int:
+    try:
+        input_url = os.environ["QUTE_URL"]
+    except KeyError:
+        notify_error("Missing QUTE_URL")
+        return 1
+
+    url, forced_pdf, forced_title = normalize_url_for_qutebrowser_pdfjs(input_url)
+    if input_url.startswith("qute://pdfjs/") and not forced_pdf:
+        notify_error("Could not resolve original PDF URL from qutebrowser PDF view")
+        return 1
+
+    mode = os.environ.get("QUTE_MODE", "command")
+    is_pdf = forced_pdf or url_is_pdf(url)
+    html: str | None = None
+
+    try:
+        if mode == "hints" and not is_pdf:
+            html, is_pdf = fetch_hint_target(url)
+        elif not is_pdf:
+            html_path = os.environ.get("QUTE_HTML")
+            if html_path:
+                html = read_html_file(html_path)
+            else:
+                html, is_pdf = fetch_hint_target(url)
+    except FileNotFoundError:
+        notify_error("qutebrowser HTML file not found")
+        return 1
+    except PermissionError:
+        notify_error("qutebrowser HTML file not readable")
+        return 1
+    except ConnectorTimeoutError:
+        notify_error("Timed out loading hinted URL")
+        return 1
+    except ConnectorConnectionError:
+        notify_error("Could not load hinted URL")
+        return 1
+
+    try:
+        if is_pdf:
+            title = forced_title
+            if not title:
+                parsed = urllib.parse.urlparse(url)
+                if parsed.path:
+                    title = urllib.parse.unquote(Path(parsed.path).name)
+
+            try:
+                payload_bytes, mime_type, fetched_filename = fetch_binary_resource(url)
+            except ConnectorTimeoutError:
+                notify_error("Timed out downloading PDF")
+                return 1
+            except ConnectorConnectionError:
+                notify_error("Could not download PDF")
+                return 1
+
+            title = title or fetched_filename
+            looks_like_pdf = is_probably_pdf(url, mime_type, payload_bytes)
+            if not looks_like_pdf:
+                save_snapshot(url, pdf=True, title=title)
+                notify("Saved page URL to Zotero (source was not a PDF)")
+                return 0
+
+            upload_mime_type = mime_type
+            if mime_type == "application/octet-stream":
+                upload_mime_type = "application/pdf"
+
+            try:
+                recognized = save_standalone_attachment(
+                    url, upload_mime_type, payload_bytes, title=title
+                )
+            except WrongResponseError as error:
+                if error.endpoint.startswith("saveStandaloneAttachment"):
+                    save_snapshot(url, pdf=True, title=title)
+                    notify("Saved PDF URL to Zotero (fallback mode)")
+                    return 0
+                raise
+
+            if recognized:
+                notify("Saved PDF to Zotero (metadata recognition started)")
+            else:
+                notify("Saved PDF to Zotero")
+            return 0
+
+        if html is None:
+            notify_error("No HTML available to save")
+            return 1
+
+        title = extract_title(html, url)
+        translator_label = detect_translator_label(url, html)
+        session_id = uuid.uuid4().hex
+        save_snapshot(url, html=html, title=title, session_id=session_id)
+        snapshot_saved = save_singlefile_snapshot(session_id, url, title, html)
+        if translator_label and snapshot_saved:
+            notify(f"Saved to Zotero ({translator_label})")
+        elif translator_label:
+            notify(f"Saved to Zotero ({translator_label}; metadata-only snapshot)")
+        elif snapshot_saved:
+            notify("Saved snapshot to Zotero")
+        else:
+            notify("Saved page to Zotero")
+        return 0
+
+    except ConnectorConnectionError:
+        notify_error("Zotero Connector is not available")
+        return 1
+    except ConnectorTimeoutError:
+        notify_error("Zotero Connector timed out")
+        return 1
+    except WrongResponseError as error:
+        notify_error(
+            f"Unexpected Zotero response ({error.endpoint}: {error.received_status})"
+        )
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(run())

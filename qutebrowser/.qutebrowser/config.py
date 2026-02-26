@@ -27,6 +27,7 @@ c.aliases = {
     "qa": "quit",
     "wq": "quit --save",
     "wqa": "quit --save",
+    "zsave": "spawn --userscript qute-zotero",
 }
 
 ## Time interval (in milliseconds) between auto-saves of
@@ -2446,6 +2447,8 @@ config.bind("<space>ua", "config-cycle statusbar.show always never")
 config.bind("<space>e", "config-cycle tabs.show always switching")
 config.bind("<space>sh", "history")
 config.bind("<space>sf", "cmd-set-text -s :open ~/")
+config.bind("<space>zz", "spawn --userscript qute-zotero")
+config.bind("<space>zS", "hint links userscript qute-zotero")
 config.bind("ff", "cmd-set-text -s :open ~/")
 config.bind("<space>bd", "tab-close")
 config.bind("<space>wd", "tab-close")  # I like the overload its my editor.
