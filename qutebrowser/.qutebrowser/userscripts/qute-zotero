@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import html
 import os
 import re
 import socket
@@ -17,6 +16,8 @@ from typing import Any
 
 MAX_WAIT_SECONDS = 20
 DEFAULT_CONNECTOR_URL = "http://127.0.0.1:23119/connector/"
+DEFAULT_TRANSLATION_SERVER_URL = "http://127.0.0.1:1969"
+SUPPORTED_BINARY_ATTACHMENT_MIME_TYPES = {"application/pdf", "application/epub+zip"}
 
 
 class ConnectorConnectionError(RuntimeError):
@@ -44,11 +45,33 @@ class WrongResponseError(RuntimeError):
         )
 
 
+class TranslationServerConnectionError(RuntimeError):
+    pass
+
+
+class TranslationServerTimeoutError(RuntimeError):
+    pass
+
+
+class TranslationServerResponseError(RuntimeError):
+    def __init__(self, status: int, detail: str) -> None:
+        self.status = status
+        self.detail = detail
+        super().__init__(detail)
+
+
 def connector_url(endpoint: str) -> str:
     base = os.environ.get("QUTE_ZOTERO_CONNECTOR_URL", DEFAULT_CONNECTOR_URL)
     if not base.endswith("/"):
         base += "/"
     return urllib.parse.urljoin(base, endpoint)
+
+
+def translation_server_url(endpoint: str = "web") -> str:
+    base = os.environ.get(
+        "QUTE_ZOTERO_TRANSLATION_SERVER_URL", DEFAULT_TRANSLATION_SERVER_URL
+    ).rstrip("/")
+    return f"{base}/{endpoint.lstrip('/')}"
 
 
 def connector_post(endpoint: str, expected_status: int, payload: dict[str, Any]) -> bytes:
@@ -105,70 +128,86 @@ def connector_post_stream(
     return response_body
 
 
-def save_snapshot(
-    url: str,
-    html: str | None = None,
-    pdf: bool = False,
-    title: str | None = None,
-    session_id: str | None = None,
-) -> None:
-    payload: dict[str, Any] = {"url": url}
-    if session_id:
-        payload["sessionID"] = session_id
-    if title:
-        payload["title"] = title
-    if pdf:
-        payload["pdf"] = True
-    elif html is not None:
-        payload["html"] = html
-    connector_post("saveSnapshot", 201, payload)
-
-
-def save_standalone_attachment(
-    url: str, mime_type: str, payload_bytes: bytes, title: str | None = None
-) -> bool:
-    session_id = uuid.uuid4().hex
-    metadata = {"url": url}
-    if title and title.isascii():
-        metadata["title"] = title
-
-    response = connector_post_stream(
-        f"saveStandaloneAttachment?sessionID={urllib.parse.quote(session_id)}",
-        201,
-        payload_bytes,
-        {
-            "Content-Type": mime_type,
-            "X-Metadata": json.dumps(metadata, ensure_ascii=True),
-        },
+def translation_server_post_web(
+    payload_bytes: bytes, content_type: str
+) -> tuple[int, bytes]:
+    request = urllib.request.Request(
+        translation_server_url("web"),
+        data=payload_bytes,
+        headers={"Content-Type": content_type, "Accept": "application/json"},
+        method="POST",
     )
-    if not response:
-        return False
     try:
-        parsed = json.loads(response.decode("utf-8"))
-    except json.JSONDecodeError:
-        return False
-    return bool(parsed.get("canRecognize"))
+        with urllib.request.urlopen(request, timeout=MAX_WAIT_SECONDS) as response:
+            return response.getcode(), response.read()
+    except socket.timeout as error:
+        raise TranslationServerTimeoutError from error
+    except urllib.error.HTTPError as error:
+        return error.code, error.read()
+    except urllib.error.URLError as error:
+        raise TranslationServerConnectionError(str(error.reason)) from error
 
 
-def save_singlefile_snapshot(session_id: str, url: str, title: str, html_content: str) -> bool:
+def parse_translation_server_json(
+    body: bytes, status: int, context: str
+) -> Any:
     try:
-        connector_post(
-            "saveSingleFile",
-            201,
-            {
-                "sessionID": session_id,
-                "url": url,
-                "title": title,
-                "snapshotContent": html_content,
-            },
+        return json.loads(body.decode("utf-8"))
+    except json.JSONDecodeError as error:
+        raise TranslationServerResponseError(
+            status, f"{context}: invalid JSON ({error})"
+        ) from error
+
+
+def translate_url_with_server(url: str) -> tuple[list[dict[str, Any]], bool]:
+    status, body = translation_server_post_web(url.encode("utf-8"), "text/plain")
+
+    if status == 200:
+        parsed = parse_translation_server_json(body, status, "initial /web response")
+        if not isinstance(parsed, list):
+            raise TranslationServerResponseError(
+                status, "initial /web response was not a list of items"
+            )
+        return parsed, False
+
+    if status == 300:
+        parsed = parse_translation_server_json(body, status, "multiple-choice /web response")
+        if not isinstance(parsed, dict):
+            raise TranslationServerResponseError(
+                status, "multiple-choice /web response was not an object"
+            )
+
+        session = parsed.get("session")
+        items = parsed.get("items")
+        if not session or not isinstance(items, dict) or not items:
+            raise TranslationServerResponseError(
+                status, "multiple-choice /web response missing session/items"
+            )
+
+        first_key = next(iter(items))
+        selection_payload = {
+            "url": parsed.get("url", url),
+            "session": session,
+            "items": {first_key: items[first_key]},
+        }
+        status, body = translation_server_post_web(
+            json.dumps(selection_payload).encode("utf-8"), "application/json"
         )
-        return True
-    except WrongResponseError:
-        return False
+        if status != 200:
+            snippet = body.decode("utf-8", errors="replace")[:200]
+            raise TranslationServerResponseError(
+                status, f"selection /web response failed: {snippet}"
+            )
 
+        selected = parse_translation_server_json(body, status, "selection /web response")
+        if not isinstance(selected, list):
+            raise TranslationServerResponseError(
+                status, "selection /web response was not a list of items"
+            )
+        return selected, True
 
-def read_html_file(path: str) -> str:
-    return Path(path).read_text(encoding="utf-8", errors="replace")
+    snippet = body.decode("utf-8", errors="replace")[:200]
+    raise TranslationServerResponseError(status, f"/web returned HTTP {status}: {snippet}")
 
 
 def parse_content_disposition_filename(content_disposition: str | None) -> str | None:
@@ -224,43 +263,25 @@ def fetch_binary_resource(url: str) -> tuple[bytes, str, str | None]:
     if not filename:
         path = urllib.parse.urlparse(url).path
         if path:
-            path_name = Path(path).name
-            if path_name:
-                filename = urllib.parse.unquote(path_name)
+            filename = urllib.parse.unquote(Path(path).name) or None
     return body, content_type, filename
+
+
+def url_is_pdf(url: str) -> bool:
+    path = urllib.parse.urlparse(url).path.lower()
+    if path.endswith(".pdf"):
+        return True
+    return bool(re.search(r"/pdf(?:/|$)", path))
 
 
 def is_probably_pdf(url: str, content_type: str, payload_bytes: bytes) -> bool:
     if "pdf" in content_type:
         return True
-    if content_type == "application/octet-stream" and (url_is_pdf(url) or payload_bytes.startswith(b"%PDF")):
+    if content_type == "application/octet-stream" and (
+        url_is_pdf(url) or payload_bytes.startswith(b"%PDF")
+    ):
         return True
     return payload_bytes.startswith(b"%PDF")
-
-
-def extract_title(html_content: str, fallback: str) -> str:
-    match = re.search(
-        r"<title[^>]*>(.*?)</title>", html_content, flags=re.IGNORECASE | re.DOTALL
-    )
-    if not match:
-        return fallback
-    title = re.sub(r"\s+", " ", html.unescape(match.group(1))).strip()
-    return title or fallback
-
-
-def detect_translator_label(uri: str, html_content: str) -> str | None:
-    try:
-        body = connector_post("detect", 200, {"uri": uri, "html": html_content})
-        translators = json.loads(body.decode("utf-8"))
-    except (WrongResponseError, json.JSONDecodeError):
-        return None
-    if not translators:
-        return None
-    return translators[0].get("label")
-
-
-def url_is_pdf(url: str) -> bool:
-    return urllib.parse.urlparse(url).path.lower().endswith(".pdf")
 
 
 def first_nonempty(values: list[str] | None) -> str | None:
@@ -300,27 +321,153 @@ def normalize_url_for_qutebrowser_pdfjs(url: str) -> tuple[str, bool, str | None
     return url, False, title
 
 
-def fetch_hint_target(url: str) -> tuple[str | None, bool]:
-    headers = {}
-    user_agent = os.environ.get("QUTE_USER_AGENT")
-    if user_agent:
-        headers["User-Agent"] = user_agent
+def looks_like_generic_webpage_item(items: list[dict[str, Any]]) -> bool:
+    if len(items) != 1:
+        return False
+    item = items[0]
+    if not isinstance(item, dict):
+        return False
+    if item.get("itemType") != "webpage":
+        return False
+    if item.get("creators"):
+        return False
+    for field in ("DOI", "ISBN", "PMID", "archive", "publicationTitle"):
+        if item.get(field):
+            return False
+    return True
 
-    request = urllib.request.Request(url, headers=headers, method="GET")
+
+def normalize_translated_items(
+    items: list[dict[str, Any]],
+    source_url: str,
+    source_is_pdf: bool,
+    source_title: str | None,
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    normalized_items: list[dict[str, Any]] = []
+    attachment_jobs: list[dict[str, str]] = []
+
+    for index, raw_item in enumerate(items, start=1):
+        if not isinstance(raw_item, dict):
+            continue
+
+        item = dict(raw_item)
+        item_id = str(item.get("id") or f"qute-item-{index}-{uuid.uuid4().hex[:6]}")
+        item["id"] = item_id
+        normalized_items.append(item)
+
+        attachments = item.get("attachments")
+        if not isinstance(attachments, list):
+            continue
+
+        for attachment_index, raw_attachment in enumerate(attachments, start=1):
+            if not isinstance(raw_attachment, dict):
+                continue
+            attachment_url = raw_attachment.get("url")
+            if not attachment_url:
+                continue
+
+            mime_type = str(raw_attachment.get("mimeType") or "").lower()
+            if mime_type and mime_type not in SUPPORTED_BINARY_ATTACHMENT_MIME_TYPES:
+                continue
+
+            attachment_jobs.append(
+                {
+                    "id": str(
+                        raw_attachment.get("id")
+                        or f"{item_id}-attachment-{attachment_index}-{uuid.uuid4().hex[:6]}"
+                    ),
+                    "parentItemID": item_id,
+                    "url": urllib.parse.urljoin(source_url, str(attachment_url)),
+                    "title": str(raw_attachment.get("title") or ""),
+                    "mimeType": mime_type,
+                }
+            )
+
+    has_pdf_job = any(job.get("mimeType") == "application/pdf" for job in attachment_jobs)
+    if source_is_pdf and normalized_items and not has_pdf_job:
+        attachment_jobs.append(
+            {
+                "id": f"{normalized_items[0]['id']}-pdf-{uuid.uuid4().hex[:6]}",
+                "parentItemID": str(normalized_items[0]["id"]),
+                "url": source_url,
+                "title": source_title or "",
+                "mimeType": "application/pdf",
+            }
+        )
+
+    return normalized_items, attachment_jobs
+
+
+def save_items(uri: str, items: list[dict[str, Any]], session_id: str) -> None:
+    connector_post(
+        "saveItems",
+        201,
+        {
+            "sessionID": session_id,
+            "uri": uri,
+            "items": items,
+        },
+    )
+
+
+def save_standalone_attachment(
+    url: str, mime_type: str, payload_bytes: bytes, title: str | None = None
+) -> bool:
+    session_id = uuid.uuid4().hex
+    metadata = {"url": url}
+    if title and title.isascii():
+        metadata["title"] = title
+
+    response = connector_post_stream(
+        f"saveStandaloneAttachment?sessionID={urllib.parse.quote(session_id)}",
+        201,
+        payload_bytes,
+        {
+            "Content-Type": mime_type,
+            "X-Metadata": json.dumps(metadata, ensure_ascii=True),
+        },
+    )
+    if not response:
+        return False
     try:
-        with urllib.request.urlopen(request, timeout=MAX_WAIT_SECONDS) as response:
-            content_type = response.headers.get("Content-Type", "").lower()
-            is_pdf = "application/pdf" in content_type or url_is_pdf(url)
-            body = response.read()
-            charset = response.headers.get_content_charset() or "utf-8"
-    except socket.timeout as error:
-        raise ConnectorTimeoutError from error
-    except urllib.error.URLError as error:
-        raise ConnectorConnectionError(str(error.reason)) from error
+        parsed = json.loads(response.decode("utf-8"))
+    except json.JSONDecodeError:
+        return False
+    return bool(parsed.get("canRecognize"))
 
-    if is_pdf:
-        return None, True
-    return body.decode(charset, errors="replace"), False
+
+def save_pdf_standalone_from_url(url: str, title: str | None) -> bool:
+    payload_bytes, mime_type, fetched_filename = fetch_binary_resource(url)
+    if not is_probably_pdf(url, mime_type, payload_bytes):
+        raise ValueError("source is not a PDF")
+
+    upload_mime_type = "application/pdf" if mime_type == "application/octet-stream" else mime_type
+    final_title = title or fetched_filename
+    return save_standalone_attachment(url, upload_mime_type, payload_bytes, title=final_title)
+
+
+def save_attachment(
+    session_id: str,
+    parent_item_id: str,
+    attachment_id: str,
+    url: str,
+    title: str | None,
+    mime_type: str,
+    payload_bytes: bytes,
+) -> None:
+    metadata = {"id": attachment_id, "url": url, "parentItemID": parent_item_id}
+    if title and title.isascii():
+        metadata["title"] = title
+
+    connector_post_stream(
+        f"saveAttachment?sessionID={urllib.parse.quote(session_id)}",
+        201,
+        payload_bytes,
+        {
+            "Content-Type": mime_type,
+            "X-Metadata": json.dumps(metadata, ensure_ascii=True),
+        },
+    )
 
 
 def qute_notify(level: str, message: str) -> None:
@@ -353,101 +500,92 @@ def run() -> int:
         notify_error("Missing QUTE_URL")
         return 1
 
-    url, forced_pdf, forced_title = normalize_url_for_qutebrowser_pdfjs(input_url)
+    normalized_url, forced_pdf, forced_title = normalize_url_for_qutebrowser_pdfjs(input_url)
     if input_url.startswith("qute://pdfjs/") and not forced_pdf:
         notify_error("Could not resolve original PDF URL from qutebrowser PDF view")
         return 1
 
-    mode = os.environ.get("QUTE_MODE", "command")
-    is_pdf = forced_pdf or url_is_pdf(url)
-    html: str | None = None
+    source_is_pdf = forced_pdf or url_is_pdf(normalized_url)
+    source_title = forced_title
+    if source_is_pdf and not source_title:
+        parsed = urllib.parse.urlparse(normalized_url)
+        if parsed.path:
+            source_title = urllib.parse.unquote(Path(parsed.path).name) or None
 
     try:
-        if mode == "hints" and not is_pdf:
-            html, is_pdf = fetch_hint_target(url)
-        elif not is_pdf:
-            html_path = os.environ.get("QUTE_HTML")
-            if html_path:
-                html = read_html_file(html_path)
-            else:
-                html, is_pdf = fetch_hint_target(url)
-    except FileNotFoundError:
-        notify_error("qutebrowser HTML file not found")
+        translated_items, selected_first_from_multiple = translate_url_with_server(normalized_url)
+    except TranslationServerConnectionError:
+        notify_error(
+            "Translation server unavailable. Start with: colima start && "
+            "nerdctl run -d --name zotero-translation-server -p 1969:1969 "
+            "--restart unless-stopped docker.io/zotero/translation-server"
+        )
         return 1
-    except PermissionError:
-        notify_error("qutebrowser HTML file not readable")
+    except TranslationServerTimeoutError:
+        notify_error(f"Translation server timed out at {translation_server_url('web')}")
         return 1
-    except ConnectorTimeoutError:
-        notify_error("Timed out loading hinted URL")
-        return 1
-    except ConnectorConnectionError:
-        notify_error("Could not load hinted URL")
-        return 1
-
-    try:
-        if is_pdf:
-            title = forced_title
-            if not title:
-                parsed = urllib.parse.urlparse(url)
-                if parsed.path:
-                    title = urllib.parse.unquote(Path(parsed.path).name)
-
+    except TranslationServerResponseError as error:
+        if source_is_pdf and error.status == 400:
             try:
-                payload_bytes, mime_type, fetched_filename = fetch_binary_resource(url)
+                recognized = save_pdf_standalone_from_url(normalized_url, source_title)
+            except ValueError:
+                notify_error("Translation server rejected PDF and fallback source was not a PDF")
+                return 1
             except ConnectorTimeoutError:
                 notify_error("Timed out downloading PDF")
                 return 1
             except ConnectorConnectionError:
                 notify_error("Could not download PDF")
                 return 1
-
-            title = title or fetched_filename
-            looks_like_pdf = is_probably_pdf(url, mime_type, payload_bytes)
-            if not looks_like_pdf:
-                save_snapshot(url, pdf=True, title=title)
-                notify("Saved page URL to Zotero (source was not a PDF)")
-                return 0
-
-            upload_mime_type = mime_type
-            if mime_type == "application/octet-stream":
-                upload_mime_type = "application/pdf"
-
-            try:
-                recognized = save_standalone_attachment(
-                    url, upload_mime_type, payload_bytes, title=title
+            except WrongResponseError as connector_error:
+                notify_error(
+                    "Unexpected Zotero response "
+                    f"({connector_error.endpoint}: {connector_error.received_status})"
                 )
-            except WrongResponseError as error:
-                if error.endpoint.startswith("saveStandaloneAttachment"):
-                    save_snapshot(url, pdf=True, title=title)
-                    notify("Saved PDF URL to Zotero (fallback mode)")
-                    return 0
-                raise
+                return 1
 
             if recognized:
                 notify("Saved PDF to Zotero (metadata recognition started)")
             else:
                 notify("Saved PDF to Zotero")
             return 0
+        notify_error(f"Translation server error (HTTP {error.status}): {error.detail}")
+        return 1
 
-        if html is None:
-            notify_error("No HTML available to save")
+    if source_is_pdf and looks_like_generic_webpage_item(translated_items):
+        try:
+            recognized = save_pdf_standalone_from_url(normalized_url, source_title)
+        except ValueError:
+            notify_error("Translation server returned generic webpage and source is not a PDF")
+            return 1
+        except ConnectorConnectionError:
+            notify_error("Zotero Connector is not available")
+            return 1
+        except ConnectorTimeoutError:
+            notify_error("Timed out downloading PDF")
+            return 1
+        except WrongResponseError as error:
+            notify_error(
+                f"Unexpected Zotero response ({error.endpoint}: {error.received_status})"
+            )
             return 1
 
-        title = extract_title(html, url)
-        translator_label = detect_translator_label(url, html)
-        session_id = uuid.uuid4().hex
-        save_snapshot(url, html=html, title=title, session_id=session_id)
-        snapshot_saved = save_singlefile_snapshot(session_id, url, title, html)
-        if translator_label and snapshot_saved:
-            notify(f"Saved to Zotero ({translator_label})")
-        elif translator_label:
-            notify(f"Saved to Zotero ({translator_label}; metadata-only snapshot)")
-        elif snapshot_saved:
-            notify("Saved snapshot to Zotero")
+        if recognized:
+            notify("Saved PDF to Zotero (metadata recognition started)")
         else:
-            notify("Saved page to Zotero")
+            notify("Saved PDF to Zotero")
         return 0
 
+    normalized_items, attachment_jobs = normalize_translated_items(
+        translated_items, normalized_url, source_is_pdf, source_title
+    )
+    if not normalized_items:
+        notify_error("Translation server returned no items")
+        return 1
+
+    session_id = uuid.uuid4().hex
+    try:
+        save_items(normalized_url, normalized_items, session_id)
     except ConnectorConnectionError:
         notify_error("Zotero Connector is not available")
         return 1
@@ -459,6 +597,55 @@ def run() -> int:
             f"Unexpected Zotero response ({error.endpoint}: {error.received_status})"
         )
         return 1
+
+    attachments_saved = 0
+    binary_cache: dict[str, tuple[bytes, str, str | None]] = {}
+    for job in attachment_jobs:
+        job_url = job.get("url", "")
+        if not job_url:
+            continue
+
+        if job_url in binary_cache:
+            payload_bytes, fetched_mime_type, fetched_filename = binary_cache[job_url]
+        else:
+            try:
+                payload_bytes, fetched_mime_type, fetched_filename = fetch_binary_resource(job_url)
+            except (ConnectorConnectionError, ConnectorTimeoutError):
+                continue
+            binary_cache[job_url] = (payload_bytes, fetched_mime_type, fetched_filename)
+
+        job_mime_type = job.get("mimeType", "")
+        if job_mime_type not in SUPPORTED_BINARY_ATTACHMENT_MIME_TYPES:
+            if fetched_mime_type in SUPPORTED_BINARY_ATTACHMENT_MIME_TYPES:
+                job_mime_type = fetched_mime_type
+            elif is_probably_pdf(job_url, fetched_mime_type, payload_bytes):
+                job_mime_type = "application/pdf"
+            else:
+                continue
+
+        attachment_title = job.get("title") or fetched_filename
+        try:
+            save_attachment(
+                session_id=session_id,
+                parent_item_id=job["parentItemID"],
+                attachment_id=job["id"],
+                url=job_url,
+                title=attachment_title,
+                mime_type=job_mime_type,
+                payload_bytes=payload_bytes,
+            )
+            attachments_saved += 1
+        except (ConnectorConnectionError, ConnectorTimeoutError, WrongResponseError):
+            continue
+
+    extra = " (multiple results page: selected first result)" if selected_first_from_multiple else ""
+    if attachments_saved:
+        notify(
+            f"Saved {len(normalized_items)} item(s) to Zotero with {attachments_saved} attachment(s){extra}"
+        )
+    else:
+        notify(f"Saved {len(normalized_items)} item(s) to Zotero{extra}")
+    return 0
 
 
 if __name__ == "__main__":

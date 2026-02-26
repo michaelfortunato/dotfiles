@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+Install / update:
+  1) mkdir -p "$HOME/Library/LaunchAgents"
+  2) cp /Users/michaelfortunato/dotfiles/qutebrowser/.qutebrowser/com.michaelfortunato.zotero-translation-server.plist \
+       "$HOME/Library/LaunchAgents/"
+  3) launchctl bootout "gui/$(id -u)/com.michaelfortunato.zotero-translation-server" 2>/dev/null || true
+  4) launchctl bootstrap "gui/$(id -u)" \
+       "$HOME/Library/LaunchAgents/com.michaelfortunato.zotero-translation-server.plist"
+  5) launchctl enable "gui/$(id -u)/com.michaelfortunato.zotero-translation-server"
+  6) launchctl kickstart -k "gui/$(id -u)/com.michaelfortunato.zotero-translation-server"
+
+Inspect:
+  launchctl print "gui/$(id -u)/com.michaelfortunato.zotero-translation-server"
+
+Unload:
+  launchctl bootout "gui/$(id -u)" \
+    "$HOME/Library/LaunchAgents/com.michaelfortunato.zotero-translation-server.plist"
+-->
+<dict>
+  <key>Label</key>
+  <string>com.michaelfortunato.zotero-translation-server</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/env</string>
+    <string>bash</string>
+    <string>/Users/michaelfortunato/dotfiles/qutebrowser/.qutebrowser/start-zotero-translation-server.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/michaelfortunato/dotfiles/qutebrowser/.qutebrowser</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StartInterval</key>
+  <integer>300</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/michaelfortunato/Library/Logs/zotero-translation-server.launchd.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/michaelfortunato/Library/Logs/zotero-translation-server.launchd.err.log</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/Users/michaelfortunato/.nix-profile/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+</dict>
+</plist>
