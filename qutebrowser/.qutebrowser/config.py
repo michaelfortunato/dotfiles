@@ -80,6 +80,7 @@ c.aliases = {
 ## Type: Dict
 # c.bindings.key_mappings = {'<Ctrl-[>': '<Escape>', '<Ctrl-6>': '<Ctrl-^>', '<Ctrl-M>': '<Return>', '<Ctrl-J>': '<Return>', '<Ctrl-I>': '<Tab>', '<Shift-Return>': '<Return>', '<Enter>': '<Return>', '<Shift-Enter>': '<Return>', '<Ctrl-Enter>': '<Ctrl-Return>'}
 c.bindings.key_mappings = {
+    # "<Ctrl-[>": "<Escape>",
     "<Ctrl-n>": "<Down>",
     "<Ctrl-P>": "<Up>",
     "<Ctrl-6>": "<Ctrl-^>",
@@ -420,6 +421,7 @@ c.bindings.key_mappings = {
 ## Background color of unselected even tabs.
 ## Type: QtColor
 # c.colors.tabs.even.bg = 'darkgrey'
+c.colors.tabs.even.bg = "lightgrey"
 
 ## Foreground color of unselected even tabs.
 ## Type: QtColor
@@ -449,6 +451,7 @@ c.bindings.key_mappings = {
 ## Background color of unselected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.odd.bg = 'grey'
+c.colors.tabs.odd.bg = "lightgrey"
 
 ## Foreground color of unselected odd tabs.
 ## Type: QtColor
@@ -620,6 +623,13 @@ c.bindings.key_mappings = {
 ##   - history
 ##   - filesystem
 # c.completion.open_categories = ['searchengines', 'quickmarks', 'bookmarks', 'history', 'filesystem']
+c.completion.open_categories = [
+    "searchengines",
+    "history",
+    "quickmarks",
+    "bookmarks",
+    "filesystem",
+]
 
 ## Move on to the next part when there's only one possible completion
 ## left.
@@ -2429,11 +2439,16 @@ c.window.hide_decoration = True
 # config.bind('}}', 'navigate next -t')
 config.bind("<space><space>", "cmd-set-text -s :open")
 config.bind("<Cmd-L>", "cmd-set-text -s :open")
-config.bind("<space>ua", "config-cycle tabs.show always switching")
-config.bind("<space>uA", "config-cycle statusbar.show always never")
+config.bind("<space>uA", "config-cycle tabs.show always switching")
+config.bind("<space>ut", "config-cycle tabs.show always switching")
+config.bind("<space>ua", "config-cycle statusbar.show always never")
 config.bind("<space>e", "config-cycle tabs.show always switching")
+config.bind("<space>sh", "history")
+config.bind("<space>sf", "cmd-set-text -s :open ~/")
+config.bind("ff", "cmd-set-text -s :open ~/")
 config.bind("<space>bd", "tab-close")
 config.bind("<space>wd", "tab-close")  # I like the overload its my editor.
+config.bind("<space>,", "cmd-set-text -s :tab-select")
 config.bind("s", "hint")
 config.bind("l", "forward")
 config.bind("h", "back")
@@ -2456,9 +2471,12 @@ config.bind("dd", "tab-close")
 config.bind("<Cmd-N>", "open -w")
 config.bind("<Cmd-W>", "close")
 config.bind("<Cmd-R>", "reload")
-config.bind("<space>,", "cmd-set-text -s :tab-select")
 config.unbind("f")
-config.bind("ff", "cmd-set-text -s :open ~/")
+config.bind(
+    "<Escape>", "clear-keychain ;; search ;; fake-key <Escape> ;; fullscreen --leave"
+)
+# You should have other things like a nice indicator for pass through
+config.bind("<Shift-Escape>", "mode-enter passthrough")
 
 ## Bindings for caret mode
 # config.bind('$', 'move-to-end-of-line', mode='caret')
@@ -2543,8 +2561,18 @@ config.bind("<Ctrl-Y>", "command-accept", mode="command")
 config.unbind("<Ctrl-E>", mode="insert")
 # See this issue:  https://github.com/qutebrowser/qutebrowser/issues/2668
 config.bind(
-    "<Escape>", "mode-leave ;; jseval -q document.activeElement.blur()", mode="insert"
+    "<Escape>",
+    "fake-key <Escape> ;; mode-leave ;; jseval -q document.activeElement.blur()",
+    mode="insert",
 )
+# A heuristic, but if you are doing cmd k you probably want it
+config.bind("<Cmd-K>", "fake-key <Cmd-K> ;; mode-enter insert")
+# Argument to be made for Cmd-K to toggle back to normal
+# given it will close the dialogue. Since I have not seen it actually
+# close more of the common dialogues, I will say that its best to leave it
+# unchecked, unless we enter normal mode with the dialogue open.
+# config.bind("<Cmd+K>", "fake-key <Cmd+k>", mode="insert")
+#
 # https://www.reddit.com/r/qutebrowser/comments/dqjnjw/i_made_a_hack_to_add_bashlike_u_into_insert_mode/
 config.bind("<Ctrl-u>", "fake-key <Shift-Home><Backspace>", "insert")
 
