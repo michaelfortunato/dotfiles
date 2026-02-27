@@ -19,32 +19,46 @@ c.InteractiveShellApp.exec_lines = [
     "%load_ext autoreload",
     "%autoreload 2",
     """
+import os
+
 try:
-    %colors catppuccin-mocha
-except Exception as e:
-    # # Silently fall back to a default theme
-    # try:
-    #     %colors linux
-    # except:
-    #   pass
+    from IPython import get_ipython
+
+    ip = get_ipython()
+    flavor = os.environ.get("IPYTHON_CATPPUCCIN_FLAVOR", "latte").lower()
+    if flavor not in ("latte", "mocha"):
+        flavor = "latte"
+    ip.run_line_magic("colors", f"catppuccin-{flavor}")
+except Exception:
     pass
 """,
     "print('💡 Autoreload tip: `%load_ext autoreload; %autoreload 2`. Works with uv pip install -e packages, not with site-packages')",
 ]
 
 try:
+    import os
     from pygments.token import Token
 
-    # Darken traceback/error backgrounds so highlighted frames stay readable
-    c.TerminalInteractiveShell.highlighting_style_overrides = {
-        Token.Generic.Traceback: "bg:#ff0000 #000000 bold",
-        Token.Traceback: "bg:#ff0000 #000000 bold",
-        Token.Generic.Error: "bg:#ff0000 #000000 bold",
-        Token.Error: "bg:#ff0000 #000000 bold",
-        Token.TB.Name: "bg:#ff0000 #000000 bold",
-        Token.TB.NameEm: "bg:#ff0000 #000000 bold",
-    }
-    # Keep this in sync with 03_catppuccin_theme.py highlight string.
+    # Traceback/error readability: use a Catppuccin-consistent background if available.
+    try:
+        from catppuccin import PALETTE
+
+        flavor = os.environ.get("IPYTHON_CATPPUCCIN_FLAVOR", "latte").lower()
+        if flavor not in ("latte", "mocha"):
+            flavor = "latte"
+        colors = getattr(PALETTE, flavor).colors
+
+        tb_bg = f"bg:{colors.surface1.hex}"
+        c.TerminalInteractiveShell.highlighting_style_overrides = {
+            Token.Generic.Traceback: f"{tb_bg} {colors.text.hex}",
+            Token.Traceback: f"{tb_bg} {colors.text.hex}",
+            Token.Generic.Error: f"{tb_bg} {colors.red.hex} bold",
+            Token.Error: f"{tb_bg} {colors.red.hex} bold",
+            Token.TB.Name: f"{tb_bg} {colors.blue.hex}",
+            Token.TB.NameEm: f"bold {tb_bg} {colors.blue.hex}",
+        }
+    except Exception:
+        pass
 except Exception:
     # If pygments is unavailable we silently skip these overrides
     pass
