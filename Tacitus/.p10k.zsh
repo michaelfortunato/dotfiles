@@ -369,6 +369,8 @@
   elif [[ -n ${COLORFGBG:-} && ${COLORFGBG} == *';'* ]]; then
     local p10k_bg=${COLORFGBG##*;}
     [[ $p10k_bg == (7|15) ]] && p10k_is_light=1
+  # elif [[ "$(command -v bat >/dev/null 2>&1 && kitten @ get-colors | rg -o --regexp='^background\s+(#\w+)$' --replace='$1')" = "#ffffff" ]]; then
+  #   p10k_is_light=1
   else
     local p10k_theme=
     if [[ -n ${GHOSTTY_THEME:-} ]]; then
