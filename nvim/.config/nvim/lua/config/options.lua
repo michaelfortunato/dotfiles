@@ -10,6 +10,7 @@ vim.opt.number = false
 vim.opt.relativenumber = false
 vim.opt.cursorline = false -- disable current-line highlight; comment out to restore
 --- Prepare for lazyvim v14 if I ever decide to go with it.
+vim.g.lazyvim_picker = "snacks" -- Sure the right picker is set.
 vim.g.snacks_animate = false
 
 --- SSH things START

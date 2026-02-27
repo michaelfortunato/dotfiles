@@ -1,7 +1,3 @@
-local M = {
-  show_statusline = true,
-}
-vim.g.lazyvim_picker = "snacks"
 return {
   {
     "michaelfortunato/LazyVim",

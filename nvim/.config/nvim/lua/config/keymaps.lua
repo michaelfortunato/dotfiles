@@ -194,24 +194,12 @@ del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
 --     - Snacks.picker.smart({ finders = { "files" }, cwd = vim.fn.stdpath("config") })
 -- - Files only under git root’s src:
 --     - Snacks.picker.smart({ finders = { "files" }, cwd = (LazyVim.root() or vim.uv.cwd()) .. "/src" })
-vim.keymap.set(
-  { "n" },
-  "<leader><leader>",
-  -- "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
-  function()
-    Snacks.picker.smart()
-  end,
-  { desc = "Find files (Cwd dir)" }
-)
-vim.keymap.set(
-  { "n" },
-  "<leader>,",
-  -- "<Cmd>Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>",
-  function()
-    Snacks.picker.buffers()
-  end,
-  { desc = "Find files (Cwd dir)" }
-)
+vim.keymap.set({ "n" }, "<leader><leader>", function()
+  Snacks.picker.smart()
+end, { desc = "Find files (Cwd dir)" })
+vim.keymap.set({ "n" }, "<leader>,", function()
+  Snacks.picker.buffers()
+end, { desc = "Find files (Cwd dir)" })
 vim.keymap.del({ "n" }, "f")
 -- This is causing a ton of tabs to be created
 -- vim.keymap.set(
@@ -221,9 +209,12 @@ vim.keymap.del({ "n" }, "f")
 --   { desc = "Open buffer in new tab", noremap = true, silent = true }
 -- )
 
--- WARN: overloaded a really nice key combo for buffer search not sure how I feel
--- abt it.
-vim.keymap.set({ "n" }, "fb", "<Cmd>Telescope buffers sort_mru=true sort_lastused=true ignore_current_buffer=true<CR>")
+-- Buffer stuff
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- TODO: FInd a better use for these guys
+vim.keymap.set("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "Prev Buffer" })
+vim.keymap.set("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Next Buffer" })
 --- A bit of discpline
 -- vim.keymap.set({ "n" }, "f<Tab>", function()
 --   Snacks.picker.tabs()
@@ -469,17 +460,6 @@ map("x", "<S-Tab>", "<gv", { silent = true })
 vim.keymap.set("v", "H", "J") -- Map H to Join lines to J can be used below
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true }) -- Shift visual selected line down
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true }) -- Shift visual selected line up
-vim.keymap.set({ "n" }, "<leader>si", function()
-  -- require("snacks").picker.lsp_workspace_symbols({
-  --   -- filter = {
-  --   --   -- [vim.bo.filetype] = LazyVim.config.get_kind_filter() or true,
-  --   -- },
-  -- })
-  -- These behave a bit differently
-  require("telescope.builtin").lsp_dynamic_workspace_symbols({
-    symbols = LazyVim.config.get_kind_filter(),
-  })
-end, { desc = "Goto Symbol (Workspace)" })
 
 wk.add({
   { "<leader>t", group = "Task" }, -- group
