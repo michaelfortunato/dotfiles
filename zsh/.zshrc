@@ -24,6 +24,11 @@ if [[ $MNF_OS = "Darwin" ]]; then
   fi
 fi
 
+# Generated completions cache (autoloaded by compsys via $fpath).
+# NOTE: This must be in $fpath before oh-my-zsh runs compinit.
+MNF_ZSH_COMP_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions"
+(( ${fpath[(Ie)$MNF_ZSH_COMP_DIR]} )) || fpath=("$MNF_ZSH_COMP_DIR" $fpath)
+
 
 
 # Path to your oh-my-zsh installation.
@@ -907,18 +912,44 @@ _mnf_cache_zsh_init() {
       autoload -Uz zrecompile
       zrecompile -q -p "$cache_file" 2>/dev/null || true
     fi
-    source "$cache_file"
   fi
 }
 
-(( ${+commands[fzf]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/fzf.zsh" "${commands[fzf]}" fzf --zsh
-(( ${+commands[codex]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/codex-completion.zsh" "${commands[codex]}" codex completion zsh
-(( ${+commands[uv]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/uv-completion.zsh" "${commands[uv]}" uv generate-shell-completion zsh
-(( ${+commands[typst]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/typst-completion.zsh" "${commands[typst]}" typst completions zsh
+_mnf_cache_zsh_source() {
+  _mnf_cache_zsh_init "$@" || return 0
+  [[ -r "$1" ]] && source "$1"
+}
+
+_mnf_cache_completion() {
+  local cmd="$1"
+  local func="$2"
+  shift 2
+
+  local cache_dir="${MNF_ZSH_COMP_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions}"
+  (( ${fpath[(Ie)$cache_dir]} )) || fpath=("$cache_dir" $fpath)
+
+  local cache_file="${cache_dir}/${func}"
+  local had_file=0
+  [[ -f "$cache_file" ]] && had_file=1
+
+  _mnf_cache_zsh_init "$cache_file" "${commands[$cmd]-}" "$@" || return 0
+
+  # If compinit has already run and the file didn't exist, bind it now.
+  if (( ! had_file )) && [[ -f "$cache_file" ]]; then
+    typeset -g -A _comps
+    autoload -Uz "$func"
+    _comps[$cmd]="$func"
+  fi
+}
+
+(( ${+commands[fzf]} )) && _mnf_cache_zsh_source "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/fzf.zsh" "${commands[fzf]}" fzf --zsh
+(( ${+commands[codex]} )) && _mnf_cache_completion codex _codex codex completion zsh
+(( ${+commands[uv]} )) && _mnf_cache_completion uv _uv uv generate-shell-completion zsh
+(( ${+commands[typst]} )) && _mnf_cache_completion typst _typst typst completions zsh
 # ref: https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#native-completions
-(( ${+commands[cargo]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/cargo-nightly-completion.zsh" "${commands[cargo]}" env CARGO_COMPLETE=zsh cargo +nightly
-(( ${+commands[pueue]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/pueue-completion.zsh" "${commands[pueue]}" pueue completions zsh
-(( ${+commands[mnf]} )) && _mnf_cache_zsh_init "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/mnf-completion.zsh" "${commands[mnf]}" mnf completion zsh
+(( ${+commands[cargo]} )) && _mnf_cache_completion cargo _clap_dynamic_completer_cargo env CARGO_COMPLETE=zsh cargo +nightly
+(( ${+commands[pueue]} )) && _mnf_cache_completion pueue _pueue pueue completions zsh
+(( ${+commands[mnf]} )) && _mnf_cache_completion mnf _clap_dynamic_completer_mnf mnf completion zsh
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
