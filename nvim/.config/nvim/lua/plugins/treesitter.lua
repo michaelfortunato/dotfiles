@@ -189,10 +189,16 @@ return {
     ---@module  "mini.surround"
     "echasnovski/mini.surround",
     config = function()
-      -- NOTE: mini.surround follows vim-surround semantics:
+      -- NOTE: By default, mini.surround follows vim-surround semantics:
       -- - `(` adds padded parens: `( word )`
       -- - `)` adds tight parens: `(word)`
+      -- We change that.
       require("mini.surround").setup({
+        custom_surroundings = {
+          -- Make `(` behave like `)` (tight parens, no padding).
+          -- Ref: .. mini/surround/.lua:1093 The difference being the output
+          ["("] = { input = { "%b()", "^.%s*().-()%s*.$" }, output = { left = "(", right = ")" } },
+        },
         mappings = {
           add = "ys",
           delete = "ds",
