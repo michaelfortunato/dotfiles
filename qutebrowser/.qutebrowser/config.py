@@ -2480,8 +2480,7 @@ config.unbind("f")
 config.bind(
     "<Escape>", "clear-keychain ;; search ;; fake-key <Escape> ;; fullscreen --leave"
 )
-# You should have other things like a nice indicator for pass through
-config.bind("<Shift-Escape>", "mode-enter passthrough")
+config.bind("<Cmd-f>", "cmd-set-text /")
 
 ## Bindings for caret mode
 # config.bind('$', 'move-to-end-of-line', mode='caret')
