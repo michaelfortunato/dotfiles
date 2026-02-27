@@ -7,6 +7,8 @@ import os
 import re
 import socket
 import sys
+from html import unescape
+from html.parser import HTMLParser
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -58,6 +60,36 @@ class TranslationServerResponseError(RuntimeError):
         self.status = status
         self.detail = detail
         super().__init__(detail)
+
+
+class PDFLinkExtractor(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.meta_urls: list[str] = []
+        self.link_urls: list[str] = []
+        self.anchor_urls: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attr_map = {key.lower(): (value or "") for key, value in attrs}
+
+        if tag == "meta":
+            meta_name = (attr_map.get("name") or attr_map.get("property") or "").lower()
+            content = attr_map.get("content", "")
+            if meta_name and "pdf" in meta_name and "url" in meta_name and content:
+                self.meta_urls.append(content)
+            return
+
+        if tag == "link":
+            href = attr_map.get("href", "")
+            link_type = attr_map.get("type", "").lower()
+            if href and "application/pdf" in link_type:
+                self.link_urls.append(href)
+            return
+
+        if tag == "a":
+            href = attr_map.get("href", "")
+            if href:
+                self.anchor_urls.append(href)
 
 
 def connector_url(endpoint: str) -> str:
@@ -284,6 +316,107 @@ def is_probably_pdf(url: str, content_type: str, payload_bytes: bytes) -> bool:
     return payload_bytes.startswith(b"%PDF")
 
 
+def looks_like_pdf_href(href: str) -> bool:
+    decoded_href = urllib.parse.unquote(href).lower().strip()
+    if not decoded_href:
+        return False
+    if decoded_href.startswith(("javascript:", "mailto:", "#", "about:")):
+        return False
+
+    parsed = urllib.parse.urlparse(decoded_href)
+    if parsed.path.endswith(".pdf"):
+        return True
+    if re.search(r"/pdf(?:/|$)", parsed.path):
+        return True
+    if re.search(r"(^|&)(format|type|ext)=pdf($|&)", parsed.query):
+        return True
+    if re.search(r"(^|&)pdf=1($|&)", parsed.query):
+        return True
+    return False
+
+
+def normalize_candidate_url(base_url: str, candidate_url: str) -> str | None:
+    cleaned = unescape(candidate_url).strip()
+    if not cleaned:
+        return None
+    absolute_url = urllib.parse.urljoin(base_url, cleaned)
+    parsed = urllib.parse.urlparse(absolute_url)
+    if parsed.scheme not in {"http", "https", "file"}:
+        return None
+    return absolute_url
+
+
+def extract_pdf_urls_from_html(base_url: str, html_text: str) -> list[str]:
+    parser = PDFLinkExtractor()
+    try:
+        parser.feed(html_text)
+        parser.close()
+    except Exception:
+        return []
+
+    ordered_candidates = parser.meta_urls + parser.link_urls + parser.anchor_urls
+    seen: set[str] = set()
+    urls: list[str] = []
+
+    for candidate in ordered_candidates:
+        normalized = normalize_candidate_url(base_url, candidate)
+        if not normalized:
+            continue
+        if not looks_like_pdf_href(normalized):
+            continue
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        urls.append(normalized)
+
+    return urls
+
+
+def load_page_html_for_pdf_discovery(url: str) -> str | None:
+    qute_html_path = os.environ.get("QUTE_HTML")
+    if qute_html_path:
+        try:
+            html_bytes = Path(qute_html_path).read_bytes()
+            return html_bytes.decode("utf-8", errors="replace")
+        except OSError:
+            pass
+
+    try:
+        payload_bytes, content_type, _ = fetch_binary_resource(url)
+    except (ConnectorConnectionError, ConnectorTimeoutError):
+        return None
+
+    stripped = payload_bytes.lstrip()
+    if "html" not in content_type and "xml" not in content_type and not stripped.startswith(b"<"):
+        return None
+    return payload_bytes.decode("utf-8", errors="replace")
+
+
+def discover_pdf_attachment_jobs(source_url: str, parent_item_id: str) -> list[dict[str, str]]:
+    html_text = load_page_html_for_pdf_discovery(source_url)
+    if not html_text:
+        return []
+
+    discovered_urls = extract_pdf_urls_from_html(source_url, html_text)
+    if not discovered_urls:
+        return []
+
+    jobs: list[dict[str, str]] = []
+    for index, discovered_url in enumerate(discovered_urls[:1], start=1):
+        path = urllib.parse.urlparse(discovered_url).path
+        filename = urllib.parse.unquote(Path(path).name) if path else ""
+        jobs.append(
+            {
+                "id": f"{parent_item_id}-discovered-pdf-{index}-{uuid.uuid4().hex[:6]}",
+                "parentItemID": parent_item_id,
+                "url": discovered_url,
+                "title": filename,
+                "mimeType": "application/pdf",
+            }
+        )
+    return jobs
+
+
 def first_nonempty(values: list[str] | None) -> str | None:
     if not values:
         return None
@@ -311,7 +444,12 @@ def normalize_url_for_qutebrowser_pdfjs(url: str) -> tuple[str, bool, str | None
     for candidate in (source, file_param):
         if not candidate:
             continue
-        decoded = urllib.parse.unquote(candidate)
+        decoded = candidate.strip()
+        for _ in range(3):
+            next_value = urllib.parse.unquote(decoded)
+            if next_value == decoded:
+                break
+            decoded = next_value
         if decoded.startswith(("http://", "https://", "file://")):
             return decoded, True, title
         if decoded.startswith("/"):
@@ -319,22 +457,6 @@ def normalize_url_for_qutebrowser_pdfjs(url: str) -> tuple[str, bool, str | None
         return decoded, True, title
 
     return url, False, title
-
-
-def looks_like_generic_webpage_item(items: list[dict[str, Any]]) -> bool:
-    if len(items) != 1:
-        return False
-    item = items[0]
-    if not isinstance(item, dict):
-        return False
-    if item.get("itemType") != "webpage":
-        return False
-    if item.get("creators"):
-        return False
-    for field in ("DOI", "ISBN", "PMID", "archive", "publicationTitle"):
-        if item.get(field):
-            return False
-    return True
 
 
 def normalize_translated_items(
@@ -410,6 +532,10 @@ def save_items(uri: str, items: list[dict[str, Any]], session_id: str) -> None:
     )
 
 
+def save_pdf_snapshot(url: str) -> None:
+    connector_post("saveSnapshot", 201, {"url": url, "pdf": True})
+
+
 def save_standalone_attachment(
     url: str, mime_type: str, payload_bytes: bytes, title: str | None = None
 ) -> bool:
@@ -444,6 +570,14 @@ def save_pdf_standalone_from_url(url: str, title: str | None) -> bool:
     upload_mime_type = "application/pdf" if mime_type == "application/octet-stream" else mime_type
     final_title = title or fetched_filename
     return save_standalone_attachment(url, upload_mime_type, payload_bytes, title=final_title)
+
+
+def save_pdf_from_url(url: str, title: str | None) -> bool:
+    try:
+        save_pdf_snapshot(url)
+        return False
+    except WrongResponseError:
+        return save_pdf_standalone_from_url(url, title)
 
 
 def save_attachment(
@@ -512,6 +646,31 @@ def run() -> int:
         if parsed.path:
             source_title = urllib.parse.unquote(Path(parsed.path).name) or None
 
+    if source_is_pdf:
+        try:
+            recognized = save_pdf_from_url(normalized_url, source_title)
+        except ValueError:
+            notify_error("Source URL did not resolve to a PDF")
+            return 1
+        except ConnectorTimeoutError:
+            notify_error("Timed out downloading PDF")
+            return 1
+        except ConnectorConnectionError:
+            notify_error("Zotero Connector is not available")
+            return 1
+        except WrongResponseError as connector_error:
+            notify_error(
+                "Unexpected Zotero response "
+                f"({connector_error.endpoint}: {connector_error.received_status})"
+            )
+            return 1
+
+        if recognized:
+            notify("Saved PDF to Zotero (metadata recognition started)")
+        else:
+            notify("Saved PDF to Zotero")
+        return 0
+
     try:
         translated_items, selected_first_from_multiple = translate_url_with_server(normalized_url)
     except TranslationServerConnectionError:
@@ -525,56 +684,8 @@ def run() -> int:
         notify_error(f"Translation server timed out at {translation_server_url('web')}")
         return 1
     except TranslationServerResponseError as error:
-        if source_is_pdf and error.status == 400:
-            try:
-                recognized = save_pdf_standalone_from_url(normalized_url, source_title)
-            except ValueError:
-                notify_error("Translation server rejected PDF and fallback source was not a PDF")
-                return 1
-            except ConnectorTimeoutError:
-                notify_error("Timed out downloading PDF")
-                return 1
-            except ConnectorConnectionError:
-                notify_error("Could not download PDF")
-                return 1
-            except WrongResponseError as connector_error:
-                notify_error(
-                    "Unexpected Zotero response "
-                    f"({connector_error.endpoint}: {connector_error.received_status})"
-                )
-                return 1
-
-            if recognized:
-                notify("Saved PDF to Zotero (metadata recognition started)")
-            else:
-                notify("Saved PDF to Zotero")
-            return 0
         notify_error(f"Translation server error (HTTP {error.status}): {error.detail}")
         return 1
-
-    if source_is_pdf and looks_like_generic_webpage_item(translated_items):
-        try:
-            recognized = save_pdf_standalone_from_url(normalized_url, source_title)
-        except ValueError:
-            notify_error("Translation server returned generic webpage and source is not a PDF")
-            return 1
-        except ConnectorConnectionError:
-            notify_error("Zotero Connector is not available")
-            return 1
-        except ConnectorTimeoutError:
-            notify_error("Timed out downloading PDF")
-            return 1
-        except WrongResponseError as error:
-            notify_error(
-                f"Unexpected Zotero response ({error.endpoint}: {error.received_status})"
-            )
-            return 1
-
-        if recognized:
-            notify("Saved PDF to Zotero (metadata recognition started)")
-        else:
-            notify("Saved PDF to Zotero")
-        return 0
 
     normalized_items, attachment_jobs = normalize_translated_items(
         translated_items, normalized_url, source_is_pdf, source_title
@@ -582,6 +693,13 @@ def run() -> int:
     if not normalized_items:
         notify_error("Translation server returned no items")
         return 1
+
+    has_pdf_job = any(job.get("mimeType") == "application/pdf" for job in attachment_jobs)
+    if not source_is_pdf and not has_pdf_job:
+        discovered_jobs = discover_pdf_attachment_jobs(
+            normalized_url, str(normalized_items[0]["id"])
+        )
+        attachment_jobs.extend(discovered_jobs)
 
     session_id = uuid.uuid4().hex
     try:
