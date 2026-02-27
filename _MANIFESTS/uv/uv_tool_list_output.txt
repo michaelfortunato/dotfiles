@@ -2,5 +2,5 @@ neovim-remote v2.5.1
 - nvr
 py-spy v0.4.1
 - py-spy
-ty v0.0.12
+ty v0.0.14
 - ty

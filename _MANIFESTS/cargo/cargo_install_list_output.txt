@@ -14,6 +14,8 @@ codex-acp v0.2.4 (https://github.com/zed-industries/codex-acp#bf8f944c):
     codex-acp
 difftastic v0.67.0:
     difft
+dua-cli v2.33.0:
+    dua
 evcxr_jupyter v0.21.1:
     evcxr_jupyter
 evcxr_repl v0.21.1:
@@ -39,6 +41,8 @@ pueue v4.0.2:
     pueued
 ralph-cli v2.0.9:
     ralph
+rheo v0.1.1:
+    rheo
 sql-cli v1.67.0:
     action_debugger
     action_logger
@@ -54,3 +58,5 @@ tokio-console v0.1.14:
     tokio-console
 tree-sitter-cli v0.25.10:
     tree-sitter
+typst-cli v0.14.2 (https://github.com/typst/typst#a935d935):
+    typst
