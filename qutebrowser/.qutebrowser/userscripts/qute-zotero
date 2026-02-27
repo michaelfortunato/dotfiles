@@ -664,6 +664,27 @@ def save_attachment(
     )
 
 
+def summarize_saved_items(
+    items: list[dict[str, Any]], attachments_saved: int
+) -> str | None:
+    if len(items) != 1:
+        return None
+    item = items[0]
+    if not isinstance(item, dict):
+        return None
+
+    item_type = str(item.get("itemType") or "").strip()
+    item_type_lower = item_type.lower()
+    has_attachment = attachments_saved > 0
+
+    if item_type_lower == "webpage":
+        return "webpage with attachment" if has_attachment else "webpage without attachment"
+
+    if has_attachment:
+        return f"resource with attachment (type: {item_type or 'unknown'})"
+    return f"resource without attachment (type: {item_type or 'unknown'})"
+
+
 def qute_notify(level: str, message: str) -> None:
     fifo_path = os.environ.get("QUTE_FIFO")
     if not fifo_path:
@@ -699,6 +720,8 @@ def run() -> int:
         notify_error("Could not resolve original PDF URL from qutebrowser PDF view")
         return 1
 
+    notify("Starting Zotero save")
+
     source_is_pdf = forced_pdf or url_is_pdf(normalized_url)
     source_title = forced_title
     if source_is_pdf and not source_title:
@@ -721,7 +744,7 @@ def run() -> int:
                 include_html=False,
             )
 
-        notify("Saved PDF to Zotero")
+        notify("Saved standalone PDF to Zotero")
         return 0
 
     try:
@@ -819,7 +842,11 @@ def run() -> int:
         except (ConnectorConnectionError, ConnectorTimeoutError, WrongResponseError):
             continue
 
+    saved_summary = summarize_saved_items(normalized_items, attachments_saved)
     extra = " (multiple results page: selected first result)" if selected_first_from_multiple else ""
+    if saved_summary:
+        notify(f"Saved {len(normalized_items)} item(s) to Zotero [{saved_summary}]{extra}")
+        return 0
     if attachments_saved:
         notify(
             f"Saved {len(normalized_items)} item(s) to Zotero with {attachments_saved} attachment(s){extra}"
