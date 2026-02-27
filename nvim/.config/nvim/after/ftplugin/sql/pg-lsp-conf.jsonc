@@ -1,0 +1,6 @@
+{
+  "db": {
+    "connectionString": "postgresql://michaelfortunato@localhost:5432/postgres",
+    "allowStatementExecutionsAgainst": ["localhost/*"]
+  }
+}
