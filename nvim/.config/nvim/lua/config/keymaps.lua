@@ -82,6 +82,13 @@ vim.keymap.set({ "c", "i" }, "<A-Right>", "<S-Right>")
 --- Basically . will enter macro recording mode
 --- see mnf.terminal for a start location for the bug
 vim.keymap.set("n", "q", function()
+  -- If recording is active, stop it with the raw built-in `q` command
+  -- (bypasses this mapping and any other remaps).
+  if vim.fn.reg_recording() ~= "" then
+    vim.cmd("normal! q")
+    return
+  end
+
   -- Note, wrap it around vim.schedule if you want it an expression mapping
   -- but honestly this works well.
   if require("trouble").is_open() then
