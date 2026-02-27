@@ -1601,6 +1601,8 @@ return {
                     desc = "Page down and enter the list",
                   },
                   ["<C-w>"] = { "layout_left", mode = { "n", "i" } },
+                  ["<C-n>"] = { { "focus_list", "list_down" }, mode = { "n", "i" } },
+                  ["<C-p>"] = { { "focus_list", "list_up" }, mode = { "n", "i" } },
                 },
               },
               list = {
