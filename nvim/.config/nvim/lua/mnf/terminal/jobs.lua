@@ -99,12 +99,16 @@ end
 ---@class JobState
 ---@field win integer?
 ---@field current_job_id JobId?
+---@field last_focused_job_id JobId?
+---@field last_focused_terminal_buf integer?
 ---@field layout string
 ---@field create_window fun(buf: integer, title: string): integer
 ---@field jobs table<JobId, JobInfo>
 M.state = {
   win = nil,
   current_job_id = nil,
+  last_focused_job_id = nil,
+  last_focused_terminal_buf = nil,
   layout = "vsplit",
   create_window = nil,
   jobs = {},
@@ -294,7 +298,22 @@ end
 
 local function open_vsplit(buf, _)
   --- see snacks.lua
-  local win = require("snacks").win.new({ style = "jobs_vsplit", buf = buf, fixbuf = false, enter = false })
+  local win = require("snacks").win.new({
+    position = "right",
+    width = 0.4,
+    wo = {
+      winhighlight = "Normal:Normal",
+      wrap = false,
+      number = false,
+      relativenumber = false,
+      signcolumn = "no",
+      foldcolumn = "0",
+      colorcolumn = "",
+    },
+    buf = buf,
+    fixbuf = false,
+    enter = false,
+  })
   return win.win
   -- local config = {
   --   width = math.floor(vim.o.columns * 0.5),
@@ -312,7 +331,21 @@ local function open_vsplit(buf, _)
 end
 
 local function open_split(buf, _)
-  local win = require("snacks").win.new({ style = "jobs_hsplit", buf = buf, fixbuf = false, enter = false })
+  local win = require("snacks").win.new({
+    position = "bottom",
+    wo = {
+      winhighlight = "Normal:Normal",
+      wrap = false,
+      number = false,
+      relativenumber = false,
+      signcolumn = "no",
+      foldcolumn = "0",
+      colorcolumn = "",
+    },
+    buf = buf,
+    fixbuf = false,
+    enter = false,
+  })
   return win.win
   -- local config = {
   --   height = math.floor(vim.o.lines * 0.3),
@@ -364,6 +397,18 @@ local function resolve_job_id(id)
   return tostring(id)
 end
 
+---@param id JobId?
+---@return nil
+local function set_last_focused_job(id)
+  M.state.current_job_id = id
+  M.state.last_focused_job_id = id
+end
+
+---@return JobId?
+local function get_last_focused_job_id()
+  return M.state.last_focused_job_id or M.state.current_job_id
+end
+
 ---@param runtime? JobRuntime
 ---@return boolean
 local function runtime_is_valid(runtime)
@@ -375,6 +420,68 @@ local function runtime_is_valid(runtime)
   end
   return vim.api.nvim_buf_is_valid(runtime.buffer)
 end
+
+---@param buf integer
+---@return JobId?
+local function job_id_for_terminal_buf(buf)
+  if not buf or buf <= 0 or not vim.api.nvim_buf_is_valid(buf) then
+    return nil
+  end
+  if vim.bo[buf].buftype ~= "terminal" then
+    return nil
+  end
+
+  local ok_id, raw_id = pcall(vim.api.nvim_buf_get_var, buf, "mnf_job_id")
+  if not ok_id or raw_id == nil then
+    return nil
+  end
+
+  local key = resolve_job_id(raw_id)
+  local job = M.state.jobs[key]
+  if not job or not job.runtime or job.runtime.config.external_terminal then
+    return nil
+  end
+  if not runtime_is_valid(job.runtime) or job.runtime.buffer ~= buf then
+    return nil
+  end
+
+  local ok_gen, raw_gen = pcall(vim.api.nvim_buf_get_var, buf, "mnf_job_gen")
+  if ok_gen and tonumber(raw_gen) ~= job.runtime.generation then
+    return nil
+  end
+
+  return key
+end
+
+---@param buf integer
+---@return nil
+local function track_terminal_focus(buf)
+  if not buf or buf <= 0 or not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
+  if vim.bo[buf].buftype ~= "terminal" then
+    return
+  end
+
+  M.state.last_focused_terminal_buf = buf
+  local key = job_id_for_terminal_buf(buf)
+  if key ~= nil then
+    set_last_focused_job(key)
+  end
+end
+
+local function setup_focus_tracking_autocmds()
+  local group = vim.api.nvim_create_augroup("mnf_jobs_focus_tracking", { clear = true })
+  vim.api.nvim_create_autocmd({ "BufEnter", "TermEnter" }, {
+    group = group,
+    callback = function(ev)
+      track_terminal_focus(ev.buf)
+    end,
+    desc = "Track last focused job terminal and term:// buffer",
+  })
+end
+
+setup_focus_tracking_autocmds()
 
 ---@param id JobId
 ---@return JobId key, JobInfo job
@@ -433,8 +540,8 @@ function M.delete_job(id)
     end
   end
   M.state.jobs[key] = nil
-  if M.state.current_job_id == key then
-    M.state.current_job_id = nil
+  if M.state.current_job_id == key or M.state.last_focused_job_id == key then
+    set_last_focused_job(nil)
   end
 end
 
@@ -452,7 +559,11 @@ function M.count(include_killed)
 end
 
 function M.get_current()
-  return M.state.current_job_id
+  return get_last_focused_job_id()
+end
+
+function M.get_last_focused_terminal_buffer()
+  return M.state.last_focused_terminal_buf
 end
 
 -- Status / display ----------------------------------------------------------
@@ -515,8 +626,11 @@ local function attach_buf_cleanup(id, job)
       j.runtime = nil
       j.status = (j.status == "killing") and "killed" or "killed"
       j.dirty = false
-      if M.state.current_job_id == id then
-        M.state.current_job_id = nil
+      if M.state.last_focused_terminal_buf == buf then
+        M.state.last_focused_terminal_buf = nil
+      end
+      if M.state.current_job_id == id or M.state.last_focused_job_id == id then
+        set_last_focused_job(nil)
       end
     end,
   })
@@ -531,6 +645,8 @@ local function start_internal_terminal(id, job, cmd_expanded)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].bufhidden = "hide"
   vim.bo[buf].buflisted = false
+
+  vim.keymap.set("t", ".,", "<Cmd>close<CR>", { buffer = buf })
 
   job.status = "creating"
   job.generation = job.generation + 1
@@ -735,7 +851,7 @@ function M.start_job(id)
     start_internal_capture(id, job, cmd_expanded)
   end
 
-  M.state.current_job_id = id
+  set_last_focused_job(id)
 
   if not job.config.silent then
     M.show_job(id)
@@ -789,11 +905,12 @@ function M.restart_job(id, quiet)
 end
 
 function M.kill_current_job()
-  if not M.state.current_job_id then
+  local current = get_last_focused_job_id()
+  if not current then
     notify("No current job selected", vim.log.levels.WARN)
     return
   end
-  M.kill_job(M.state.current_job_id)
+  M.kill_job(current)
 end
 
 -- Show / list / toggle ------------------------------------------------------
@@ -803,7 +920,7 @@ end
 function M.show_job(id)
   local key, job = ensure_job(id)
   id = key
-  M.state.current_job_id = id
+  set_last_focused_job(id)
 
   if not job.runtime or not runtime_is_valid(job.runtime) then
     notify("Job[" .. id .. "] is not running (or has no buffer yet)", vim.log.levels.WARN)
@@ -818,6 +935,10 @@ function M.show_job(id)
       notify("Job[" .. id .. "] is external (focus disabled by config)", vim.log.levels.INFO)
     end
     return
+  end
+
+  if job.runtime.config.use_terminal then
+    M.state.last_focused_terminal_buf = job.runtime.buffer
   end
 
   local original_win = vim.api.nvim_get_current_win()
@@ -840,6 +961,7 @@ end
 
 function M.list_jobs()
   local items = {}
+  local selected_job_id = get_last_focused_job_id()
   for job_id, job in pairs(M.state.jobs) do
     -- Refresh validity (external windows can be closed out-of-band)
     if job.runtime and not runtime_is_valid(job.runtime) then
@@ -854,7 +976,7 @@ function M.list_jobs()
     local location_icon = cfg.external_terminal and "🌐" or "🏠"
     local silent_icon = cfg.silent and "🔇" or ""
     local focus_icon = should_focus(cfg) and "🎯" or ""
-    local current_dot = (M.state.current_job_id == job_id) and "• " or "  "
+    local current_dot = (selected_job_id == job_id) and "• " or "  "
 
     local cmd_display = cfg.command ~= "" and cfg.command or "shell"
     local exit_info = ""
@@ -910,15 +1032,24 @@ function M.toggle()
   if M.state.win and vim.api.nvim_win_is_valid(M.state.win) then
     -- serialize_and_create_closure()
     vim.api.nvim_win_close(M.state.win, false)
+    --- TODO: Move to winclose autocmd
     M.state.win = nil
     return
   end
 
-  if M.state.current_job_id then
-    M.show_job(M.state.current_job_id)
-  else
-    M.list_jobs()
+  local target = get_last_focused_job_id()
+  if target ~= nil then
+    local job = M.state.jobs[target]
+    if job and job.runtime and runtime_is_valid(job.runtime) then
+      M.show_job(target)
+      return
+    end
+    if M.state.current_job_id == target or M.state.last_focused_job_id == target then
+      set_last_focused_job(nil)
+    end
   end
+
+  M.list_jobs()
 end
 
 function M.toggle_layout()
@@ -1131,12 +1262,13 @@ end
 ---@param text string
 ---@return nil
 function M.send_text(text)
-  if not M.state.current_job_id then
+  local current = get_last_focused_job_id()
+  if not current then
     notify("No current job selected", vim.log.levels.WARN)
     return
   end
 
-  local _, job = ensure_job(M.state.current_job_id)
+  local _, job = ensure_job(current)
   if not job.runtime or not runtime_is_valid(job.runtime) then
     notify("Current job is not running", vim.log.levels.WARN)
     return
@@ -1256,13 +1388,14 @@ function M.session_encode()
   for id, job in pairs(M.state.jobs) do
     jobs[tostring(id)] = normalize_config(job.config)
   end
+  local current = get_last_focused_job_id()
 
   return {
     version = SESSION_VERSION,
     jobs = jobs,
     state = {
       layout = M.state.layout,
-      current_job_id = M.state.current_job_id and tostring(M.state.current_job_id) or nil,
+      current_job_id = current and tostring(current) or nil,
     },
   }
 end
@@ -1297,7 +1430,8 @@ function M.session_apply(payload, opts)
       pcall(vim.api.nvim_win_close, M.state.win, false)
     end
     M.state.win = nil
-    M.state.current_job_id = nil
+    set_last_focused_job(nil)
+    M.state.last_focused_terminal_buf = nil
     M.state.jobs = {}
   end
 
@@ -1310,7 +1444,7 @@ function M.session_apply(payload, opts)
     set_layout(layout)
     local current = payload.state.current_job_id
     if current and payload.jobs and payload.jobs[current] then
-      M.state.current_job_id = current
+      set_last_focused_job(current)
     end
   end
 end

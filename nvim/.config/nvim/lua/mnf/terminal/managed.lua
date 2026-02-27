@@ -14,129 +14,78 @@ local use_external_kitty = false
 ---@param title string
 ---@return integer
 local function create_floating_window(buf, title)
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.8)
-  local row = math.floor((vim.o.lines - height) / 2)
-  local col = math.floor((vim.o.columns - width) / 2)
-
-  local config = {
-    relative = "editor",
-    width = width,
-    height = height,
-    row = row,
-    col = col,
-    style = "minimal",
-    border = {
-      { "╭", "FloatBorder" },
-      { "─", "FloatBorder" },
-      { "╮", "FloatBorder" },
-      { "│", "FloatBorder" },
-      { "╯", "FloatBorder" },
-      { "─", "FloatBorder" },
-      { "╰", "FloatBorder" },
-      { "│", "FloatBorder" },
+  local win = Snacks.win.new({
+    position = "float",
+    width = 0.8,
+    height = 0.8,
+    border = "rounded",
+    wo = {
+      -- Keep terminal content on Normal so colorschemes don't tint it like a border.
+      winhighlight = "Normal:Normal,NormalFloat:Normal,FloatBorder:FloatBorder,FloatTitle:FloatTitle",
+      wrap = false,
+      sidescrolloff = 0,
+      scrolloff = 0,
     },
-    title = { { title, "TerminalTitle" } },
+
+    buf = buf,
+    fixbuf = false,
+    enter = true,
+    title = { { title, "FloatTitle" } },
     title_pos = "center",
-    noautocmd = true,
-  }
-
-  local win = vim.api.nvim_open_win(buf, true, config)
-
-  -- Set floating window options
-  vim.wo[win].winhighlight = "Normal:FloatBorder,FloatBorder:FloatBorder"
-  vim.wo[win].winblend = 0
-  vim.wo[win].wrap = false
-  vim.wo[win].sidescrolloff = 0
-  vim.wo[win].scrolloff = 0
-
-  return win
+  })
+  return win.win
 end
 
 ---@param buf integer
 ---@param title string
 ---@return integer
 local function create_vsplit_window(buf, title)
-  local config = {
-    width = math.floor(vim.o.columns * 0.5),
-    split = "right",
-  }
+  local win = Snacks.win.new({
+    position = "right",
+    width = 0.4,
+    wo = {
+      winhighlight = "Normal:Normal",
+      wrap = false,
+      number = false,
+      relativenumber = false,
+      signcolumn = "no",
+      foldcolumn = "0",
+      colorcolumn = "",
+    },
 
-  local win = vim.api.nvim_open_win(buf, true, config)
-
-  -- Set split window options (same as horizontal split)
-  vim.wo[win].winhighlight = "Normal:Normal"
-  vim.wo[win].wrap = false
-  vim.wo[win].number = false
-  vim.wo[win].relativenumber = false
-  vim.wo[win].signcolumn = "no"
-  vim.wo[win].foldcolumn = "0"
-  vim.wo[win].colorcolumn = ""
-
-  return win
+    buf = buf,
+    fixbuf = false,
+    title = title,
+  })
+  return win.win
 end
 
 ---@param buf integer
 ---@param title string
 ---@return integer
 local function create_split_window(buf, title)
-  local config = {
-    height = math.floor(vim.o.lines * 0.3),
-    split = "below",
-  }
+  local win = Snacks.win.new({
+    position = "bottom",
+    wo = {
+      winhighlight = "Normal:Normal",
+      wrap = false,
+      number = false,
+      relativenumber = false,
+      signcolumn = "no",
+      foldcolumn = "0",
+      colorcolumn = "",
+    },
 
-  local win = vim.api.nvim_open_win(buf, true, config)
-
-  -- Set split window options
-  vim.wo[win].winhighlight = "Normal:Normal"
-  vim.wo[win].wrap = false
-  vim.wo[win].number = false
-  vim.wo[win].relativenumber = false
-  vim.wo[win].signcolumn = "no"
-  vim.wo[win].foldcolumn = "0"
-  vim.wo[win].colorcolumn = ""
-
-  return win
-end
-
--- Create a closure that recreates a window with serialized config (splits only)
----@param serialized_config table
----@return fun(buf: integer, title: string): integer
-local function create_serialized_window_function(serialized_config)
-  return function(buf, title)
-    local config = vim.deepcopy(serialized_config)
-
-    local win = vim.api.nvim_open_win(buf, true, config)
-
-    -- Apply split window options (no need to check config.relative)
-    vim.wo[win].winhighlight = "Normal:Normal"
-    vim.wo[win].wrap = false
-    vim.wo[win].number = false
-    vim.wo[win].relativenumber = false
-    vim.wo[win].signcolumn = "no"
-    vim.wo[win].foldcolumn = "0"
-    vim.wo[win].colorcolumn = ""
-
-    return win
-  end
+    buf = buf,
+    fixbuf = false,
+    title = title,
+  })
+  return win.win
 end
 
 ---@return nil
 local function serialize_and_create_closure()
-  -- TODO: Layout config integration challenge - this function serializes neovim window
-  -- configurations, but kitty terminals don't use neovim windows at all. This entire
-  -- serialization system needs to be bypassed or reworked for external kitty terminals.
-  -- Only serialize for split layouts - floating windows don't need it
-  if
-    M.terminal_state.layout ~= "floating"
-    and M.terminal_state.win
-    and vim.api.nvim_win_is_valid(M.terminal_state.win)
-  then
-    local config = vim.api.nvim_win_get_config(M.terminal_state.win)
-    M.terminal_state.create_window = create_serialized_window_function(config)
-  else
-    M.terminal_state.create_window = create_floating_window
-  end
+  M.terminal_state.create_window = M.layout_functions[M.terminal_state.layout] or create_floating_window
 end
 
 -- Layout functions table - elements can refer to other elements
@@ -296,7 +245,7 @@ function M.toggle_terminal(id)
     -- vim.api.nvim_set_current_win(M.terminal_state.win)
     if M.terminal_state.layout == "floating" then
       vim.api.nvim_win_set_config(M.terminal_state.win, {
-        title = { { " Terminal " .. id .. " ", "TerminalTitle" } },
+        title = { { " Terminal " .. id .. " ", "FloatTitle" } },
       })
     end
   else
@@ -819,9 +768,30 @@ function M.send_file_to_terminal_picker()
 end
 
 ---@param buf integer
+---@return integer?
+local function terminal_id_for_buffer(buf)
+  if not buf or buf <= 0 or not vim.api.nvim_buf_is_valid(buf) then
+    return nil
+  end
+
+  for id, buffer_entry in pairs(M.terminal_state.buffers) do
+    if buffer_entry.type ~= "kitty" and buffer_entry.buf == buf and vim.api.nvim_buf_is_valid(buffer_entry.buf) then
+      return id
+    end
+  end
+
+  return nil
+end
+
+---@param buf integer
 focus_terminal_buffer = function(buf)
   if not vim.api.nvim_buf_is_valid(buf) then
     return
+  end
+  local focused_id = terminal_id_for_buffer(buf)
+  if focused_id ~= nil then
+    M.terminal_state.last_used_terminal = focused_id
+    M.terminal_state.current = focused_id
   end
 
   local wins = vim.fn.win_findbuf(buf)
@@ -906,6 +876,15 @@ end
 
 ---@return integer
 function M.get_last_used_terminal()
+  local focused_id = terminal_id_for_buffer(vim.api.nvim_get_current_buf())
+  if focused_id ~= nil then
+    M.terminal_state.last_used_terminal = focused_id
+    M.terminal_state.current = focused_id
+    return focused_id
+  end
+  if M.terminal_state.current ~= nil then
+    return M.terminal_state.current
+  end
   return M.terminal_state.last_used_terminal
 end
 
