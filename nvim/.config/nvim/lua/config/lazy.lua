@@ -16,13 +16,9 @@ require("lazy").setup({
       dev = true,
       import = "lazyvim.plugins",
     },
-    -- import any extras modules here
-    -- { import = "lazyvim.plugins.extras.lang.typescript" },
-    -- { import = "lazyvim.plugins.extras.lang.json" },
-    -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
     -- import/override with your plugins
-    { import = "lazyvim.plugins.extras.dap.core" },
-    { import = "lazyvim.plugins.extras.editor.telescope", enabled = false },
+    -- TODO: Seems the telescope ignore directory is ignored by lazyvim
+    -- { import = "lazyvim.plugins.extras.editor.telescope", enabled = false },
     { import = "lazyvim.plugins.extras.formatting.prettier", enabled = false },
     { import = "plugins" },
   },
