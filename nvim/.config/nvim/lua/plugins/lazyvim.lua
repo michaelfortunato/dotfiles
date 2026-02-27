@@ -7,13 +7,14 @@ return {
     "michaelfortunato/LazyVim",
     dependencies = {
       { "projekt0n/github-nvim-theme", name = "github-theme" },
-      { "miikanissi/modus-themes.nvim" },
+      -- { "miikanissi/modus-themes.nvim" },
+      -- { "zenbones-theme/zenbones.nvim" },
     },
     opts = {
+      colorscheme = "catppuccin-latte",
+      -- colorscheme = "catppuccin-mocha",
       -- colorscheme = "github_dark_high_contrast",
       -- colorscheme = "github_light",
-      -- colorscheme = "catppuccin-latte",
-      colorscheme = "catppuccin-mocha",
       -- colorscheme = "tokyonight-night",
       -- colorscheme = "default",
     },
