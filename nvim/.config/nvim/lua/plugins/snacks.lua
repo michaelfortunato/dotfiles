@@ -116,10 +116,15 @@ vim.keymap.set("n", "'py", function()
   snacks_local.scratch.open({ ft = "python" })
 end, { desc = "Python scratch buffer" })
 
-vim.keymap.set("n", "'js", function()
+vim.keymap.set("n", "'jss", function()
   local snacks_local = require("snacks")
   snacks_local.scratch.open({ ft = "javascript" })
 end, { desc = "JavaScript scratch buffer" })
+
+vim.keymap.set("n", "'json", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "json" })
+end, { desc = "JSON scratch buffer" })
 
 vim.keymap.set("n", "'lua", function()
   local snacks_local = require("snacks")
@@ -130,6 +135,11 @@ vim.keymap.set("n", "'ty", function()
   local snacks_local = require("snacks")
   snacks_local.scratch.open({ ft = "typst" })
 end, { desc = "Typst scratch buffer" })
+
+vim.keymap.set("n", "'toml", function()
+  local snacks_local = require("snacks")
+  snacks_local.scratch.open({ ft = "toml" })
+end, { desc = "TOML scratch buffer" })
 
 vim.keymap.set("n", "'tex", function()
   local snacks_local = require("snacks")
@@ -214,6 +224,10 @@ vim.api.nvim_create_user_command("ScratchJavaScript", function()
   vim.cmd("Scratch javascript")
 end, { desc = "JavaScript scratch buffer (current win)" })
 
+vim.api.nvim_create_user_command("ScratchJson", function()
+  vim.cmd("Scratch json")
+end, { desc = "JSON scratch buffer (current win)" })
+
 vim.api.nvim_create_user_command("ScratchLua", function()
   vim.cmd("Scratch lua")
 end, { desc = "Lua scratch buffer (current win)" })
@@ -221,6 +235,10 @@ end, { desc = "Lua scratch buffer (current win)" })
 vim.api.nvim_create_user_command("ScratchTypst", function()
   vim.cmd("Scratch typst")
 end, { desc = "Typst scratch buffer (current win)" })
+
+vim.api.nvim_create_user_command("ScratchToml", function()
+  vim.cmd("Scratch toml")
+end, { desc = "TOML scratch buffer (current win)" })
 
 vim.api.nvim_create_user_command("ScratchTeX", function()
   vim.cmd("Scratch tex")
@@ -405,31 +423,6 @@ return {
           wo = {
             wrap = true,
             linebreak = true,
-          },
-        },
-        jobs_vsplit = {
-          position = "right",
-          width = 0.4,
-          wo = {
-            winhighlight = "Normal:Normal",
-            wrap = false,
-            number = false,
-            relativenumber = false,
-            signcolumn = "no",
-            foldcolumn = "0",
-            colorcolumn = "",
-          },
-        },
-        jobs_hsplit = {
-          position = "bottom",
-          wo = {
-            winhighlight = "Normal:Normal",
-            wrap = false,
-            number = false,
-            relativenumber = false,
-            signcolumn = "no",
-            foldcolumn = "0",
-            colorcolumn = "",
           },
         },
         scratch_vsplit = { position = "right", width = 0.45, backdrop = false, fixbuf = false },
@@ -1722,7 +1715,7 @@ return {
       { "<leader>sD", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
       { "<leader>sh", function() Snacks.picker.help() end, desc = "Help Pages" },
       { "<leader>sH", function() Snacks.picker.highlights() end, desc = "Highlights" },
-      { "<leader>si", function() Snacks.picker.icons() end, desc = "Icons" },
+      { "<leader>sI", function() Snacks.picker.icons() end, desc = "Icons" },
       { "<leader>sj", function() Snacks.picker.jumps() end, desc = "Jumps" },
       { "<leader>sk", function() Snacks.picker.keymaps() end, desc = "Keymaps" },
       { "<leader>sl", function() Snacks.picker.loclist() end, desc = "Location List" },
