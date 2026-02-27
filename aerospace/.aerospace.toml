@@ -236,7 +236,15 @@ run = "layout floating"
 
 [[on-window-detected]]
 if.app-id = "app.zen-browser.zen"
-run = "move-node-to-workspace G"  # G is leftover - Zen (Firefox fork)
+run = "move-node-to-workspace G"  # G is leftover - Zen (Firefox->Google fork)
+
+[[on-window-detected]]
+if.app-id = "org.qutebrowser.qutebrowser"
+run = "move-node-to-workspace G"  # G is leftover - Zen (Firefox->Google fork)
+
+[[on-window-detected]]
+if.app-id = "com.bitwarden.desktop"
+run = "layout floating"
 
 [[on-window-detected]]
 if.app-id = "com.apple.iCal"
