@@ -11,13 +11,49 @@ local del = function(...)
   return pcall(vim.keymap.del, ...)
 end
 
--- TODO: Get proper pasting in
--- local function paste()
---   local pasted = require("img-clip").paste_image()
---   if not pasted then
---     vim.cmd("normal! p")
---   end
--- end
+---@param key "P" | "p"
+local function mnf_paste(key)
+  -- TODO:  Which one is the clipboard again ?
+  local reg = vim.v.register
+  if reg == '"' or reg == "+" or reg == "*" then
+    local clipboard = require("img-clip.clipboard")
+    local img_clip = require("img-clip")
+    if clipboard.content_is_image() then
+      vim.b.mnf_img_clip_before = (key == "P")
+      vim.schedule(function()
+        img_clip.pasteImage({
+          insert_template_after_cursor = (key ~= "P"),
+        })
+      end)
+      return nil
+    end
+    -- Bonus: if the clipboard is an image URL/path, embed it instead of pasting the raw text.
+    local content = clipboard.get_content()
+    if content and content ~= "" then
+      local util = require("img-clip.util")
+      content = util.sanitize_input(content)
+      if util.is_image_url(content) or util.is_image_path(content) then
+        vim.b.mnf_img_clip_before = (key == "P")
+        vim.schedule(function()
+          img_clip.pasteImage({
+            insert_template_after_cursor = (key ~= "P"),
+          }, content)
+        end)
+        return nil
+      end
+    end
+  end
+  return key
+end
+
+vim.keymap.set("n", "p", function()
+  return mnf_paste("p")
+end, { expr = true })
+vim.keymap.set("n", "P", function()
+  return mnf_paste("P")
+end, { expr = true })
+-- Visual paste P be like p but not overrite the yank register
+vim.keymap.set("x", "P", '"_dp', { silent = true, desc = "Paste without yanking selection" })
 
 vim.keymap.set({ "n" }, "<leader>.", function()
   local bufpath = vim.api.nvim_buf_get_name(0)
