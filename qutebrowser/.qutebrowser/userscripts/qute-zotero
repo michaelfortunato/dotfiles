@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import socket
+import subprocess
 import sys
 from html import unescape
 from html.parser import HTMLParser
@@ -289,14 +291,51 @@ def fetch_binary_resource(url: str) -> tuple[bytes, str, str | None]:
             )
     except socket.timeout as error:
         raise ConnectorTimeoutError from error
-    except urllib.error.URLError as error:
-        raise ConnectorConnectionError(str(error.reason)) from error
+    except urllib.error.URLError:
+        return fetch_binary_resource_with_curl(url)
 
     if not filename:
         path = urllib.parse.urlparse(url).path
         if path:
             filename = urllib.parse.unquote(Path(path).name) or None
     return body, content_type, filename
+
+
+def fetch_binary_resource_with_curl(url: str) -> tuple[bytes, str, str | None]:
+    curl_binary = shutil.which("curl")
+    if not curl_binary:
+        raise ConnectorConnectionError("curl is not installed")
+
+    command = [
+        curl_binary,
+        "--silent",
+        "--show-error",
+        "--fail",
+        "--location",
+        "--max-time",
+        str(MAX_WAIT_SECONDS),
+        "--output",
+        "-",
+    ]
+    user_agent = os.environ.get("QUTE_USER_AGENT")
+    if user_agent:
+        command.extend(["--user-agent", user_agent])
+    command.append(url)
+
+    completed = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+    )
+    if completed.returncode != 0:
+        stderr = completed.stderr.decode("utf-8", errors="replace").strip()
+        raise ConnectorConnectionError(stderr or f"curl exited with {completed.returncode}")
+
+    filename = None
+    path = urllib.parse.urlparse(url).path
+    if path:
+        filename = urllib.parse.unquote(Path(path).name) or None
+    return completed.stdout, "application/octet-stream", filename
 
 
 def url_is_pdf(url: str) -> bool:
@@ -346,6 +385,16 @@ def normalize_candidate_url(base_url: str, candidate_url: str) -> str | None:
     return absolute_url
 
 
+def load_qute_html() -> str | None:
+    qute_html_path = os.environ.get("QUTE_HTML")
+    if not qute_html_path:
+        return None
+    try:
+        return Path(qute_html_path).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+
+
 def extract_pdf_urls_from_html(base_url: str, html_text: str) -> list[str]:
     parser = PDFLinkExtractor()
     try:
@@ -373,13 +422,9 @@ def extract_pdf_urls_from_html(base_url: str, html_text: str) -> list[str]:
 
 
 def load_page_html_for_pdf_discovery(url: str) -> str | None:
-    qute_html_path = os.environ.get("QUTE_HTML")
-    if qute_html_path:
-        try:
-            html_bytes = Path(qute_html_path).read_bytes()
-            return html_bytes.decode("utf-8", errors="replace")
-        except OSError:
-            pass
+    qute_html = load_qute_html()
+    if qute_html is not None:
+        return qute_html
 
     try:
         payload_bytes, content_type, _ = fetch_binary_resource(url)
@@ -445,11 +490,6 @@ def normalize_url_for_qutebrowser_pdfjs(url: str) -> tuple[str, bool, str | None
         if not candidate:
             continue
         decoded = candidate.strip()
-        for _ in range(3):
-            next_value = urllib.parse.unquote(decoded)
-            if next_value == decoded:
-                break
-            decoded = next_value
         if decoded.startswith(("http://", "https://", "file://")):
             return decoded, True, title
         if decoded.startswith("/"):
@@ -532,8 +572,11 @@ def save_items(uri: str, items: list[dict[str, Any]], session_id: str) -> None:
     )
 
 
-def save_pdf_snapshot(url: str) -> None:
-    connector_post("saveSnapshot", 201, {"url": url, "pdf": True})
+def save_snapshot(url: str, html: str | None = None) -> None:
+    payload: dict[str, Any] = {"url": url}
+    if html is not None:
+        payload["html"] = html
+    connector_post("saveSnapshot", 201, payload)
 
 
 def save_standalone_attachment(
@@ -573,11 +616,28 @@ def save_pdf_standalone_from_url(url: str, title: str | None) -> bool:
 
 
 def save_pdf_from_url(url: str, title: str | None) -> bool:
+    return save_pdf_standalone_from_url(url, title)
+
+
+def save_snapshot_fallback(url: str, reason: str, include_html: bool = True) -> int:
+    snapshot_html = load_qute_html() if include_html else None
     try:
-        save_pdf_snapshot(url)
-        return False
-    except WrongResponseError:
-        return save_pdf_standalone_from_url(url, title)
+        save_snapshot(url, snapshot_html)
+    except ConnectorConnectionError:
+        notify_error(f"{reason}. Snapshot fallback failed: Zotero Connector is not available")
+        return 1
+    except ConnectorTimeoutError:
+        notify_error(f"{reason}. Snapshot fallback failed: Zotero Connector timed out")
+        return 1
+    except WrongResponseError as error:
+        notify_error(
+            f"{reason}. Snapshot fallback failed: "
+            f"{error.endpoint} returned HTTP {error.received_status}"
+        )
+        return 1
+
+    notify(f"Saved snapshot to Zotero ({reason})")
+    return 0
 
 
 def save_attachment(
@@ -648,51 +708,54 @@ def run() -> int:
 
     if source_is_pdf:
         try:
-            recognized = save_pdf_from_url(normalized_url, source_title)
-        except ValueError:
-            notify_error("Source URL did not resolve to a PDF")
-            return 1
-        except ConnectorTimeoutError:
-            notify_error("Timed out downloading PDF")
-            return 1
-        except ConnectorConnectionError:
-            notify_error("Zotero Connector is not available")
-            return 1
-        except WrongResponseError as connector_error:
-            notify_error(
-                "Unexpected Zotero response "
-                f"({connector_error.endpoint}: {connector_error.received_status})"
+            save_pdf_from_url(normalized_url, source_title)
+        except (
+            ValueError,
+            ConnectorTimeoutError,
+            ConnectorConnectionError,
+            WrongResponseError,
+        ):
+            return save_snapshot_fallback(
+                normalized_url,
+                "PDF import failed",
+                include_html=False,
             )
-            return 1
 
-        if recognized:
-            notify("Saved PDF to Zotero (metadata recognition started)")
-        else:
-            notify("Saved PDF to Zotero")
+        notify("Saved PDF to Zotero")
         return 0
 
     try:
         translated_items, selected_first_from_multiple = translate_url_with_server(normalized_url)
     except TranslationServerConnectionError:
         notify_error(
-            "Translation server unavailable. Start with: colima start && "
-            "nerdctl run -d --name zotero-translation-server -p 1969:1969 "
-            "--restart unless-stopped docker.io/zotero/translation-server"
+            "Translation server unavailable "
+            f"at {translation_server_url('web')}"
         )
         return 1
     except TranslationServerTimeoutError:
         notify_error(f"Translation server timed out at {translation_server_url('web')}")
         return 1
     except TranslationServerResponseError as error:
-        notify_error(f"Translation server error (HTTP {error.status}): {error.detail}")
-        return 1
+        if error.status >= 500:
+            notify_error(
+                f"Translation server internal error (HTTP {error.status}): {error.detail}"
+            )
+            return 1
+        return save_snapshot_fallback(
+            normalized_url,
+            f"Translation server could not parse page (HTTP {error.status})",
+            include_html=True,
+        )
 
     normalized_items, attachment_jobs = normalize_translated_items(
         translated_items, normalized_url, source_is_pdf, source_title
     )
     if not normalized_items:
-        notify_error("Translation server returned no items")
-        return 1
+        return save_snapshot_fallback(
+            normalized_url,
+            "Translation server returned no items",
+            include_html=True,
+        )
 
     has_pdf_job = any(job.get("mimeType") == "application/pdf" for job in attachment_jobs)
     if not source_is_pdf and not has_pdf_job:
