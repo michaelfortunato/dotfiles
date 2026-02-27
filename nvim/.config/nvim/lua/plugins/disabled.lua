@@ -6,6 +6,30 @@ return {
   {
     "echasnovski/mini.pairs",
     enabled = false,
+    -- NOTE:All of this lua noise is because ...
+    --  I JUST WANT {<CR>} TO WORK NICELY.
+    -- config = function(_, opts)
+    --   require("mini.pairs").setup(opts)
+    --   local map_cr = function(lhs, rhs)
+    --     vim.keymap.set("i", lhs, rhs, { expr = true, replace_keycodes = false })
+    --   end
+    --   map_cr("<CR>", "v:lua.MiniPairs.cr()")
+    -- end,
+    -- opts = {
+    --   mappings = {
+    --     ["("] = false,
+    --     ["["] = false,
+    --     ["{"] = false,
+    --
+    --     [")"] = false,
+    --     ["]"] = false,
+    --     ["}"] = false,
+    --
+    --     ['"'] = false,
+    --     ["'"] = false,
+    --     ["`"] = false,
+    --   },
+    -- },
   },
   {
     "MeanderingProgrammer/render-markdown.nvim",
