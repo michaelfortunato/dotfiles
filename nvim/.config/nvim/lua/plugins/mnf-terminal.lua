@@ -48,7 +48,8 @@ return {
       end, { desc = "Toggle float for current buffer (tab-scoped)" })
 
       vim.keymap.set("n", ";;", function()
-        require("mnf.terminal.managed").toggle_terminal(1)
+        local mnf_terminal = require("mnf.terminal.managed")
+        mnf_terminal.toggle_terminal(mnf_terminal.get_last_used_terminal())
       end, { desc = "Send File To Terminal (pick)" })
 
       -- vim.keymap.set("t", ";;", function()
