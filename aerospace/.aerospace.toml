@@ -176,7 +176,6 @@ QSW="$(aerospace list-windows --workspace "$SW" --format "%{window-id}|%{window-
 if [ -n "$QSW" ]; then
   I="${QSW%%|*}"
   aerospace move-node-to-workspace --window-id "$I" "$CW"
-  aerospace layout floating --window-id "$I"
   aerospace focus --window-id "$I"
 else
   F="$(aerospace list-windows --focused --format "%{window-id}|%{window-title}")"
