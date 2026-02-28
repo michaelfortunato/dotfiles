@@ -1,6 +1,3 @@
-# DEPENDENCIES:
-# aerospace-marks
-# aerospace-scratch
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
@@ -54,7 +51,8 @@ outer.right = 0
 inherit-env-vars = true  # If you don't touch "exec" section,
 
 [exec.env-vars]  # it will fallback to "default-config.toml"
-# Path needs to have aerospace-scratch (homebrew) and aerospace-marks (nix) on it.
+# Try to give path as many packages manageres as available in case
+# you add so called aerospace "add-ons".
 PATH = "/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.nix-profile/bin:${PATH}"
 
 # 'main' binding mode declaration
@@ -185,37 +183,42 @@ alt-shift-semicolon = "mode service"
 #   aerospace move-node-to-workspace --window-id "${F%%|*}" "$SW"
 # fi
 # ' '''
-# PIN focused window
+# # This is a feature which allows us to dynamically "pin" a window for toggling
+# # to and from a nebulous/scratch space.
+# Method 1: Pin
 alt-backslash = '''exec-and-forget bash -lc '
-WID="$(aerospace list-windows --focused --format "%{window-id}" | head -n1 | tr -d "[:space:]")"
+PIN_FILE="${TMPDIR:-/tmp}/aerospace-pin-sp1"
+WID="$(aerospace list-windows --focused --format "%{window-id}" | tr -d "[:space:]")"
 [[ "$WID" =~ ^[1-9][0-9]*$ ]] || exit 0
-aerospace-marks mark -s --replace sp-1 --window-id "$WID"
+printf "%s\n" "$WID" > "$PIN_FILE"
 ' '''
-# UNPIN sp-1 mark if present
+# Method 2: Unpin
 alt-shift-backslash = '''exec-and-forget bash -lc '
-aerospace-marks unmark sp-1 >/dev/null 2>&1 || true
+PIN_FILE="${TMPDIR:-/tmp}/aerospace-pin-sp1"
+rm -f "$PIN_FILE"
 ' '''
-# Manual PS workspace toggle
+# Method 3: Toggle the pin back and forth
 alt-space = '''exec-and-forget bash -lc '
-SW=PS
+PIN_FILE="${TMPDIR:-/tmp}/aerospace-pin-sp1"
+SW="PS"
+[ -r "$PIN_FILE" ] || exit 0
+WID="$(tr -d "[:space:]" < "$PIN_FILE")"
 CW="$(aerospace list-workspaces --focused --format "%{workspace}" | head -n1)"
-[ -n "$CW" ] || exit 0
-
-WID="$(aerospace-marks get sp-1 -i 2>/dev/null | tr -d "[:space:]")"
-[[ "$WID" =~ ^[1-9][0-9]*$ ]] || exit 0
-
-WS_ID="$(aerospace-marks get sp-1 -o csv 2>/dev/null | tail -n +2 | cut -d "," -f 5 | tr -d "[:space:]")"
-if [ "$WS_ID" = "$SW" ]; then
+if ! aerospace list-windows --all --format "%{window-id}" | grep -qx "$WID"; then
+  rm -f "$PIN_FILE"
+  exit 0
+fi
+if aerospace list-windows --workspace "$SW" --format "%{window-id}" | grep -qx "$WID"; then
   aerospace move-node-to-workspace --window-id "$WID" "$CW"
   aerospace focus --window-id "$WID"
 else
   aerospace move-node-to-workspace --window-id "$WID" "$SW"
 fi
 ' '''
+# Experimental: Still deciding if I want this
 alt-shift-space = '''exec-and-forget bash -lc '
 FR="$(aerospace-scratchpad list -F workspace="$(aerospace list-workspaces --focused | head -n1)" -o tsv \
   | tail -n +2 | cut -f3 | head -n1 | tr -d "[:space:]")"
-
 if [[ "$FR" =~ ^[0-9]+$ ]] && (( FR > 0 )); then
   aerospace-scratchpad move --all-floating
 else
