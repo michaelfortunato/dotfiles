@@ -196,8 +196,19 @@ return {
       require("mini.surround").setup({
         custom_surroundings = {
           -- Make `(` behave like `)` (tight parens, no padding).
-          -- Ref: .. mini/surround/.lua:1093 The difference being the output
+          -- The input regex differes from that of the the default ')', where
+          -- by we can " word " will trigger the surround, not just "word"
+          -- Should probably do these for the other brackets as well.
           ["("] = { input = { "%b()", "^.%s*().-()%s*.$" }, output = { left = "(", right = ")" } },
+          -- Original maps: Ref: .. mini/surround/.lua:1093
+          -- ['('] = { input = { '%b()', '^.%s*().-()%s*.$' }, output = { left = '( ', right = ' )' } },
+          -- [')'] = { input = { '%b()', '^.().*().$' },       output = { left = '(',  right = ')' } },
+          -- ['['] = { input = { '%b[]', '^.%s*().-()%s*.$' }, output = { left = '[ ', right = ' ]' } },
+          -- [']'] = { input = { '%b[]', '^.().*().$' },       output = { left = '[',  right = ']' } },
+          -- ['{'] = { input = { '%b{}', '^.%s*().-()%s*.$' }, output = { left = '{ ', right = ' }' } },
+          -- ['}'] = { input = { '%b{}', '^.().*().$' },       output = { left = '{',  right = '}' } },
+          -- ['<'] = { input = { '%b<>', '^.%s*().-()%s*.$' }, output = { left = '< ', right = ' >' } },
+          -- ['>'] = { input = { '%b<>', '^.().*().$' },       output = { left = '<',  right = '>' } },
         },
         mappings = {
           add = "ys",
