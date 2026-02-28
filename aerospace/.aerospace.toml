@@ -1,3 +1,6 @@
+# DEPENDENCIES:
+# aerospace-marks
+# aerospace-scratch
 # Place a copy of this config to ~/.aerospace.toml
 # After that, you can edit ~/.aerospace.toml to your liking
 
@@ -51,7 +54,8 @@ outer.right = 0
 inherit-env-vars = true  # If you don't touch "exec" section,
 
 [exec.env-vars]  # it will fallback to "default-config.toml"
-PATH = "/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}"
+# Path needs to have aerospace-scratch (homebrew) and aerospace-marks (nix) on it.
+PATH = "/opt/homebrew/bin:/opt/homebrew/sbin:${HOME}/.nix-profile/bin:${PATH}"
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -76,7 +80,6 @@ PATH = "/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}"
 alt-f = "layout floating tiling"
 alt-slash = "layout tiles accordion"
 alt-comma = "layout accordion horizontal vertical"
-alt-shift-space = "layout tiles accordion"
 # Disable these per
 # https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
 cmd-h = []  # Disable "hide application"
@@ -169,17 +172,54 @@ alt-tab = "workspace-back-and-forth"
 alt-shift-tab = "move-workspace-to-monitor --wrap-around next"
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = "mode service"
+# alt-space = '''exec-and-forget bash -lc '
+# SW=PS
+# CW="$(aerospace list-workspaces --focused --format "%{workspace}")"
+# QSW="$(aerospace list-windows --workspace "$SW" --format "%{window-id}|%{window-title}" || true)"
+# if [ -n "$QSW" ]; then
+#   I="${QSW%%|*}"
+#   aerospace move-node-to-workspace --window-id "$I" "$CW"
+#   aerospace focus --window-id "$I"
+# else
+#   F="$(aerospace list-windows --focused --format "%{window-id}|%{window-title}")"
+#   aerospace move-node-to-workspace --window-id "${F%%|*}" "$SW"
+# fi
+# ' '''
+# PIN focused window
+alt-backslash = '''exec-and-forget bash -lc '
+WID="$(aerospace list-windows --focused --format "%{window-id}" | head -n1 | tr -d "[:space:]")"
+[[ "$WID" =~ ^[1-9][0-9]*$ ]] || exit 0
+aerospace-marks mark -s --replace sp-1 --window-id "$WID"
+' '''
+# UNPIN sp-1 mark if present
+alt-shift-backslash = '''exec-and-forget bash -lc '
+aerospace-marks unmark sp-1 >/dev/null 2>&1 || true
+' '''
+# Manual PS workspace toggle
 alt-space = '''exec-and-forget bash -lc '
 SW=PS
-CW="$(aerospace list-workspaces --focused --format "%{workspace}")"
-QSW="$(aerospace list-windows --workspace "$SW" --format "%{window-id}|%{window-title}" || true)"
-if [ -n "$QSW" ]; then
-  I="${QSW%%|*}"
-  aerospace move-node-to-workspace --window-id "$I" "$CW"
-  aerospace focus --window-id "$I"
+CW="$(aerospace list-workspaces --focused --format "%{workspace}" | head -n1)"
+[ -n "$CW" ] || exit 0
+
+WID="$(aerospace-marks get sp-1 -i 2>/dev/null | tr -d "[:space:]")"
+[[ "$WID" =~ ^[1-9][0-9]*$ ]] || exit 0
+
+WS_ID="$(aerospace-marks get sp-1 -o csv 2>/dev/null | tail -n +2 | cut -d "," -f 5 | tr -d "[:space:]")"
+if [ "$WS_ID" = "$SW" ]; then
+  aerospace move-node-to-workspace --window-id "$WID" "$CW"
+  aerospace focus --window-id "$WID"
 else
-  F="$(aerospace list-windows --focused --format "%{window-id}|%{window-title}")"
-  aerospace move-node-to-workspace --window-id "${F%%|*}" "$SW"
+  aerospace move-node-to-workspace --window-id "$WID" "$SW"
+fi
+' '''
+alt-shift-space = '''exec-and-forget bash -lc '
+FR="$(aerospace-scratchpad list -F workspace="$(aerospace list-workspaces --focused | head -n1)" -o tsv \
+  | tail -n +2 | cut -f3 | head -n1 | tr -d "[:space:]")"
+
+if [[ "$FR" =~ ^[0-9]+$ ]] && (( FR > 0 )); then
+  aerospace-scratchpad move --all-floating
+else
+  aerospace-scratchpad show ".*" -F workspace=".scratchpad"
 fi
 ' '''
 
