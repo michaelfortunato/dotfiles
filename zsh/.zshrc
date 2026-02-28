@@ -685,7 +685,7 @@ ki() {
     echo $pid | xargs kill -${1:-15}
   fi
 }
-psi() {
+pi() {
   local pid
   pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
   echo pid
