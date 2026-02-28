@@ -43,6 +43,8 @@ ralph-cli v2.0.9:
     ralph
 rheo v0.1.1:
     rheo
+skim v3.5.0:
+    sk
 sql-cli v1.67.0:
     action_debugger
     action_logger
