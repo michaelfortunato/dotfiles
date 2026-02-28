@@ -170,19 +170,6 @@ alt-tab = "workspace-back-and-forth"
 alt-shift-tab = "move-workspace-to-monitor --wrap-around next"
 # See: https://nikitabobko.github.io/AeroSpace/commands#mode
 alt-shift-semicolon = "mode service"
-# alt-space = '''exec-and-forget bash -lc '
-# SW=PS
-# CW="$(aerospace list-workspaces --focused --format "%{workspace}")"
-# QSW="$(aerospace list-windows --workspace "$SW" --format "%{window-id}|%{window-title}" || true)"
-# if [ -n "$QSW" ]; then
-#   I="${QSW%%|*}"
-#   aerospace move-node-to-workspace --window-id "$I" "$CW"
-#   aerospace focus --window-id "$I"
-# else
-#   F="$(aerospace list-windows --focused --format "%{window-id}|%{window-title}")"
-#   aerospace move-node-to-workspace --window-id "${F%%|*}" "$SW"
-# fi
-# ' '''
 # # This is a feature which allows us to dynamically "pin" a window for toggling
 # # to and from a nebulous/scratch space.
 # Method 1: Pin
@@ -217,14 +204,35 @@ fi
 ' '''
 # Experimental: Still deciding if I want this
 alt-shift-space = '''exec-and-forget bash -lc '
-FR="$(aerospace-scratchpad list -F workspace="$(aerospace list-workspaces --focused | head -n1)" -o tsv \
-  | tail -n +2 | cut -f3 | head -n1 | tr -d "[:space:]")"
-if [[ "$FR" =~ ^[0-9]+$ ]] && (( FR > 0 )); then
-  aerospace-scratchpad move --all-floating
+PIN_FILE="${TMPDIR:-/tmp}/aerospace-pin-sp1"
+SW="PS"
+[ -r "$PIN_FILE" ] || exit 0
+WID="$(tr -d "[:space:]" < "$PIN_FILE")"
+CW="$(aerospace list-workspaces --focused --format "%{workspace}" | head -n1)"
+if ! aerospace list-windows --all --format "%{window-id}" | grep -qx "$WID"; then
+  rm -f "$PIN_FILE"
+  exit 0
+fi
+if aerospace list-windows --workspace "$SW" --format "%{window-id}" | grep -qx "$WID"; then
+  aerospace move-node-to-workspace --window-id "$WID" "$CW"
 else
-  aerospace-scratchpad show ".*" -F workspace=".scratchpad"
+  aerospace move-node-to-workspace --window-id "$WID" "$SW"
 fi
 ' '''
+# Stateless version below.
+# alt-space = '''exec-and-forget bash -lc '
+# SW=PS
+# CW="$(aerospace list-workspaces --focused --format "%{workspace}")"
+# QSW="$(aerospace list-windows --workspace "$SW" --format "%{window-id}|%{window-title}" || true)"
+# if [ -n "$QSW" ]; then
+#   I="${QSW%%|*}"
+#   aerospace move-node-to-workspace --window-id "$I" "$CW"
+#   aerospace focus --window-id "$I"
+# else
+#   F="$(aerospace list-windows --focused --format "%{window-id}|%{window-title}")"
+#   aerospace move-node-to-workspace --window-id "${F%%|*}" "$SW"
+# fi
+# ' '''
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
