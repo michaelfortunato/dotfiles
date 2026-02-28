@@ -172,7 +172,7 @@ alt-shift-semicolon = "mode service"
 alt-space = '''exec-and-forget bash -lc '
 SW=PS
 CW="$(aerospace list-workspaces --focused --format "%{workspace}")"
-QSW="$(aerospace list-windows --workspace "$SW" --format "%{window-id}|%{window-title}" | rg -m1 "\\|Typst Preview$" || true)"
+QSW="$(aerospace list-windows --workspace "$SW" --format "%{window-id}|%{window-title}" || true)"
 if [ -n "$QSW" ]; then
   I="${QSW%%|*}"
   aerospace move-node-to-workspace --window-id "$I" "$CW"
@@ -180,7 +180,6 @@ if [ -n "$QSW" ]; then
   aerospace focus --window-id "$I"
 else
   F="$(aerospace list-windows --focused --format "%{window-id}|%{window-title}")"
-  echo "$F" | rg -q "\\|Typst Preview$" || exit 0
   aerospace move-node-to-workspace --window-id "${F%%|*}" "$SW"
 fi
 ' '''
