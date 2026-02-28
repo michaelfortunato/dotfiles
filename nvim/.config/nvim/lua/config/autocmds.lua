@@ -313,7 +313,7 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "typst" },
   callback = function()
     --- TODO: Consider invoking the pin on this event
-    vim.keymap.set("n", "<localleader>p", function()
+    vim.keymap.set("n", "<localleader>P", function()
       ---@diagnostic disable-next-line: deprecated
       vim.lsp.buf.execute_command({ command = "tinymist.pinMain", arguments = { vim.api.nvim_buf_get_name(0) } })
       -- -- unpin the main file
