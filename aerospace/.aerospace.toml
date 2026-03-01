@@ -202,23 +202,6 @@ else
   aerospace move-node-to-workspace --window-id "$WID" "$SW"
 fi
 ' '''
-# Experimental: Still deciding if I want this
-alt-shift-space = '''exec-and-forget bash -lc '
-PIN_FILE="${TMPDIR:-/tmp}/aerospace-pin-sp1"
-SW="PS"
-[ -r "$PIN_FILE" ] || exit 0
-WID="$(tr -d "[:space:]" < "$PIN_FILE")"
-CW="$(aerospace list-workspaces --focused --format "%{workspace}" | head -n1)"
-if ! aerospace list-windows --all --format "%{window-id}" | grep -qx "$WID"; then
-  rm -f "$PIN_FILE"
-  exit 0
-fi
-if aerospace list-windows --workspace "$SW" --format "%{window-id}" | grep -qx "$WID"; then
-  aerospace move-node-to-workspace --window-id "$WID" "$CW"
-else
-  aerospace move-node-to-workspace --window-id "$WID" "$SW"
-fi
-' '''
 # Stateless version below.
 # alt-space = '''exec-and-forget bash -lc '
 # SW=PS
@@ -233,6 +216,7 @@ fi
 #   aerospace move-node-to-workspace --window-id "${F%%|*}" "$SW"
 # fi
 # ' '''
+alt-shift-space = "layout tiles accordion"
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
