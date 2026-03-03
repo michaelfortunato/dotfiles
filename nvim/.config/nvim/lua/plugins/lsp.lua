@@ -35,7 +35,7 @@ vim.lsp.config("tinymist", {
   },
 })
 vim.lsp.enable("tinymist")
-vim.lsp.enable("rust-analyzer")
+vim.lsp.enable("rust_analyzer")
 vim.lsp.enable("ty") -- vim.lsp.enable("pyrefly")
 
 vim.lsp.inline_completion.enable(false)
