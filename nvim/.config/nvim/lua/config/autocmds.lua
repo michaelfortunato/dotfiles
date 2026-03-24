@@ -418,6 +418,42 @@ end, {
   desc = "Print current buffer path (abs by default, or rel/cwd/rootdir)",
 })
 
+vim.api.nvim_create_user_command("YankPath", function(opts)
+  local arg = opts.args
+  local path
+
+  if arg == "rel" or arg == "cwd" then
+    -- relative to current working directory
+    path = vim.fn.expand("%:.")
+  elseif arg == "rootdir" then
+    -- relative to LSP root dir (or current cwd if no LSP)
+    local clients = vim.lsp.get_clients({ bufnr = 0 })
+    local root
+    for _, client in ipairs(clients) do
+      if client.config.root_dir then
+        root = client.config.root_dir
+        break
+      end
+    end
+    if root then
+      local fullpath = vim.fn.expand("%:p")
+      path = vim.fn.fnamemodify(fullpath, ":." .. root)
+    else
+      path = vim.fn.expand("%:.")
+    end
+  else
+    -- default: absolute path
+    path = vim.fn.expand("%:p")
+  end
+  vim.fn.setreg("+", path)
+end, {
+  nargs = "?",
+  complete = function(_, _, _)
+    return { "rel", "cwd", "rootdir" }
+  end,
+  desc = "Yank current buffer path to clipboard (abs by default, or rel/cwd/rootdir)",
+})
+
 ------------------------------------------------------------------------------
 --- Restore the cursors postiion for things like yaq my god so much better
 --- AI generated so not sure iif good yet. Update MNF_EXPERIMENTAL_RESTORE
