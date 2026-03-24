@@ -1735,7 +1735,20 @@ c.input.insert_mode.auto_load = True
 ## Additional environment variables to set. Setting an environment
 ## variable to null/None will unset it.
 ## Type: Dict
-# c.qt.environ = {}
+### NOTE: This is for the bitwarden plugin (see <ctrl-space> keymap below)
+import os
+
+c.qt.environ = {
+    "PATH": os.pathsep.join(
+        dict.fromkeys(
+            [
+                "/opt/homebrew/bin",
+                "/opt/homebrew/sbin",
+                *filter(None, os.environ.get("PATH", "").split(os.pathsep)),
+            ]
+        )
+    )
+}
 
 ## Force a Qt platform to use. This sets the `QT_QPA_PLATFORM`
 ## environment variable and is useful to force using the XCB plugin when
@@ -2464,8 +2477,8 @@ config.bind("<space>sh", "history")
 config.bind("<space>sf", "cmd-set-text -s :open ~/")
 config.bind("<space>st", "cmd-set-text -s :tab-select")
 config.bind("<space>zz", "spawn --userscript qute-zotero")
-config.bind("<space>zp", "spawn open -a Bitwarden")
-config.bind("<Ctrl-space>", "spawn open -a Bitwarden", mode="insert")
+config.bind("<Ctrl-space>", "spawn --userscript qute-bitwarden")
+config.bind("<Ctrl-space>", "spawn --userscript qute-bitwarden", mode="insert")
 config.bind("<space>zS", "hint links userscript qute-zotero")
 config.bind("ff", "cmd-set-text -s :open ~/")
 config.bind("<space>bd", "tab-close")
