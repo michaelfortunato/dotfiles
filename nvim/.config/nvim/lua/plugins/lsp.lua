@@ -211,6 +211,9 @@ return {
       inlay_hints = { enabled = false },
       --- Ideally we do not have these enabled for it.
       servers = {
+        rust_analyzer = {
+          enabled = false,
+        },
         tinymist = {
           enabled = false,
         },
@@ -326,10 +329,6 @@ return {
     -- LazyVim overrides this ugh!
     opts = {
       automatic_installation = false,
-      automatic_enable = false,
-      ---Pin it to @3.16.4
-      --- Due to this issue: https://github.com/folke/lazydev.nvim/issues/136
-      ensure_installed = { "lua_ls@3.16.4" },
     },
   },
   -- https://github.com/Bekaboo/dropbar.nvim
