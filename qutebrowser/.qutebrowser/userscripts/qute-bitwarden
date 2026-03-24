@@ -1,0 +1,606 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import base64
+import contextlib
+import getpass
+from http.client import RemoteDisconnected
+import json
+import os
+import shutil
+import signal
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any, Iterator
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlencode, urlsplit
+from urllib.request import Request, urlopen
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows fallback
+    fcntl = None
+
+SCRIPT_PATH = Path(__file__).resolve()
+CONTROLLER_PATH = SCRIPT_PATH.parent.parent / "greasemonkey" / "qute-bitwarden.js"
+PASSWORD_COMMAND_ENV = "QUTE_BITWARDEN_PASSWORD_COMMAND"
+UNLOCK_PASSWORD_ENV = "QUTE_BITWARDEN_MASTER_PASSWORD"
+SYNC_ON_UNLOCK_ENV = "QUTE_BITWARDEN_SYNC_ON_UNLOCK"
+COPY_TOTP_ENV = "QUTE_BITWARDEN_COPY_TOTP"
+SERVE_HOST = "127.0.0.1"
+COMMAND_TIMEOUT_SECONDS = 20
+PROMPT_TIMEOUT_SECONDS = 300
+SERVE_START_TIMEOUT_SECONDS = 8
+HTTP_TIMEOUT_SECONDS = 2
+if sys.platform == "darwin":
+    CACHE_ROOT = Path.home() / "Library" / "Caches"
+elif os.name == "nt":
+    CACHE_ROOT = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+else:
+    CACHE_ROOT = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+CACHE_DIR = CACHE_ROOT / "qute-bitwarden"
+STATE_PATHS = {
+    "session": "bw-session",
+    "pid": "bw-serve.pid",
+    "port": "bw-serve.port",
+    "log": "bw-serve.log",
+    "lock": "bw-serve.lock",
+}
+STATE_PATHS = {name: CACHE_DIR / filename for name, filename in STATE_PATHS.items()}
+PROMPT_COMMANDS: list[list[str]] = []
+if sys.platform == "darwin" and shutil.which("osascript"):
+    PROMPT_COMMANDS.append(
+        [
+            "osascript",
+            "-e",
+            (
+                'tell application id "org.qutebrowser.qutebrowser" to activate\n'
+                "try\n"
+                'set dialogResult to display dialog "Unlock Bitwarden vault" '
+                'with title "qute-bitwarden" default answer "" '
+                'with hidden answer buttons {"Cancel", "Unlock"} default button "Unlock"\n'
+                "return text returned of dialogResult\n"
+                "on error number -128\n"
+                'return ""\n'
+                "end try"
+            ),
+        ]
+    )
+if shutil.which("zenity"):
+    PROMPT_COMMANDS.append(["zenity", "--password", "--title=qute-bitwarden", "--text=Unlock Bitwarden vault"])
+if shutil.which("kdialog"):
+    PROMPT_COMMANDS.append(["kdialog", "--password", "Unlock Bitwarden vault"])
+if os.name == "nt":
+    executable = shutil.which("pwsh") or shutil.which("powershell")
+    if executable:
+        PROMPT_COMMANDS.append(
+            [
+                executable,
+                "-NoProfile",
+                "-Command",
+                """
+Add-Type -AssemblyName System.Windows.Forms
+$form = New-Object System.Windows.Forms.Form
+$form.Text = 'qute-bitwarden'
+$form.Width = 420
+$form.Height = 155
+$form.StartPosition = 'CenterScreen'
+$label = New-Object System.Windows.Forms.Label
+$label.Text = 'Unlock Bitwarden vault'
+$label.Left = 12
+$label.Top = 14
+$label.Width = 360
+$textbox = New-Object System.Windows.Forms.TextBox
+$textbox.Left = 12
+$textbox.Top = 42
+$textbox.Width = 380
+$textbox.UseSystemPasswordChar = $true
+$button = New-Object System.Windows.Forms.Button
+$button.Text = 'Unlock'
+$button.Left = 302
+$button.Top = 74
+$button.Width = 90
+$button.DialogResult = [System.Windows.Forms.DialogResult]::OK
+$form.Controls.AddRange(@($label, $textbox, $button))
+$form.AcceptButton = $button
+if ($form.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::Out.Write($textbox.Text) }
+""".strip(),
+            ]
+        )
+
+
+class BitwardenError(RuntimeError):
+    def __init__(self, kind: str, message: str) -> None:
+        super().__init__(message)
+        self.kind = kind
+
+
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() not in {"", "0", "false", "no", "off"}
+
+
+def notify(level: str, message: str) -> None:
+    fifo_path = os.environ.get("QUTE_FIFO")
+    if not fifo_path:
+        print(message, file=sys.stderr if level == "error" else sys.stdout)
+        return
+    escaped = message.replace("\\", "\\\\").replace('"', '\\"')
+    try:
+        with Path(fifo_path).open("w", encoding="utf-8") as fifo:
+            print(f'message-{level} "{escaped}"', file=fifo)
+    except OSError:
+        print(message, file=sys.stderr if level == "error" else sys.stdout)
+
+
+def qute_commands(*commands: str) -> None:
+    fifo_path = os.environ.get("QUTE_FIFO")
+    if not fifo_path:
+        raise BitwardenError("config", "Missing QUTE_FIFO")
+    with Path(fifo_path).open("w", encoding="utf-8") as fifo:
+        for command in commands:
+            print(command, file=fifo)
+
+
+def run_command(
+    command: list[str] | str,
+    *,
+    env: dict[str, str] | None = None,
+    shell: bool = False,
+    timeout: int = COMMAND_TIMEOUT_SECONDS,
+) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            command if shell else list(command),
+            capture_output=True,
+            env=env,
+            shell=shell,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as error:
+        rendered = command if isinstance(command, str) else " ".join(command)
+        raise BitwardenError("timeout", f"Command timed out after {timeout}s: {rendered}") from error
+
+
+def classify_bw_error(message: str) -> BitwardenError:
+    normalized = message.lower()
+    if "vault is locked" in normalized:
+        return BitwardenError("locked", message)
+    if "invalid session" in normalized or "session key is invalid" in normalized:
+        return BitwardenError("session", message)
+    if "not logged in" in normalized:
+        return BitwardenError("logged_out", message)
+    return BitwardenError("generic", message or "Bitwarden failed")
+
+
+def read_state(name: str) -> str | None:
+    path = STATE_PATHS[name]
+    try:
+        value = path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return None
+    except OSError as error:
+        raise BitwardenError("config", f"Could not read {path.name}: {error}") from error
+    return value or None
+
+
+def write_state(name: str, value: str) -> None:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    path = STATE_PATHS[name]
+    path.write_text(value + "\n", encoding="utf-8")
+    try:
+        path.chmod(0o600)
+    except OSError:
+        pass
+
+
+def clear_state(name: str) -> None:
+    path = STATE_PATHS[name]
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        pass
+    except OSError:
+        pass
+
+
+def choose_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind((SERVE_HOST, 0))
+        return int(sock.getsockname()[1])
+
+
+def http_json(
+    method: str,
+    port: int,
+    path: str,
+    *,
+    query: dict[str, str] | None = None,
+    payload: dict[str, Any] | None = None,
+    timeout: float = HTTP_TIMEOUT_SECONDS,
+) -> Any:
+    url = f"http://{SERVE_HOST}:{port}{path}"
+    if query:
+        url = f"{url}?{urlencode(query)}"
+    body = json.dumps(payload).encode("utf-8") if payload is not None else None
+    request = Request(url, data=body, method=method)
+    if body is not None:
+        request.add_header("Content-Type", "application/json")
+
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            raw = response.read().decode("utf-8")
+    except HTTPError as error:
+        raw = error.read().decode("utf-8", errors="replace")
+        parsed = None
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            pass
+        message = raw.strip()
+        if isinstance(parsed, dict):
+            message = str(parsed.get("message") or message)
+        raise classify_bw_error(message)
+    except (URLError, RemoteDisconnected, TimeoutError, ConnectionError, OSError) as error:
+        reason = getattr(error, "reason", None) or str(error)
+        raise BitwardenError("service", f"Could not reach Bitwarden local API: {reason}") from error
+
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise BitwardenError("json", f"Invalid JSON from Bitwarden local API: {error}") from error
+
+    if isinstance(parsed, dict) and parsed.get("success") is False:
+        raise classify_bw_error(str(parsed.get("message") or "Bitwarden local API failed"))
+    data = parsed.get("data", parsed) if isinstance(parsed, dict) else parsed
+    if isinstance(data, dict) and data.get("object") == "template" and "template" in data:
+        return data["template"]
+    if isinstance(data, dict) and isinstance(data.get("data"), list):
+        return data["data"]
+    return data
+
+def pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
+
+
+def stop_pid(pid: int) -> None:
+    if not pid_alive(pid):
+        return
+    if os.name == "nt":
+        run_command(["taskkill", "/PID", str(pid), "/T", "/F"], timeout=8)
+        return
+    os.kill(pid, signal.SIGTERM)
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline:
+        if not pid_alive(pid):
+            return
+        time.sleep(0.1)
+    with contextlib.suppress(OSError):
+        os.kill(pid, signal.SIGKILL)
+
+
+def stop_managed_service() -> None:
+    pid = read_state("pid")
+    if pid and pid.isdigit():
+        with contextlib.suppress(Exception):
+            stop_pid(int(pid))
+    clear_state("pid")
+    clear_state("port")
+
+
+@contextlib.contextmanager
+def service_lock() -> Iterator[None]:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    with STATE_PATHS["lock"].open("a+", encoding="utf-8") as handle:
+        if fcntl is not None:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            if fcntl is not None:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
+def unlock_password() -> str | None:
+    inline_password = os.environ.get(UNLOCK_PASSWORD_ENV)
+    if inline_password:
+        return inline_password
+
+    password_command = os.environ.get(PASSWORD_COMMAND_ENV)
+    if password_command:
+        result = run_command(password_command, shell=True)
+        if result.returncode != 0:
+            raise BitwardenError("unlock", f"{PASSWORD_COMMAND_ENV} failed with exit code {result.returncode}")
+        password = result.stdout.rstrip("\r\n")
+        if not password:
+            raise BitwardenError("unlock", f"{PASSWORD_COMMAND_ENV} returned an empty password")
+        return password
+
+    for command in PROMPT_COMMANDS:
+        result = run_command(command, timeout=PROMPT_TIMEOUT_SECONDS)
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+
+    if sys.stdin.isatty():
+        try:
+            return getpass.getpass("Bitwarden master password: ") or None
+        except (EOFError, OSError):
+            return None
+
+    return None
+
+
+def unlock_session() -> str:
+    notify("info", "Unlocking Bitwarden vault")
+    password = unlock_password()
+    if not password:
+        raise BitwardenError(
+            "locked",
+            "Bitwarden vault is locked and no unlock prompt succeeded. "
+            f"Set {PASSWORD_COMMAND_ENV} to a command that prints your master password.",
+        )
+
+    result = run_command(
+        ["bw", "--nointeraction", "unlock", "--raw", "--passwordenv", UNLOCK_PASSWORD_ENV],
+        env={**os.environ, UNLOCK_PASSWORD_ENV: password},
+    )
+    if result.returncode != 0:
+        raise classify_bw_error(result.stderr.strip() or result.stdout.strip())
+
+    session = result.stdout.strip()
+    if not session:
+        raise BitwardenError("unlock", "Bitwarden CLI returned an empty session token")
+
+    write_state("session", session)
+    return session
+
+
+def start_service(session: str) -> tuple[int, dict[str, Any]]:
+    port = choose_port()
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+    with STATE_PATHS["log"].open("ab") as log_handle:
+        env = dict(os.environ)
+        env["BW_SESSION"] = session
+        command = ["bw", "serve", "--hostname", SERVE_HOST, "--port", str(port)]
+        kwargs: dict[str, Any] = {
+            "stdin": subprocess.DEVNULL,
+            "stdout": log_handle,
+            "stderr": subprocess.STDOUT,
+            "env": env,
+            "close_fds": True,
+        }
+        if os.name == "nt":
+            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS  # type: ignore[attr-defined]
+        else:
+            kwargs["start_new_session"] = True
+        process = subprocess.Popen(command, **kwargs)
+
+    write_state("pid", str(process.pid))
+    write_state("port", str(port))
+
+    deadline = time.monotonic() + SERVE_START_TIMEOUT_SECONDS
+    last_error: BitwardenError | None = None
+    while time.monotonic() < deadline:
+        try:
+            status = http_json("GET", port, "/status")
+            if not isinstance(status, dict):
+                raise BitwardenError("json", "Bitwarden local API returned an invalid status payload")
+            return port, status
+        except BitwardenError as error:
+            last_error = error
+            if error.kind == "service":
+                time.sleep(0.15)
+                continue
+            raise
+    raise BitwardenError("service", f"Bitwarden local API did not start in time: {last_error or 'unknown error'}")
+
+
+def ensure_service(force_fresh_session: bool = False, *, restart: bool = False) -> tuple[int, dict[str, Any]]:
+    with service_lock():
+        if restart:
+            stop_managed_service()
+        need_fresh_session = force_fresh_session
+        while True:
+            port_value = read_state("port")
+            port = None
+            if port_value is not None:
+                try:
+                    port = int(port_value)
+                except ValueError:
+                    clear_state("port")
+            if port is not None:
+                try:
+                    status = http_json("GET", port, "/status")
+                    if not isinstance(status, dict):
+                        raise BitwardenError("json", "Bitwarden local API returned an invalid status payload")
+                except BitwardenError as error:
+                    if error.kind not in {"service", "timeout"}:
+                        raise
+                    stop_managed_service()
+                else:
+                    state = str(status.get("status") or "").lower()
+                    if state == "unlocked":
+                        return port, status
+                    if state == "unauthenticated":
+                        stop_managed_service()
+                        clear_state("session")
+                        raise BitwardenError("logged_out", "Bitwarden CLI is not logged in. Run `bw login` first.")
+                    stop_managed_service()
+
+            session = None if need_fresh_session else read_state("session")
+            if not session:
+                session = unlock_session()
+
+            port, status = start_service(session)
+            state = str(status.get("status") or "").lower()
+
+            if state == "unlocked":
+                if env_bool(SYNC_ON_UNLOCK_ENV, default=False):
+                    with contextlib.suppress(BitwardenError):
+                        http_json("POST", port, "/sync", payload={})
+                return port, status
+            if state == "unauthenticated":
+                stop_managed_service()
+                clear_state("session")
+                raise BitwardenError("logged_out", "Bitwarden CLI is not logged in. Run `bw login` first.")
+            stop_managed_service()
+            clear_state("session")
+            if state == "locked" and not need_fresh_session:
+                need_fresh_session = True
+                continue
+            raise BitwardenError("service", f"Bitwarden local API started but remained {state or 'unavailable'}.")
+
+
+def payload_for(url: str, *, mode: str, copy_totp: bool) -> dict[str, Any]:
+    parsed = urlsplit(url)
+    if not parsed.scheme or not parsed.netloc:
+        raise BitwardenError("url", f"Unsupported URL for autofill: {url!r}")
+
+    port, _status = ensure_service()
+    try:
+        raw_items = http_json("GET", port, "/list/object/items", query={"url": url})
+        if not isinstance(raw_items, list):
+            raise BitwardenError("json", "Bitwarden local API returned a non-list response")
+    except BitwardenError as error:
+        if error.kind not in {"locked", "session", "service"}:
+            raise
+        port, _status = ensure_service(force_fresh_session=error.kind in {"locked", "session"})
+        raw_items = http_json("GET", port, "/list/object/items", query={"url": url})
+        if not isinstance(raw_items, list):
+            raise BitwardenError("json", "Bitwarden local API returned a non-list response")
+
+    want_totp = mode == "totp" or copy_totp
+    items: list[dict[str, Any]] = []
+
+    for raw_item in raw_items:
+        login = raw_item.get("login")
+        if not isinstance(login, dict):
+            continue
+
+        entry = {
+            "id": str(raw_item.get("id") or ""),
+            "name": str(raw_item.get("name") or "Unnamed item").strip(),
+            "username": str(login.get("username") or "").strip(),
+            "password": str(login.get("password") or ""),
+            "totpCode": "",
+            "uris": [
+                str(uri.get("uri") or "").strip()
+                for uri in (login.get("uris") or [])
+                if isinstance(uri, dict) and str(uri.get("uri") or "").strip()
+            ],
+        }
+        if not any((entry["username"], entry["password"], login.get("totp"))):
+            continue
+        if want_totp and entry["id"] and login.get("totp"):
+            try:
+                totp = http_json("GET", port, f"/object/totp/{quote(entry['id'], safe='')}")
+                if isinstance(totp, str):
+                    entry["totpCode"] = totp.strip()
+            except BitwardenError:
+                result = run_command(["bw", "--nointeraction", "get", "totp", entry["id"]])
+                if result.returncode == 0:
+                    entry["totpCode"] = result.stdout.strip()
+        items.append(entry)
+
+    if not items:
+        raise BitwardenError("empty", f"No Bitwarden logins matched {parsed.netloc}")
+
+    return {
+        "phase": "ready",
+        "requestId": time.time_ns(),
+        "mode": mode,
+        "copyTotp": copy_totp,
+        "currentUrl": url,
+        "origin": f"{parsed.scheme}://{parsed.netloc}",
+        "items": items,
+    }
+
+
+def emit(payload: dict[str, Any]) -> None:
+    if not CONTROLLER_PATH.exists():
+        raise BitwardenError("config", f"Missing controller at {CONTROLLER_PATH}")
+    encoded = base64.b64encode(
+        json.dumps(payload, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    ).decode("ascii")
+    qute_commands(
+        f"jseval --quiet --world main --file {CONTROLLER_PATH}",
+        "jseval --quiet --world main "
+        f'(function(){{const payload=JSON.parse(atob("{encoded}"));'
+        'window.dispatchEvent(new CustomEvent("__quteBitwardenPayload",{detail:payload}));'
+        "})()",
+    )
+
+
+def emit_quietly(payload: dict[str, Any]) -> None:
+    with contextlib.suppress(Exception):
+        emit(payload)
+
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Bitwarden bridge for qutebrowser.")
+    parser.add_argument("url", nargs="?", default=os.environ.get("QUTE_URL"))
+    parser.add_argument("--mode", choices=("auto", "username", "password", "totp"), default="auto")
+    parser.add_argument("--copy-totp", action="store_true", default=env_bool(COPY_TOTP_ENV, default=False))
+    parser.add_argument("--restart-service", action="store_true")
+    return parser.parse_args()
+
+
+def run() -> int:
+    arguments = parse_arguments()
+    if not shutil.which("bw"):
+        message = "Bitwarden CLI (bw) is not installed"
+        notify("error", message)
+        if arguments.url:
+            emit_quietly({"phase": "error", "message": message, "currentUrl": arguments.url, "requestId": time.time_ns()})
+        return 1
+    if arguments.restart_service:
+        try:
+            port, status = ensure_service(restart=True)
+        except BitwardenError as error:
+            notify("error", str(error))
+            return 1
+        notify("info", f"Bitwarden local API restarted on {SERVE_HOST}:{port} ({str(status.get('status') or 'unknown')})")
+        return 0
+    if not arguments.url:
+        notify("error", "Missing QUTE_URL")
+        return 1
+
+    try:
+        emit_quietly({"phase": "loading", "currentUrl": arguments.url, "requestId": time.time_ns()})
+        payload = payload_for(arguments.url, mode=arguments.mode, copy_totp=arguments.copy_totp)
+        emit_quietly(payload)
+        if len(payload["items"]) > 1:
+            with contextlib.suppress(Exception):
+                qute_commands("mode-enter insert")
+        if payload["copyTotp"] and len(payload["items"]) == 1 and payload["items"][0]["totpCode"]:
+            qute_commands(f"yank --quiet inline {json.dumps(payload['items'][0]['totpCode'], ensure_ascii=True)}")
+        return 0
+    except BitwardenError as error:
+        notify("error", str(error))
+        emit_quietly(
+            {
+                "phase": "error",
+                "message": str(error),
+                "currentUrl": arguments.url,
+                "requestId": time.time_ns(),
+            }
+        )
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(run())
