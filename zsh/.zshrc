@@ -518,10 +518,11 @@ cdj() {
     -or -name "dist" \
     -or -name ".cache" \
     -or -name ".Trash" \
-    -or -name "$HOME/Library/Caches" \
+    -or -path "$HOME/Library/Caches" \
+    -or -path "$HOME/Library/Caches/*" \
     -or -name "__pycache__"  \) -type d \
     2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
-    --preview 'tree -C {}' \
+    --preview 'tree -C -L 2 {} | head -200' \
     --cycle \
     --bind 'ctrl-y:accept' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
