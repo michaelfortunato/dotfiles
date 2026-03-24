@@ -418,15 +418,17 @@ c.bindings.key_mappings = {
 ## Background color of the tab bar.
 ## Type: QssColor
 # c.colors.tabs.bar.bg = '#555555'
+c.colors.tabs.bar.bg = "#111827"
 
 ## Background color of unselected even tabs.
 ## Type: QtColor
 # c.colors.tabs.even.bg = 'darkgrey'
-c.colors.tabs.even.bg = "lightgrey"
+c.colors.tabs.even.bg = "#334155"
 
 ## Foreground color of unselected even tabs.
 ## Type: QtColor
 # c.colors.tabs.even.fg = 'white'
+c.colors.tabs.even.fg = "#e5e7eb"
 
 ## Color for the tab indicator on errors.
 ## Type: QtColor
@@ -452,59 +454,72 @@ c.colors.tabs.even.bg = "lightgrey"
 ## Background color of unselected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.odd.bg = 'grey'
-c.colors.tabs.odd.bg = "lightgrey"
+c.colors.tabs.odd.bg = "#3f4d63"
 
 ## Foreground color of unselected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.odd.fg = 'white'
+c.colors.tabs.odd.fg = "#f3f4f6"
 
 ## Background color of pinned unselected even tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.even.bg = 'darkseagreen'
+c.colors.tabs.pinned.even.bg = "#1f6f78"
 
 ## Foreground color of pinned unselected even tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.even.fg = 'white'
+c.colors.tabs.pinned.even.fg = "#ecfeff"
 
 ## Background color of pinned unselected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.odd.bg = 'seagreen'
+c.colors.tabs.pinned.odd.bg = "#155e75"
 
 ## Foreground color of pinned unselected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.odd.fg = 'white'
+c.colors.tabs.pinned.odd.fg = "#ecfeff"
 
 ## Background color of pinned selected even tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.selected.even.bg = 'black'
+c.colors.tabs.pinned.selected.even.bg = "#f4bf4f"
 
 ## Foreground color of pinned selected even tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.selected.even.fg = 'white'
+c.colors.tabs.pinned.selected.even.fg = "#0f172a"
 
 ## Background color of pinned selected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.selected.odd.bg = 'black'
+c.colors.tabs.pinned.selected.odd.bg = "#f4bf4f"
 
 ## Foreground color of pinned selected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.pinned.selected.odd.fg = 'white'
+c.colors.tabs.pinned.selected.odd.fg = "#0f172a"
 
 ## Background color of selected even tabs.
 ## Type: QtColor
 # c.colors.tabs.selected.even.bg = 'black'
+c.colors.tabs.selected.even.bg = "#f4bf4f"
 
 ## Foreground color of selected even tabs.
 ## Type: QtColor
 # c.colors.tabs.selected.even.fg = 'white'
+c.colors.tabs.selected.even.fg = "#0f172a"
 
 ## Background color of selected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.selected.odd.bg = 'black'
+c.colors.tabs.selected.odd.bg = "#f4bf4f"
 
 ## Foreground color of selected odd tabs.
 ## Type: QtColor
 # c.colors.tabs.selected.odd.fg = 'white'
+c.colors.tabs.selected.odd.fg = "#0f172a"
 
 ## Background color of tooltips. If set to null, the Qt default is used.
 ## Type: QssColor
