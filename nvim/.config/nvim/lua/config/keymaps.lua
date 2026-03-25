@@ -497,7 +497,8 @@ map({ "n", "t" }, "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase Window Heig
 map({ "n", "t" }, "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease Window Height" })
 map({ "n", "t" }, "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease Window Width" })
 map({ "n", "t" }, "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase Window Width" })
-map("n", "<C-S-Space>", function()
+
+local function mnf_toggle_maximize()
   if vim.t.mnf_maximized_buffer_tab then
     vim.cmd.tabclose()
     return
@@ -505,7 +506,10 @@ map("n", "<C-S-Space>", function()
 
   vim.cmd("tab split")
   vim.t.mnf_maximized_buffer_tab = true
-end, { desc = "Toggle Buffer Maximize" })
+end
+
+map("n", "<C-S-Space>", mnf_toggle_maximize, { desc = "Toggle Buffer Maximize" })
+map("n", "<leader>wm", mnf_toggle_maximize, { desc = "Toggle Buffer Maximize" })
 
 -- map("n", "<C-/>", function()
 --   Snacks.terminal(nil, { cwd = LazyVim.root() })

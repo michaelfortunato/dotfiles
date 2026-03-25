@@ -20,8 +20,9 @@ Neovim UI line modes (quick reference)
 return {
   ---@module "lualine"
   "nvim-lualine/lualine.nvim",
-  -- TODO: Add maximize status to the lualine
-  dependencies = { "michaelfortunato/LazyVim", "declancm/maximize.nvim" },
+  -- TODO: Add maximize status to the lualine, see keymaps.lua and
+  -- mnf_maximized_buffer_tab
+  dependencies = { "michaelfortunato/LazyVim" },
   event = "VeryLazy",
   opts = function(_, opts)
     -- Get current colorscheme

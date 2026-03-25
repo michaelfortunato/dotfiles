@@ -61,36 +61,4 @@ return {
       term_colors = vim.g.neovide,
     },
   },
-  {
-    -- FIXME: Doesn't really work lol
-    "declancm/maximize.nvim",
-    config = true,
-    lazy = false,
-    keys = {
-      {
-
-        -- change a keymap
-        mode = { "n" },
-        "<leader>wm",
-        "<cmd>Maximize<cr>",
-        desc = "Toggle Maximize",
-      },
-      {
-
-        -- change a keymap
-        mode = { "n" },
-        "<leader>um",
-        "<cmd>Maximize<cr>",
-        desc = "Toggle Maximize",
-      },
-      {
-
-        -- change a keymap
-        mode = { "n" },
-        "<C-Shift-Space>",
-        "<cmd>Maximize<cr>",
-        desc = "Toggle Maximize",
-      },
-    },
-  },
 }
