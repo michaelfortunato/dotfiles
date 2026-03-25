@@ -83,7 +83,7 @@ c.aliases = {
 c.bindings.key_mappings = {
     # "<Ctrl-[>": "<Escape>",
     "<Ctrl-n>": "<Down>",
-    "<Ctrl-P>": "<Up>",
+    "<Ctrl-p>": "<Up>",
     "<Ctrl-6>": "<Ctrl-^>",
     "<Ctrl-M>": "<Return>",
     "<Ctrl-J>": "<Return>",
@@ -2492,7 +2492,10 @@ config.bind("H", "tab-prev")
 config.bind("<Ctrl-R>", "reload")
 config.bind("<Cmd-t>", "open -t")
 config.bind("I", "mode-enter insert")
-config.bind("i", "hint inputs --first")
+# Keep qutebrowser's native input hinting behavior and enter insert mode first
+# so the focused field stays in the expected modal state without extra timing.
+config.bind("i", "mode-enter insert ;; hint inputs --first")
+config.bind("gi", "mode-enter insert ;; hint inputs --first")
 for i in range(10):
     config.bind(f"<Cmd-{i}>", f"tab-select {i}")
     config.bind(f"<Ctrl-{i}>", f"tab-select {i}")
@@ -2595,9 +2598,22 @@ config.bind("<Ctrl-Y>", "command-accept", mode="command")
 # config.bind('<Shift-Ins>', 'insert-text -- {primary}', mode='insert')
 config.unbind("<Ctrl-E>", mode="insert")
 # See this issue:  https://github.com/qutebrowser/qutebrowser/issues/2668
+# Plain Escape should send Escape to the focused page element first, then
+# reliably force qutebrowser back to normal mode and finally blur any still-
+# focused editable so site popups/carets disappear.
+insert_escape_blur_js = (
+    "(function(){"
+    "const e=document.activeElement;"
+    "if(!e||e===document.body||!e.blur){return;}"
+    "const tag=(e.tagName||'').toLowerCase();"
+    "const role=e.getAttribute&&e.getAttribute('role');"
+    "const editable=e.isContentEditable||tag==='input'||tag==='textarea'||role==='textbox';"
+    "if(editable){e.blur();}"
+    "})()"
+)
 config.bind(
     "<Escape>",
-    "fake-key <Escape> ;; mode-leave ;; jseval -q document.activeElement.blur()",
+    f"fake-key <Escape> ;; cmd-later 1 mode-enter normal ;; cmd-later 2 jseval -q {insert_escape_blur_js}",
     mode="insert",
 )
 # A heuristic, but if you are doing cmd k you probably want it
