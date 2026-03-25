@@ -104,4 +104,25 @@ vim.keymap.set("n", "<leader>gC", commit_current_file, { desc = "Git: Commit cur
 --   --   { "<leader>gC", commit_current_file },
 --   -- },
 -- }
-return {}
+return {
+  {
+    "esmuellert/codediff.nvim",
+    cmd = "CodeDiff",
+  },
+  {
+    "clabby/difftastic.nvim",
+    dependencies = {
+      "folke/snacks.nvim",
+      "MunifTanjim/nui.nvim",
+    },
+    config = function()
+      require("difftastic-nvim").setup({
+        download = true, -- Auto-download pre-built binary
+        vcs = "git", -- "jj" (default) or "git"
+        snacks_picker = {
+          enabled = true,
+        },
+      })
+    end,
+  },
+}
