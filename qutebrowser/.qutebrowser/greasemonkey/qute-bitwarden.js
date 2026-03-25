@@ -33,6 +33,18 @@
     return text(value).toLowerCase();
   }
 
+  function escapeHtml(value) {
+    return text(value).replace(/[&<>"']/g, (character) => {
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[character];
+    });
+  }
+
   function hostFromUrl(value) {
     try {
       return new URL(value, location.href).hostname.toLowerCase();
@@ -420,13 +432,18 @@
         .chooser{padding:8px;outline:none}
         .chooserHeader{padding:6px 8px 10px;color:rgba(247,248,250,.7);font-size:12px}
         .chooserFooter{padding:8px 8px 4px;color:rgba(247,248,250,.5);font-size:11px}
-        .choice{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;width:100%;padding:10px 8px;border:0;border-radius:10px;background:transparent;color:inherit;text-align:left;cursor:pointer}
+        .choice{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;border-radius:10px}
         .choice:hover,.choice[data-active="true"]{background:rgba(122,200,255,.12)}
+        .choicePick{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;width:100%;padding:10px 8px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
         .choiceIndex{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:rgba(255,255,255,.08);color:rgba(247,248,250,.72);font-size:11px}
         .choiceTitle,.choiceSubtitle{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .choiceTitle{font-weight:600}
         .choiceSubtitle{color:rgba(247,248,250,.68);font-size:12px;margin-top:2px}
         .choiceHint{color:rgba(247,248,250,.52);font-size:11px;margin-top:3px}
+        .choiceSecret{display:none;color:rgba(247,248,250,.9);font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;margin-top:6px;word-break:break-all}
+        .choice[data-revealed="true"] .choiceSecret{display:block}
+        .choiceReveal{align-self:start;margin:8px 8px 0 0;padding:5px 9px;border:0;border-radius:999px;background:rgba(255,255,255,.08);color:rgba(247,248,250,.78);font:11px/1.2 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}
+        .choiceReveal:hover{background:rgba(255,255,255,.14)}
       </style>`;
     }
     return shadow;
@@ -495,6 +512,20 @@
     }
   }
 
+  function toggleChoiceReveal(choice) {
+    if (!(choice instanceof HTMLElement)) {
+      return;
+    }
+    const next = choice.dataset.revealed !== "true";
+    choice.dataset.revealed = next ? "true" : "false";
+    const toggle = choice.querySelector(".choiceReveal");
+    if (toggle instanceof HTMLButtonElement) {
+      toggle.textContent = next ? "Hide" : "Show";
+      toggle.setAttribute("aria-label", next ? "Hide password" : "Show password");
+      toggle.setAttribute("aria-pressed", next ? "true" : "false");
+    }
+  }
+
   function renderChooser(ranked, context) {
     const items = ranked.slice(0, 9);
     const panel = createPanel("panel chooser", context.activeField);
@@ -512,21 +543,35 @@
                 : entry.typedScore
                   ? "Matches typed username"
                   : "";
-          return `<button type="button" class="choice" data-index="${index}" data-active="${index === 0}">
-            <span class="choiceIndex">${index + 1}</span>
-            <span>
-              <div class="choiceTitle">${entry.item.name || "Unnamed item"}</div>
-              <div class="choiceSubtitle">${subtitle || "No username"}</div>
-              ${hint ? `<div class="choiceHint">${hint}</div>` : ""}
-            </span>
-          </button>`;
+          return `<div class="choice" data-index="${index}" data-active="${index === 0}" data-revealed="false">
+            <button type="button" class="choicePick" data-index="${index}">
+              <span class="choiceIndex">${index + 1}</span>
+              <span>
+                <div class="choiceTitle">${escapeHtml(entry.item.name || "Unnamed item")}</div>
+                <div class="choiceSubtitle">${escapeHtml(subtitle || "No username")}</div>
+                ${hint ? `<div class="choiceHint">${escapeHtml(hint)}</div>` : ""}
+                ${entry.item.password ? `<div class="choiceSecret">${escapeHtml(entry.item.password)}</div>` : ""}
+              </span>
+            </button>
+            ${
+              entry.item.password
+                ? `<button type="button" class="choiceReveal" aria-label="Show password" aria-pressed="false">Show</button>`
+                : ""
+            }
+          </div>`;
         })
         .join("") +
       `<div class="chooserFooter">Enter to fill. Ctrl-n/Ctrl-p, arrows, or j/k to move.</div>`;
     panel.addEventListener("click", (event) => {
-      const button = event.target instanceof Element ? event.target.closest(".choice") : null;
-      if (button instanceof HTMLElement) {
-        chooseIndex(Number(button.dataset.index || 0));
+      const target = event.target instanceof Element ? event.target : null;
+      const reveal = target ? target.closest(".choiceReveal") : null;
+      if (reveal instanceof HTMLElement) {
+        toggleChoiceReveal(reveal.closest(".choice"));
+        return;
+      }
+      const choice = target ? target.closest(".choice") : null;
+      if (choice instanceof HTMLElement) {
+        chooseIndex(Number(choice.dataset.index || 0));
       }
     });
 
