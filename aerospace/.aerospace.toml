@@ -345,6 +345,10 @@ if.app-id = "com.apple.QuickTimePlayerX"
 run = "layout floating"
 
 [[on-window-detected]]
+if.app-id = "com.apple.TV"
+run = "layout floating"
+
+[[on-window-detected]]
 if.app-id = "com.colliderli.iina"
 run = "layout floating"
 
