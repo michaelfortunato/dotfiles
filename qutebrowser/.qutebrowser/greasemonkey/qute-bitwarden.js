@@ -13,8 +13,6 @@
 
   const EVENT_NAME = "__quteBitwardenPayload";
   const ROOT_ID = "__qute_bitwarden_root";
-  const FLOW_STORAGE_KEY = "qute-bitwarden:flow-selection";
-  const FLOW_TTL_MS = 10 * 60 * 1000;
   const state = {
     payload: null,
     lastRequestId: 0,
@@ -25,7 +23,6 @@
     chooserItems: [],
     chooserContext: null,
     selectedIndex: 0,
-    selectedItem: null,
   };
 
   function text(value) {
@@ -49,10 +46,6 @@
     return parts.length >= 2 ? parts.slice(-2).join(".") : parts.join(".");
   }
 
-  function itemKey(item) {
-    return text(item.id) || `${text(item.name)}::${text(item.username)}`;
-  }
-
   function activeElementDeep() {
     let element = document.activeElement;
     while (element instanceof Element) {
@@ -73,44 +66,6 @@
       break;
     }
     return element instanceof Element ? element : null;
-  }
-
-  function loadFlowSelection(url, items) {
-    try {
-      const raw = sessionStorage.getItem(FLOW_STORAGE_KEY);
-      if (!raw) {
-        return null;
-      }
-      const entry = JSON.parse(raw);
-      if (
-        !entry ||
-        entry.host !== hostFromUrl(url) ||
-        !entry.key ||
-        typeof entry.expiresAt !== "number" ||
-        entry.expiresAt < Date.now()
-      ) {
-        sessionStorage.removeItem(FLOW_STORAGE_KEY);
-        return null;
-      }
-      return (Array.isArray(items) ? items : []).find((item) => itemKey(item) === entry.key) || null;
-    } catch {
-      return null;
-    }
-  }
-
-  function saveFlowSelection(url, item) {
-    try {
-      sessionStorage.setItem(
-        FLOW_STORAGE_KEY,
-        JSON.stringify({
-          host: hostFromUrl(url),
-          key: itemKey(item),
-          expiresAt: Date.now() + FLOW_TTL_MS,
-        }),
-      );
-    } catch {
-      // sessionStorage can be unavailable in some contexts.
-    }
   }
 
   function isEditable(element) {
@@ -534,10 +489,8 @@
     if (!entry || !state.payload) {
       return;
     }
-    state.selectedItem = entry.item;
     const filled = fillItem(entry.item, state.chooserContext, state.payload);
     if (!filled) {
-      state.selectedItem = null;
       renderStatus("error", "Could not fill the focused login fields.", state.anchor);
     }
   }
@@ -615,7 +568,8 @@
     }
 
     if (didFill) {
-      saveFlowSelection(payload.currentUrl, item);
+      state.payload = null;
+      state.pendingReady = false;
       hideUi();
       const focusTarget =
         activeContext.passwordField || activeContext.usernameField || activeContext.otpField || activeContext.activeField;
@@ -660,11 +614,6 @@
       return;
     }
 
-    if (state.selectedItem && (context.activeRole === "password" || context.activeRole === "otp")) {
-      fillItem(state.selectedItem, context, payload);
-      return;
-    }
-
     handleRankedItems(rankedPayloadItems(payload, context), context, payload);
   }
 
@@ -683,7 +632,6 @@
     if (payload.phase === "loading") {
       state.payload = null;
       state.pendingReady = false;
-      state.selectedItem = null;
       renderStatus("loading", "Looking up Bitwarden matches...", collectContext()?.activeField || activeElementDeep());
       return;
     }
@@ -691,7 +639,6 @@
     if (payload.phase === "error") {
       state.payload = null;
       state.pendingReady = false;
-      state.selectedItem = null;
       renderStatus("error", text(payload.message) || "Bitwarden failed.", collectContext()?.activeField || activeElementDeep());
       return;
     }
@@ -700,7 +647,6 @@
       return;
     }
 
-    state.selectedItem = loadFlowSelection(payload.currentUrl, Array.isArray(payload.items) ? payload.items : []);
     state.payload = payload;
     presentReadyPayload(payload);
   }
@@ -716,11 +662,6 @@
 
     const context = collectContext();
     if (!context) {
-      return;
-    }
-
-    if (state.selectedItem && (context.activeRole === "password" || context.activeRole === "otp")) {
-      fillItem(state.selectedItem, context, state.payload);
       return;
     }
 
@@ -743,35 +684,36 @@
       return;
     }
 
-    const isCtrlN = event.ctrlKey && !event.metaKey && !event.altKey && lower(event.key) === "n";
-    const isCtrlP = event.ctrlKey && !event.metaKey && !event.altKey && lower(event.key) === "p";
+    const key = lower(event.key);
+    const isCtrlN = event.ctrlKey && !event.metaKey && !event.altKey && (key === "n" || event.code === "KeyN");
+    const isCtrlP = event.ctrlKey && !event.metaKey && !event.altKey && (key === "p" || event.code === "KeyP");
 
-    if (event.key === "ArrowDown" || event.key === "j" || isCtrlN) {
+    if (key === "arrowdown" || key === "down" || key === "j" || isCtrlN) {
       event.preventDefault();
       event.stopPropagation();
       setSelectedIndex(state.selectedIndex + 1);
       return;
     }
-    if (event.key === "ArrowUp" || event.key === "k" || isCtrlP) {
+    if (key === "arrowup" || key === "up" || key === "k" || isCtrlP) {
       event.preventDefault();
       event.stopPropagation();
       setSelectedIndex(state.selectedIndex - 1);
       return;
     }
-    if (event.key === "Enter") {
+    if (key === "enter") {
       event.preventDefault();
       event.stopPropagation();
       chooseIndex(state.selectedIndex);
       return;
     }
-    if (event.key === "Escape") {
+    if (key === "escape") {
       event.preventDefault();
       event.stopPropagation();
       hideUi();
       return;
     }
-    if (/^[1-9]$/.test(event.key)) {
-      const index = Number(event.key) - 1;
+    if (/^[1-9]$/.test(key)) {
+      const index = Number(key) - 1;
       if (index < state.chooserItems.length) {
         event.preventDefault();
         event.stopPropagation();
