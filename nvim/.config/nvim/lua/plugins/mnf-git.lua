@@ -93,7 +93,8 @@ end
 
 vim.keymap.set("n", "<leader>ga", stage_current_file, { desc = "Git: Stage current file" })
 vim.keymap.set("n", "<leader>gC", commit_current_file, { desc = "Git: Commit current file only" })
-vim.keymap.set("n", "<leader>gR", function()
+vim.keymap.set("n", "<leader>gr", "<Cmd>CodeDiff<CR>", { desc = "Git: Open Review" })
+vim.keymap.set("n", "<leader>g>", function()
   local file = vim.api.nvim_buf_get_name(0)
   if file == "" then
     return vim.notify("Current buffer is not a file", vim.log.levels.WARN)
@@ -107,7 +108,7 @@ vim.keymap.set("n", "<leader>gR", function()
     vim.notify(("CodeDiff failed for %s\n%s"):format(notify_path(file), tostring(err)), vim.log.levels.ERROR)
   end
 end, { desc = "Git: Diff current buffer" })
-vim.keymap.set("n", "<leader>gr", function()
+vim.keymap.set("n", "<leader>g.", function()
   local file = vim.api.nvim_buf_get_name(0)
   if file == "" then
     return vim.notify("Current buffer is not a file", vim.log.levels.WARN)
