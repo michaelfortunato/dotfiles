@@ -33,6 +33,8 @@ return {
   },
   {
     "MeanderingProgrammer/render-markdown.nvim",
+    -- I want Markdown rendering in the browser only.
+    -- This plugin does in-editor chrome.
     enabled = false,
   },
   { "akinsho/bufferline.nvim", enabled = false },
