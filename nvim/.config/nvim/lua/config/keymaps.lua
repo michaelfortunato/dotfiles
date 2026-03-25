@@ -55,6 +55,12 @@ end, { expr = true })
 -- Visual paste P be like p but not overrite the yank register
 vim.keymap.set("x", "P", '"_dp', { silent = true, desc = "Paste without yanking selection" })
 
+vim.keymap.set(
+  { "n" },
+  "<leader>\\",
+  "<Cmd>vsplit +terminal<CR>",
+  { desc = "Open new terminal in new vertical split." }
+)
 vim.keymap.set({ "n" }, "<leader>.", function()
   local bufpath = vim.api.nvim_buf_get_name(0)
   if bufpath == "" then
