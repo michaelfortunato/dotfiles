@@ -93,6 +93,34 @@ end
 
 vim.keymap.set("n", "<leader>ga", stage_current_file, { desc = "Git: Stage current file" })
 vim.keymap.set("n", "<leader>gC", commit_current_file, { desc = "Git: Commit current file only" })
+vim.keymap.set("n", "<leader>gR", function()
+  local file = vim.api.nvim_buf_get_name(0)
+  if file == "" then
+    return vim.notify("Current buffer is not a file", vim.log.levels.WARN)
+  end
+
+  local ok, err = pcall(vim.api.nvim_cmd, {
+    cmd = "CodeDiff",
+    args = { "file", "HEAD" },
+  }, {})
+  if not ok then
+    vim.notify(("CodeDiff failed for %s\n%s"):format(notify_path(file), tostring(err)), vim.log.levels.ERROR)
+  end
+end, { desc = "Git: Diff current buffer" })
+vim.keymap.set("n", "<leader>gr", function()
+  local file = vim.api.nvim_buf_get_name(0)
+  if file == "" then
+    return vim.notify("Current buffer is not a file", vim.log.levels.WARN)
+  end
+
+  local ok, err = pcall(vim.api.nvim_cmd, {
+    cmd = "CodeDiff",
+    args = { "file", "HEAD", "--inline" },
+  }, {})
+  if not ok then
+    vim.notify(("CodeDiff failed for %s\n%s"):format(notify_path(file), tostring(err)), vim.log.levels.ERROR)
+  end
+end, { desc = "Git: Diff current buffer inline" })
 -- NOTE: This is basically the same as putting retunring an empty plugin spec.
 -- return {
 --   "mnf-git",
