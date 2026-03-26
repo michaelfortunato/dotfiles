@@ -1500,6 +1500,19 @@ c.editor.command = ["open", "-f", "{file}"]
 ## hints.
 ## Type: Dict
 # c.hints.selectors = {'all': ['a', 'area', 'textarea', 'select', 'input:not([type="hidden"])', 'button', 'frame', 'iframe', 'img', 'link', 'summary', '[contenteditable]:not([contenteditable="false"])', '[onclick]', '[onmousedown]', '[role="link"]', '[role="option"]', '[role="button"]', '[role="tab"]', '[role="checkbox"]', '[role="switch"]', '[role="menuitem"]', '[role="menuitemcheckbox"]', '[role="menuitemradio"]', '[role="treeitem"]', '[aria-haspopup]', '[ng-click]', '[ngClick]', '[data-ng-click]', '[x-ng-click]', '[tabindex]:not([tabindex="-1"])'], 'links': ['a[href]', 'area[href]', 'link[href]', '[role="link"][href]'], 'images': ['img'], 'media': ['audio', 'img', 'video'], 'url': ['[src]', '[href]'], 'inputs': ['input[type="text"]', 'input[type="date"]', 'input[type="datetime-local"]', 'input[type="email"]', 'input[type="month"]', 'input[type="number"]', 'input[type="password"]', 'input[type="search"]', 'input[type="tel"]', 'input[type="time"]', 'input[type="url"]', 'input[type="week"]', 'input:not([type])', '[contenteditable]:not([contenteditable="false"])', 'textarea']}
+# GitHub's global search control is a button-backed custom element, not always a real input.
+default_hints_selectors = config.get("hints.selectors")
+config.set(
+    "hints.selectors",
+    {
+        **default_hints_selectors,
+        "inputs": [
+            'button[data-target="qbsearch-input.inputButton"], button[aria-label^="Search or jump to"]',
+            *default_hints_selectors["inputs"],
+        ],
+    },
+    "*://github.com/*",
+)
 
 ## Make characters in hint strings uppercase.
 ## Type: Bool
