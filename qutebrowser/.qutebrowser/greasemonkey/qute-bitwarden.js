@@ -494,7 +494,11 @@
     }
     state.selectedIndex = (index + state.chooserItems.length) % state.chooserItems.length;
     state.panel.querySelectorAll(".choice").forEach((button, index) => {
-      button.setAttribute("data-active", index === state.selectedIndex ? "true" : "false");
+      const isActive = index === state.selectedIndex;
+      button.setAttribute("data-active", isActive ? "true" : "false");
+      if (isActive && button instanceof HTMLElement) {
+        button.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
     });
   }
 
