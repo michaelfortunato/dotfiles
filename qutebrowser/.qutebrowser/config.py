@@ -22,6 +22,7 @@ config.load_autoconfig(False)
 # c.aliases = {'w': 'session-save', 'q': 'close', 'qa': 'quit', 'wq': 'quit --save', 'wqa': 'quit --save'}
 c.aliases = {
     "ReloadConfig": "config-source",
+    "Clear": "clear-messages ;; download-clear",
     "w": "session-save",
     "q": "close",
     "qa": "quit",
