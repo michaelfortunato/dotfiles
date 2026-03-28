@@ -433,8 +433,11 @@ end
 function M.setup(opts)
   opts = opts or {}
 
-  -- You can add configuration options here if you want
-  -- For example:
+  require("mnf.terminal.managed").setup({
+    initial_layout = opts.initial_layout,
+  })
+
+  -- You can add additional configuration options here if you want.
   -- if opts.default_system_command then
   --   M.set_global_system_terminal_command(opts.default_system_command)
   -- end

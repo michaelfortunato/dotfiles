@@ -6,6 +6,12 @@ return {
     lazy = true,
     dir = vim.fs.joinpath(vim.fn.stdpath("config"), "lua", "mnf", "terminal"),
     dependencies = { "folke/which-key.nvim", "michaelfortunato/snacks.nvim" },
+    opts = {
+      initial_layout = "vsplit",
+    },
+    config = function(_, opts)
+      require("mnf.terminal").setup(opts)
+    end,
     init = function()
       -- TODO: makes me safe and fix the operator pending issue
       -- local del = function(...)

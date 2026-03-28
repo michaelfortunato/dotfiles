@@ -9,6 +9,13 @@ M.notify = Snacks.notify.notify or vim.ui.notify
 local kitty = require("mnf.terminal.kitty")
 -- Off by default
 local use_external_kitty = false
+local DEFAULT_LAYOUT = "vsplit"
+
+M.defaults = {
+  initial_layout = DEFAULT_LAYOUT,
+}
+
+M.config = vim.deepcopy(M.defaults)
 -- Base layout creators
 ---@param buf integer
 ---@param title string
@@ -85,7 +92,15 @@ end
 
 ---@return nil
 local function serialize_and_create_closure()
-  M.terminal_state.create_window = M.layout_functions[M.terminal_state.layout] or create_floating_window
+  local layout = M.terminal_state.layout
+  if layout == "split" then
+    layout = "hsplit"
+  end
+  if M.layout_functions[layout] == nil then
+    layout = DEFAULT_LAYOUT
+  end
+  M.terminal_state.layout = layout
+  M.terminal_state.create_window = M.layout_functions[layout]
 end
 
 -- Layout functions table - elements can refer to other elements
@@ -94,6 +109,7 @@ end
 ---@type table<string, fun(buf: integer, title: string): integer>
 M.layout_functions = {
   floating = create_floating_window,
+  hsplit = create_split_window,
   split = create_split_window,
   vsplit = create_vsplit_window,
   -- You can add cross-references like this:
@@ -113,11 +129,44 @@ M.terminal_state = {
   win = nil,
   buffers = {},
   current = nil,
-  layout = "floating",
-  create_window = create_floating_window,
+  layout = DEFAULT_LAYOUT,
+  create_window = create_vsplit_window,
   last_used_terminal = 1,
   commands = {},
 }
+
+---@param layout unknown
+---@return boolean
+local function set_layout(layout)
+  if layout == "split" then
+    layout = "hsplit"
+  end
+  if type(layout) ~= "string" or M.layout_functions[layout] == nil then
+    return false
+  end
+  M.terminal_state.layout = layout
+  M.terminal_state.create_window = M.layout_functions[layout]
+  return true
+end
+
+---@param opts? { initial_layout?: "vsplit"|"hsplit"|"floating"|"split" }
+---@return nil
+function M.setup(opts)
+  opts = vim.tbl_deep_extend("force", vim.deepcopy(M.defaults), opts or {})
+  M.config = opts
+
+  if not set_layout(opts.initial_layout) then
+    M.notify(
+      string.format(
+        "mnf.terminal: invalid initial_layout %q. Expected one of: vsplit, hsplit, floating. Using %s.",
+        tostring(opts.initial_layout),
+        DEFAULT_LAYOUT
+      ),
+      vim.log.levels.WARN
+    )
+    set_layout(DEFAULT_LAYOUT)
+  end
+end
 
 -- API function to enable kitty external terminals
 ---@return nil
@@ -267,21 +316,21 @@ end
 -- probably be disabled or reworked to manage kitty layouts instead.
 ---@return nil
 function M.toggle_layout()
-  if M.terminal_state.layout == "floating" then
-    M.terminal_state.layout = "split"
-    --vim.notify("Terminal: horizontal", vim.log.levels.DEBUG, { title = "Layout" })
-  elseif M.terminal_state.layout == "split" then
-    -- In this case consider serializing the M.layout_functions[bottom] variant!
-    -- If you do not want the toggle to destory the prior layout
-    M.terminal_state.layout = "vsplit"
-    -- vim.notify("Terminal: vertical", vim.log.levels.DEBUG, { title = "Layout" })
-  else
-    -- In this case consider serializing the M.layout_functions[bottom] variant!
-    -- If you do not want the toggle to destory the prior layout
-    M.terminal_state.layout = "floating"
-    -- vim.notify("Terminal: floating", vim.log.levels.DEBUG, { title = "Layout" })
+  local current_layout = M.terminal_state.layout
+  if current_layout == "split" then
+    current_layout = "hsplit"
   end
-  M.terminal_state.create_window = M.layout_functions[M.terminal_state.layout]
+
+  local next_layout
+  if current_layout == "floating" then
+    next_layout = "hsplit"
+  elseif current_layout == "hsplit" then
+    next_layout = "vsplit"
+  else
+    next_layout = "floating"
+  end
+
+  set_layout(next_layout)
   -- Path 1 if the terminal is closed no need to do anything else but
   -- notify
   if not M.terminal_state.current then
@@ -927,5 +976,7 @@ function M.set_command(id, callback)
   callback = callback or default_cb
   M.input({ prompt = "Set Command For Terminal " .. id }, callback)
 end
+
+M.setup()
 
 return M

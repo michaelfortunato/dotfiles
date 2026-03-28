@@ -2506,10 +2506,11 @@ config.bind("H", "tab-prev")
 config.bind("<Ctrl-R>", "reload")
 config.bind("<Cmd-t>", "open -t")
 config.bind("I", "mode-enter insert")
-# Keep qutebrowser's native input hinting behavior and enter insert mode first
-# so the focused field stays in the expected modal state without extra timing.
-config.bind("i", "mode-enter insert ;; hint inputs --first")
-config.bind("gi", "mode-enter insert ;; hint inputs --first")
+# GitHub's global search hint targets a button-backed opener, and the actual
+# textbox gets focused by page JS shortly afterward. Re-enter insert on the
+# next tick so qutebrowser catches the real editable once it exists.
+config.bind("i", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert")
+config.bind("gi", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert")
 for i in range(10):
     config.bind(f"<Cmd-{i}>", f"tab-select {i}")
     config.bind(f"<Ctrl-{i}>", f"tab-select {i}")

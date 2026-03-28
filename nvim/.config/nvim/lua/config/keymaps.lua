@@ -362,6 +362,7 @@ vim.keymap.set("t", "<C-S-l>", function()
   vim.cmd("silent! wincmd r")
 end, { silent = true, desc = "Rotate windows forward (terminal)" })
 -- --- Kitty like layout rotation keybinding
+vim.keymap.set({ "n", "v" }, "<C-S-l>", "<C-w>L", { desc = "Rotate windows left", silent = true })
 vim.keymap.set({ "n", "i", "v" }, "<C-S-h>", "<C-w>R", { desc = "Rotate windows forward", silent = true })
 
 -- Optional: rotate backward (like <C-w>R)
