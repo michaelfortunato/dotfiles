@@ -358,7 +358,7 @@ run = "layout floating"
 
 [[on-window-detected]]
 if.app-id = "com.openai.chat"
-run = "move-node-to-workspace C"  # mnemonics C - Chat/Codex
+run = "move-node-to-workspace V"  # mnemonics C - Chat/Codex
 
 [[on-window-detected]]
 if.app-id = "com.openai.codex"
