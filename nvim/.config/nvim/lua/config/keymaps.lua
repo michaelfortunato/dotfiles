@@ -479,16 +479,6 @@ wk.add({
   { "<leader>t", group = "Task" }, -- group
 })
 --- Let t (as in "task") namespace all of the various runner combinations
-map({ "n", "v" }, "<leader>tm", "<Cmd>Make<CR>", { desc = "Run Make" })
-vim.keymap.set("n", "<leader>tmc", function()
-  return require("snacks").input({ prompt = "Set makeprg" }, function(input)
-    if input == nil or input == "" then
-      vim.cmd("set makeprg?")
-    else
-      vim.opt_local.makeprg = input
-    end
-  end)
-end, { desc = "Set makeprg" })
 
 map("n", "<leader>sp", function()
   Snacks.picker.grep({ rtp = true })

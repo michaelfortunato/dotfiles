@@ -33,11 +33,6 @@ open -a "Typst Preview" "$URL"
   },
   keys = {
     {
-      "<leader>tp",
-      "<Cmd>TypstPreviewToggle<CR>",
-      desc = "Toggle preview of Typst document",
-    },
-    {
       "<localleader>p",
       "<Cmd>TypstPreview<CR>",
       desc = "Start preview of Typst document",
