@@ -475,10 +475,10 @@ vim.keymap.set("v", "H", "J") -- Map H to Join lines to J can be used below
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { silent = true }) -- Shift visual selected line down
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { silent = true }) -- Shift visual selected line up
 
+--- Let t (as in "terminaTOR") namespace all of the various ai workflows
 wk.add({
-  { "<leader>t", group = "Task" }, -- group
+  { "<leader>t", group = "Artificial Intelligence" }, -- group
 })
---- Let t (as in "task") namespace all of the various runner combinations
 
 map("n", "<leader>sp", function()
   Snacks.picker.grep({ rtp = true })
