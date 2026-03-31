@@ -12,7 +12,7 @@ cargo-shuttle v0.46.0:
     cargo-shuttle
 codex-acp v0.2.4 (https://github.com/zed-industries/codex-acp#bf8f944c):
     codex-acp
-difftastic v0.67.0:
+difftastic v0.69.0 (/Users/michaelfortunato/scratch/difftastic):
     difft
 dua-cli v2.33.0:
     dua
@@ -43,6 +43,8 @@ ralph-cli v2.0.9:
     ralph
 rheo v0.1.1:
     rheo
+samply v0.13.1:
+    samply
 skim v3.5.0:
     sk
 sql-cli v1.67.0:
@@ -58,7 +60,7 @@ sqruff v0.34.0:
     sqruff
 tokio-console v0.1.14:
     tokio-console
-tree-sitter-cli v0.25.10:
+tree-sitter-cli v0.26.7:
     tree-sitter
-typst-cli v0.14.2 (https://github.com/typst/typst#a935d935):
+typst-cli v0.14.2 (https://github.com/typst/typst#e7256a63):
     typst
