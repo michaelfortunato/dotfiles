@@ -335,25 +335,25 @@ git_ignore_local() {
 
 function yazi() {
 	# 1. Signal Neovim: Enter TUI Mode (Only if in NVIM)
-	[[ -n "$NVIM" ]] && printf "\033_yazi:tui=1\033\\"
-  printf '\x1b]1337;SetUserVar=IS_YAZI=MQ==\007'
+	[[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_yazi:tui=1\033\\' > /dev/tty
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_YAZI=MQ==\007' > /dev/tty
 	command yazi "$@"
 	local ret=$?
 	# 2. Signal Neovim: Leave TUI Mode (Only if in NVIM)
-	[[ -n "$NVIM" ]] && printf "\033_yazi:tui=0\033\\"
-  printf '\x1b]1337;SetUserVar=IS_YAZI\007'
+	[[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_yazi:tui=0\033\\' > /dev/tty
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_YAZI\007' > /dev/tty
 	return $ret
 }
 
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
 	# 1. Signal Neovim: Enter TUI Mode (Only if in NVIM)
-  [[ -n "$NVIM" ]] && printf '\033_yazi:tui=1\033\\'
-  printf '\x1b]1337;SetUserVar=IS_YAZI=MQ==\007'
+  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_yazi:tui=1\033\\' > /dev/tty
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_YAZI=MQ==\007' > /dev/tty
 	command yazi "$@" --cwd-file="$tmp"
 	# 2. Signal Neovim: Leave TUI Mode (Only if in NVIM)
-  [[ -n "$NVIM" ]] && printf '\033_yazi:tui=0\033\\'
-  printf '\x1b]1337;SetUserVar=IS_YAZI\007'
+  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_yazi:tui=0\033\\' > /dev/tty
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_YAZI\007' > /dev/tty
 	if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
 		builtin cd -- "$cwd"
 	fi
@@ -361,9 +361,9 @@ function y() {
 }
 
 lazygit() {
-  [[ -n "$NVIM" ]] && printf '\033_lazygit:tui=1\033\\'
+  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_lazygit:tui=1\033\\' > /dev/tty
 	command lazygit "$@"
-  [[ -n "$NVIM" ]] && printf '\033_lazygit:tui=0\033\\'
+  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_lazygit:tui=0\033\\' > /dev/tty
 }
 
 lst() {
@@ -407,6 +407,15 @@ bindkey '^Z' _zsh_cli_fg
 if [[ -n $KITTY_WINDOW_ID ]]; then
   alias ssh="kitten ssh"
 fi
+
+fzf() {
+  local rc
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_FZF=MQ==\007' > /dev/tty
+  command fzf "$@"
+  rc=$? 
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_FZF\007' > /dev/tty
+  return $rc
+}
 
 # ** FZF Block **
 # Only applies to `**<Tab>` sequence `cd <Tab>` is entirely different.
