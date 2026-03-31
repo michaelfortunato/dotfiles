@@ -17,10 +17,14 @@ if [[ $MNF_OS = "Darwin" ]]; then
   fi
 fi
 
-# Generated completions cache (autoloaded by compsys via $fpath).
-# NOTE: This must be in $fpath before oh-my-zsh runs compinit.
-MNF_ZSH_COMP_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions"
-(( ${fpath[(Ie)$MNF_ZSH_COMP_DIR]} )) || fpath=("$MNF_ZSH_COMP_DIR" $fpath)
+# Completion flow on this machine:
+# - `ZSH_CACHE_DIR` is an Oh My Zsh setting, not a native zsh variable.
+# - OMZ adds `$ZSH_CACHE_DIR/completions` to `$fpath` before `compinit`.
+# - `compinit` scans `$fpath` for `_foo` files with `#compdef`, writes
+#   `$ZSH_COMPDUMP`, and autoloads completion functions on demand.
+# - zsh's `use-cache` caches some completer data, not `cmd completion zsh`
+#   output, so we keep generated completions in this shared OMZ cache dir too.
+[[ -n "$ZSH_CACHE_DIR" ]] || ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/oh-my-zsh"
 
 
 
@@ -858,6 +862,10 @@ mnf_alias_profile_cloud_off() {
 }
 
 
+# _mnf_cache_zsh_init <cache_file> <watch_file> <generator...>
+# - cache_file: file to create/update from generator stdout
+# - watch_file: regenerate when this file is newer than cache_file
+# - generator: command that prints zsh code or a completion file to stdout
 _mnf_cache_zsh_init() {
   local cache_file="$1"
   local watch_file="$2"
@@ -885,17 +893,24 @@ _mnf_cache_zsh_init() {
   fi
 }
 
+# _mnf_cache_zsh_source <cache_file> <watch_file> <generator...>
+# Same contract as _mnf_cache_zsh_init, then source cache_file if readable.
 _mnf_cache_zsh_source() {
   _mnf_cache_zsh_init "$@" || return 0
   [[ -r "$1" ]] && source "$1"
 }
 
+# _mnf_cache_completion <cmd> <func> <generator...>
+# - cmd: command name to attach completion to
+# - func: completion file/function name; keep the leading `_` because zsh
+#   completion functions are conventionally discovered/autoloaded that way
+# - generator: command that prints the completion file to stdout
 _mnf_cache_completion() {
   local cmd="$1"
   local func="$2"
   shift 2
 
-  local cache_dir="${MNF_ZSH_COMP_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/zsh/completions}"
+  local cache_dir="${ZSH_CACHE_DIR}/completions"
   (( ${fpath[(Ie)$cache_dir]} )) || fpath=("$cache_dir" $fpath)
 
   local cache_file="${cache_dir}/${func}"
@@ -912,6 +927,11 @@ _mnf_cache_completion() {
   fi
 }
 
+# Keep this block late in the file:
+# - some commands are added to PATH later in this zshrc
+# - `fzf --zsh` emits init code, not a compinit-style `_foo` file
+# - for generated `_foo` files, _mnf_cache_completion binds them into `_comps`
+#   if compinit already ran earlier via Oh My Zsh
 (( ${+commands[fzf]} )) && _mnf_cache_zsh_source "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/fzf.zsh" "${commands[fzf]}" fzf --zsh
 (( ${+commands[codex]} )) && _mnf_cache_completion codex _codex codex completion zsh
 (( ${+commands[uv]} )) && _mnf_cache_completion uv _uv uv generate-shell-completion zsh
