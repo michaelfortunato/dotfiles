@@ -644,39 +644,6 @@ yi() {
   y "$dir"
 }
 
-# Consider this
-# ei() {
-#   local -a search_dirs
-#   if (( $# == 0 )); then
-#     if [[ "$PWD" != "$HOME" ]]; then
-#       search_dirs=("$PWD" "$HOME")
-#     else
-#       search_dirs=("$HOME")
-#     fi
-#   else
-#     search_dirs=("$@")
-#   fi
-#
-#   bfs "${search_dirs[@]}" -color -mindepth 1 \
-#     -exclude \( \
-#       -name ".git" \
-#       -or -name "node_modules" \
-#       -or -name "target/debug" \
-#       -or -name "target/release" \
-#       -or -name "obj" \
-#       -or -name "build" \
-#       -or -name "dist" \
-#       -or -name ".cache" \
-#       -or -name ".Trash" \
-#       -or -name "__pycache__" \
-#     \) -type f 2>/dev/null |
-#   fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi \
-#     --preview 'bat --paging=never -n --color=always --line-range :200 {}' \
-#     --cycle \
-#     --bind 'ctrl-/:change-preview-window(down|hidden|)' \
-#     --print0 |
-#   xargs -0 -o ${=EDITOR:-nvim} --
-# }
 
 # fkill - kill process
 ki() {
