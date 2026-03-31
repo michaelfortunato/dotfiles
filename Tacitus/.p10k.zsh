@@ -1837,10 +1837,8 @@
     return
   }
   function instant_prompt_nvim_terminal() {
-    # Since prompt_example always makes the same `p10k segment` calls, we can call it from
-    # instant_prompt_example. This will give us the same `example` prompt segment in the instant
-    # and regular prompts.
-    prompt_nvim_terminal
+    # This segment depends on $NVIM, so it isn't safe to cache into instant prompt.
+    return 0
   }
 
   function prompt_mnf_alias_profile() {
