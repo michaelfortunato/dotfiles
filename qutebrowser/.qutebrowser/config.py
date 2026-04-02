@@ -857,7 +857,7 @@ c.completion.shrink = True
 ## Limit fullscreen to the browser window (does not expand to fill the
 ## screen).
 ## Type: Bool
-# c.content.fullscreen.window = False
+c.content.fullscreen.window = True
 
 ## Allow websites to request geolocations.
 ## Type: BoolAsk
@@ -2509,8 +2509,12 @@ config.bind("I", "mode-enter insert")
 # GitHub's global search hint targets a button-backed opener, and the actual
 # textbox gets focused by page JS shortly afterward. Re-enter insert on the
 # next tick so qutebrowser catches the real editable once it exists.
-config.bind("i", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert")
-config.bind("gi", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert")
+config.bind(
+    "i", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert"
+)
+config.bind(
+    "gi", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert"
+)
 for i in range(10):
     config.bind(f"<Cmd-{i}>", f"tab-select {i}")
     config.bind(f"<Ctrl-{i}>", f"tab-select {i}")
