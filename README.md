@@ -138,10 +138,10 @@ via the repos `pre-push` hook (see `./git/.config/git-hooks/pre-push/dotfiles` f
 See sioyek/.config/sioyek/README.md for how this is done.
 Upshot is:
 
-1. `rm -rf ~/Library/Application \Support/<mydir>`
-2. `ln -s ~/Library/Application \Support<mydir> ~/.config/<mydir>`
-3. `mkdir ~/dotfiles/<mydir>/.config/<mydir>`
-4. `cd ~/dotfiles && stow <mydir>`
+0. `rm -rf ~/Library/Application \Support/<mydir>`
+1. `mkdir -p ~/dotfiles/<mydir>/.config/<mydir>`
+2. `cd ~/dotfiles && stow <mydir>`
+3. `ln -sfn ~/.config/<mydir>/<myfile> ~/Library/Application \Support/<mydir>/<myfile>`
 
 All done!
 
