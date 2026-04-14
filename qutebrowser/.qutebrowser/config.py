@@ -2341,6 +2341,8 @@ c.window.hide_decoration = True
 # config.bind('<Ctrl-Tab>', 'tab-focus last')
 # config.bind('<Ctrl-U>', 'scroll-page 0 -0.5')
 # config.bind('<Ctrl-V>', 'mode-enter passthrough')
+config.unbind("<Ctrl-V>")
+config.bind("<Shift-Esc>", "mode-enter passthrough")
 # config.bind('<Ctrl-W>', 'tab-close')
 # config.bind('<Ctrl-X>', 'navigate decrement')
 # config.bind('<Ctrl-^>', 'tab-focus last')
