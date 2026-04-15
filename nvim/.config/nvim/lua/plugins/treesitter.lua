@@ -6,17 +6,44 @@ return {
     branch = "master",
     lazy = false,
     event = { "LazyFile", "VeryLazy" },
-    --   lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
-    --   init = function(plugin)
-    --     -- PERF: add nvim-treesitter queries to the rtp and it's custom query predicates early
-    --     -- This is needed because a bunch of plugins no longer `require("nvim-treesitter")`, which
-    --     -- no longer trigger the **nvim-treesitter** module to be loaded in time.
-    --     -- Luckily, the only things that those plugins need are the custom queries, which we make available
-    --     -- during startup.
-    --     require("lazy.core.loader").add_to_rtp(plugin)
-    --     require("nvim-treesitter.query_predicates")
-    --   end,
-    --
+    init = function(plugin)
+      -- PERF: add nvim-treesitter queries to the rtp early.
+      require("lazy.core.loader").add_to_rtp(plugin)
+
+      -- Hot-fix for Neovim 0.12 + nvim-treesitter master:
+      -- old custom predicates/directives expect match[capture_id] to be a TSNode,
+      -- but core now passes TSNode[] for captures in some paths.
+      local query = require("vim.treesitter.query")
+      local orig_add_predicate = query.add_predicate
+      local orig_add_directive = query.add_directive
+
+      local function normalize_match(match)
+        local normalized = {}
+        for id, capture in pairs(match) do
+          normalized[id] = type(capture) == "table" and capture[1] or capture
+        end
+        return normalized
+      end
+
+      local function wrap_handler(handler)
+        return function(match, ...)
+          return handler(normalize_match(match), ...)
+        end
+      end
+
+      query.add_predicate = function(name, handler, opts)
+        return orig_add_predicate(name, wrap_handler(handler), opts)
+      end
+
+      query.add_directive = function(name, handler, opts)
+        return orig_add_directive(name, wrap_handler(handler), opts)
+      end
+
+      require("nvim-treesitter.query_predicates")
+
+      query.add_predicate = orig_add_predicate
+      query.add_directive = orig_add_directive
+    end,
     opts = {
       indent = {
         enable = true,
