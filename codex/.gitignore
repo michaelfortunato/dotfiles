@@ -1,0 +1,20 @@
+# Ignore the full Codex home tree by default, then allowlist config.
+/.codex/**
+
+# Keep the root visible so nested allowlist rules can apply.
+!/.codex/
+
+# Track shared top-level config.
+!/.codex/AGENTS.md
+!/.codex/config.toml
+
+# Track shared rules.
+!/.codex/rules/
+!/.codex/rules/**
+
+# Track user-installed skills, but not bundled system skills.
+!/.codex/skills/
+!/.codex/skills/*
+!/.codex/skills/*/**
+/.codex/skills/.system/
+/.codex/skills/.system/**
