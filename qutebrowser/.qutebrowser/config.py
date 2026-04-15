@@ -1976,6 +1976,8 @@ c.statusbar.show = "never"
 ##   - text:foo: Display the static text after the colon, `foo` in the example.
 ##   - clock: Display current time. The format can be changed by adding a format string via `clock:...`. For supported format strings, see https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the Python datetime documentation].
 # c.statusbar.widgets = ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
+# Remove history (see above)
+c.statusbar.widgets = ["keypress", "search_match", "url", "scroll", "tabs", "progress"]
 
 ## Open new tabs (middleclick/ctrl+click) in the background.
 ## Type: Bool
