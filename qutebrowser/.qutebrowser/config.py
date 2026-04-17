@@ -2248,7 +2248,12 @@ c.url.default_page = "https://google.com/"
 ## qutebrowser`.
 ## Type: Dict
 # c.url.searchengines = {"DEFAULT": "https://google.com/search?q={}+-ai&udm=14"}
-c.url.searchengines = {"DEFAULT": "https://google.com/search?q={}&udm=14"}
+c.url.searchengines = {
+    "DEFAULT": "https://google.com/search?q={}&udm=14",
+    "gh": "https://github.com/search?q={}",
+    "Gh": "https://github.com/search?q={}",
+    "github": "https://github.com/search?q={}",
+}
 
 ## Page(s) to open at the start.
 ## Type: List of FuzzyUrl, or FuzzyUrl
