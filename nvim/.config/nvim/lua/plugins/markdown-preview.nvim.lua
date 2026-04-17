@@ -16,8 +16,9 @@ return {
       },
     },
     init = function()
-      vim.g.mkdp_auto_start = 1
-      vim.g.mkdp_auto_close = 1
+      -- Avoid refocusing the browser on every markdown BufEnter.
+      vim.g.mkdp_auto_start = 0
+      vim.g.mkdp_auto_close = 0
       vim.g.mkdp_refresh_slow = 0
       vim.g.mkdp_echo_preview_url = 0
       vim.g.mkdp_filetypes = { "markdown" }
