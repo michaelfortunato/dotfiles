@@ -104,6 +104,7 @@ end
 ---@field layout string
 ---@field create_window fun(buf: integer, title: string): integer
 ---@field jobs table<JobId, JobInfo>
+---@field editor JobEditorState?
 M.state = {
   win = nil,
   current_job_id = nil,
@@ -112,6 +113,7 @@ M.state = {
   layout = "vsplit",
   create_window = nil,
   jobs = {},
+  editor = nil,
 }
 
 -- Input helper (Snacks if available, otherwise vim.ui.input)
@@ -1084,10 +1086,611 @@ end
 
 -- Configure UI --------------------------------------------------------------
 
+local job_editor_ns = vim.api.nvim_create_namespace("mnf_jobs_editor")
+
+---@class JobEditorRow
+---@field kind "action"|"toggle"|"cycle"
+---@field action? "save"|"save_start"|"save_restart"|"show"|"delete"|"cancel"
+---@field field? "use_terminal"|"external_terminal"|"silent"|"focus"
+---@field label string
+---@field value? string
+---@field icon string
+---@field danger? boolean
+---@field accent? boolean
+
+---@class JobEditorState
+---@field id JobId
+---@field buf integer
+---@field win integer
+---@field origin_buf integer
+---@field return_win integer
+---@field initial_config JobConfig
+---@field draft JobConfig
+---@field command_input string
+---@field running boolean
+---@field can_show boolean
+---@field callback fun(action: "save"|"save_start"|"save_restart"|"show"|"delete"|"cancel", config: JobConfig): nil
+---@field rows JobEditorRow[]
+---@field selected integer
+---@field pending_action? "show"|"delete"|"cancel"
+---@field notice? string
+---@field notice_hl? string
+---@field closed boolean
+---@field syncing boolean
+
+---@param editor JobEditorState?
+---@return boolean
+local function editor_valid(editor)
+  return editor ~= nil
+    and editor.closed ~= true
+    and editor.buf ~= nil
+    and editor.win ~= nil
+    and vim.api.nvim_buf_is_valid(editor.buf)
+    and vim.api.nvim_win_is_valid(editor.win)
+end
+
+---@param editor JobEditorState
+---@return JobConfig
+local function editor_current_config(editor)
+  return normalize_config(vim.tbl_extend("force", vim.deepcopy(editor.draft), {
+    command = editor.command_input,
+  }))
+end
+
+---@param editor JobEditorState
+---@return boolean
+local function editor_is_dirty(editor)
+  return not configs_equal(editor.initial_config, editor_current_config(editor))
+end
+
+---@param editor JobEditorState
+---@return nil
+local function editor_clear_notice(editor)
+  editor.pending_action = nil
+  editor.notice = nil
+  editor.notice_hl = nil
+end
+
+---@param editor JobEditorState
+---@param message string
+---@param hl string
+---@param action? "show"|"delete"|"cancel"
+---@return nil
+local function editor_set_notice(editor, message, hl, action)
+  editor.pending_action = action
+  editor.notice = message
+  editor.notice_hl = hl
+end
+
+---@param editor JobEditorState
+---@return JobEditorRow[]
+local function editor_rows(editor)
+  local cfg = editor_current_config(editor)
+  local dirty = editor_is_dirty(editor)
+  local run_label
+  if editor.running then
+    run_label = dirty and "Save + restart job" or "Restart job"
+  else
+    run_label = dirty and "Save + start job" or "Start job"
+  end
+
+  local rows = {
+    {
+      kind = "action",
+      action = editor.running and "save_restart" or "save_start",
+      icon = editor.running and "🔁" or "▶️",
+      label = run_label,
+    },
+    {
+      kind = "toggle",
+      field = "use_terminal",
+      icon = cfg.use_terminal and "🖥️" or "📋",
+      label = "Output",
+      value = cfg.use_terminal and "terminal (interactive)" or "capture output",
+    },
+    {
+      kind = "toggle",
+      field = "external_terminal",
+      icon = cfg.external_terminal and "🌐" or "🏠",
+      label = "Location",
+      value = cfg.external_terminal and "external kitty" or "internal buffer/window",
+    },
+    {
+      kind = "toggle",
+      field = "silent",
+      icon = cfg.silent and "🔇" or "🔊",
+      label = "Open",
+      value = cfg.silent and "silent" or "open on start",
+    },
+    {
+      kind = "cycle",
+      field = "focus",
+      icon = "🎯",
+      label = "Focus",
+      value = focus_display(cfg),
+    },
+    {
+      kind = "action",
+      action = "save",
+      icon = "💾",
+      label = dirty and "Save job changes" or "Save job",
+      accent = true,
+    },
+    {
+      kind = "action",
+      action = "delete",
+      icon = "🗑️",
+      label = editor.pending_action == "delete" and "Delete job definition (confirm)" or "Delete job definition",
+      danger = true,
+    },
+    {
+      kind = "action",
+      action = "cancel",
+      icon = "❌",
+      label = dirty
+          and (editor.pending_action == "cancel" and "Cancel (discard draft)" or "Cancel (discard changes)")
+        or "Cancel",
+      danger = true,
+    },
+  }
+
+  if editor.can_show then
+    table.insert(rows, 2, {
+      kind = "action",
+      action = "show",
+      icon = "🔎",
+      label = dirty and editor.pending_action == "show" and "View job (discard draft)" or "View job",
+    })
+  end
+
+  return rows
+end
+
+---@param editor JobEditorState
+---@return nil
+local function editor_render(editor)
+  if not editor_valid(editor) then
+    return
+  end
+
+  local cfg = editor_current_config(editor)
+  local dirty = editor_is_dirty(editor)
+  editor.rows = editor_rows(editor)
+  editor.selected = math.max(1, math.min(editor.selected or 1, #editor.rows))
+
+  vim.api.nvim_buf_clear_namespace(editor.buf, job_editor_ns, 0, -1)
+
+  local width = math.max(vim.api.nvim_win_get_width(editor.win) - 4, 24)
+  local divider = string.rep("─", width)
+  local virt_lines = {}
+  if editor.notice then
+    virt_lines[#virt_lines + 1] = { { editor.notice, editor.notice_hl or "Comment" } }
+  end
+  virt_lines[#virt_lines + 1] = { { divider, "FloatBorder" } }
+
+  for idx, row in ipairs(editor.rows) do
+    local selected = idx == editor.selected
+    local accent = row.danger or row.accent
+    local marker_hl = selected and "DiagnosticInfo" or "Comment"
+    local label_hl = accent and "WarningMsg" or (selected and "Title" or "Normal")
+    local value_hl = selected and "DiagnosticInfo" or "Comment"
+    local line = {
+      { selected and "› " or "  ", marker_hl },
+      { ("%d. "):format(idx), selected and "Number" or "Comment" },
+      { row.icon .. " ", accent and "WarningMsg" or "Special" },
+      { row.label, label_hl },
+    }
+    if row.value then
+      line[#line + 1] = { ": ", "Comment" }
+      line[#line + 1] = { row.value, value_hl }
+    end
+    virt_lines[#virt_lines + 1] = line
+  end
+
+  vim.api.nvim_buf_set_extmark(editor.buf, job_editor_ns, 0, 0, {
+    id = 1,
+    virt_lines = virt_lines,
+    virt_lines_above = false,
+  })
+
+  vim.api.nvim_buf_set_extmark(editor.buf, job_editor_ns, 0, 0, {
+    id = 2,
+    virt_text = {
+      { dirty and "[modified]" or "[saved]", dirty and "WarningMsg" or "Comment" },
+    },
+    virt_text_pos = "right_align",
+  })
+
+  if editor.command_input == "" then
+    vim.api.nvim_buf_set_extmark(editor.buf, job_editor_ns, 0, 0, {
+      id = 3,
+      virt_text = { { "blank = shell", "Comment" } },
+      virt_text_pos = "overlay",
+      hl_mode = "combine",
+    })
+  end
+end
+
+---@param editor JobEditorState
+---@param line string
+---@param col integer
+---@return nil
+local function editor_set_command_input(editor, line, col)
+  if not editor_valid(editor) then
+    return
+  end
+  editor.syncing = true
+  editor.command_input = line
+  vim.api.nvim_buf_set_lines(editor.buf, 0, -1, false, { line })
+  vim.api.nvim_win_set_cursor(editor.win, { 1, math.max(0, math.min(col, #line)) })
+  editor.syncing = false
+  editor_clear_notice(editor)
+  editor_render(editor)
+end
+
+---@param editor JobEditorState
+---@param text string
+---@return nil
+local function editor_insert_text(editor, text)
+  if not editor_valid(editor) then
+    return
+  end
+  local col = vim.api.nvim_win_get_cursor(editor.win)[2]
+  local line = editor.command_input
+  local new_line = line:sub(1, col) .. text .. line:sub(col + 1)
+  editor_set_command_input(editor, new_line, col + #text)
+end
+
+---@param editor JobEditorState
+---@param replace_percent boolean
+---@return boolean inserted
+local function editor_insert_origin_bufpath(editor, replace_percent)
+  if not editor_valid(editor) then
+    return false
+  end
+  local path = buf_abspath(editor.origin_buf)
+  if not path then
+    vim.notify("Current buffer has no file path", vim.log.levels.WARN)
+    return false
+  end
+
+  local col = vim.api.nvim_win_get_cursor(editor.win)[2]
+  local line = editor.command_input
+  if replace_percent and not (col > 0 and line:sub(col, col) == "%") then
+    return false
+  end
+
+  local new_line
+  local new_col
+  if replace_percent then
+    new_line = line:sub(1, col - 1) .. path .. line:sub(col + 1)
+    new_col = (col - 1) + #path
+  else
+    new_line = line:sub(1, col) .. path .. line:sub(col + 1)
+    new_col = col + #path
+  end
+
+  editor_set_command_input(editor, new_line, new_col)
+  return true
+end
+
+---@param editor JobEditorState
+---@param delta integer
+---@return nil
+local function editor_move(editor, delta)
+  if not editor_valid(editor) then
+    return
+  end
+  editor.selected = math.max(1, math.min((editor.selected or 1) + delta, #editor.rows))
+  editor_clear_notice(editor)
+  editor_render(editor)
+end
+
+---@param editor JobEditorState
+---@param finish_action? "save"|"save_start"|"save_restart"|"show"|"delete"|"cancel"
+---@return nil
+local function editor_close(editor, finish_action)
+  if editor.closed then
+    return
+  end
+
+  local callback = editor.callback
+  local cfg = editor_current_config(editor)
+  local return_win = editor.return_win
+  editor.closed = true
+  if M.state.editor == editor then
+    M.state.editor = nil
+  end
+
+  if vim.api.nvim_win_is_valid(editor.win) then
+    pcall(vim.api.nvim_win_close, editor.win, true)
+  end
+  if vim.api.nvim_buf_is_valid(editor.buf) then
+    pcall(vim.api.nvim_buf_delete, editor.buf, { force = true })
+  end
+
+  if return_win and vim.api.nvim_win_is_valid(return_win) then
+    pcall(vim.api.nvim_set_current_win, return_win)
+  end
+
+  if finish_action then
+    vim.schedule(function()
+      callback(finish_action, cfg)
+    end)
+  end
+end
+
+---@param editor JobEditorState
+---@return nil
+local function editor_activate(editor)
+  if not editor_valid(editor) then
+    return
+  end
+
+  local row = editor.rows[editor.selected]
+  if not row then
+    return
+  end
+
+  if row.kind == "toggle" then
+    if row.field == "use_terminal" then
+      editor.draft.use_terminal = not editor.draft.use_terminal
+    elseif row.field == "external_terminal" then
+      editor.draft.external_terminal = not editor.draft.external_terminal
+    elseif row.field == "silent" then
+      editor.draft.silent = not editor.draft.silent
+    end
+    editor_clear_notice(editor)
+    editor_render(editor)
+    return
+  end
+
+  if row.kind == "cycle" and row.field == "focus" then
+    if editor.draft.focus == "auto" then
+      editor.draft.focus = true
+    elseif editor.draft.focus == true then
+      editor.draft.focus = false
+    else
+      editor.draft.focus = "auto"
+    end
+    editor_clear_notice(editor)
+    editor_render(editor)
+    return
+  end
+
+  local cfg = editor_current_config(editor)
+  if (row.action == "save_start" or row.action == "save_restart") and not cfg.use_terminal and cfg.command == "" then
+    editor_set_notice(editor, "Capture mode requires a command before it can run.", "WarningMsg")
+    editor_render(editor)
+    return
+  end
+
+  if row.action == "show" and editor_is_dirty(editor) and editor.pending_action ~= "show" then
+    editor_set_notice(editor, "Press view again to discard the draft command and open the job.", "WarningMsg", "show")
+    editor_render(editor)
+    return
+  end
+
+  if row.action == "delete" and editor.pending_action ~= "delete" then
+    editor_set_notice(editor, "Press delete again to remove this job definition.", "WarningMsg", "delete")
+    editor_render(editor)
+    return
+  end
+
+  if row.action == "cancel" and editor_is_dirty(editor) and editor.pending_action ~= "cancel" then
+    editor_set_notice(editor, "Press cancel again to discard changes.", "WarningMsg", "cancel")
+    editor_render(editor)
+    return
+  end
+
+  editor_close(editor, row.action)
+end
+
+---@param id JobId
+---@param initial JobConfig
+---@param opts { running: boolean, can_show: boolean }
+---@param callback fun(action: "save"|"save_start"|"save_restart"|"show"|"delete"|"cancel", config: JobConfig): nil
+local function configure_job_picker_ui(id, initial, opts, callback)
+  local existing = M.state.editor
+  if editor_valid(existing) then
+    if existing.id == id then
+      vim.api.nvim_set_current_win(existing.win)
+      vim.api.nvim_win_set_cursor(existing.win, { 1, #existing.command_input })
+      vim.cmd("startinsert")
+      return true
+    end
+    vim.api.nvim_set_current_win(existing.win)
+    vim.notify("A job editor is already open. Close it before opening another job.", vim.log.levels.WARN)
+    return true
+  end
+
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.bo[buf].buftype = "nofile"
+  vim.bo[buf].bufhidden = "wipe"
+  vim.bo[buf].buflisted = false
+  vim.bo[buf].swapfile = false
+  vim.bo[buf].modifiable = true
+  vim.bo[buf].filetype = "mnf_job_editor"
+
+  local initial_config = normalize_config(initial)
+  local origin_buf = vim.api.nvim_get_current_buf()
+  local return_win = vim.api.nvim_get_current_win()
+  local width = math.max(72, math.min(96, math.floor(vim.o.columns * 0.5)))
+  local height = 14
+  local row = math.max(1, math.floor((vim.o.lines - height) / 2))
+  local col = math.max(0, math.floor((vim.o.columns - width) / 2))
+
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    width = width,
+    height = height,
+    row = row,
+    col = col,
+    style = "minimal",
+    border = {
+      { "╭", "FloatBorder" },
+      { "─", "FloatBorder" },
+      { "╮", "FloatBorder" },
+      { "│", "FloatBorder" },
+      { "╯", "FloatBorder" },
+      { "─", "FloatBorder" },
+      { "╰", "FloatBorder" },
+      { "│", "FloatBorder" },
+    },
+    title = { { ("Job[%s]"):format(tostring(id)), "FloatTitle" } },
+    title_pos = "center",
+    noautocmd = true,
+  })
+
+  vim.wo[win].winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder,FloatTitle:FloatTitle"
+  vim.wo[win].wrap = false
+  vim.wo[win].number = false
+  vim.wo[win].relativenumber = false
+  vim.wo[win].signcolumn = "no"
+  vim.wo[win].foldcolumn = "0"
+  vim.wo[win].cursorline = false
+  vim.wo[win].scrolloff = 0
+  vim.wo[win].sidescrolloff = 0
+
+  local editor = {
+    id = id,
+    buf = buf,
+    win = win,
+    origin_buf = origin_buf,
+    return_win = return_win,
+    initial_config = initial_config,
+    draft = vim.deepcopy(initial_config),
+    command_input = initial_config.command,
+    running = opts.running,
+    can_show = opts.can_show,
+    callback = callback,
+    rows = {},
+    selected = 1,
+    closed = false,
+    syncing = false,
+  }
+  M.state.editor = editor
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { editor.command_input })
+  vim.api.nvim_win_set_cursor(win, { 1, #editor.command_input })
+
+  vim.keymap.set({ "i", "n" }, "<CR>", function()
+    editor_activate(editor)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Confirm selected row" })
+
+  vim.keymap.set({ "i", "n" }, "<C-j>", function()
+    editor_move(editor, 1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select next row" })
+
+  vim.keymap.set({ "i", "n" }, "<C-k>", function()
+    editor_move(editor, -1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select previous row" })
+
+  vim.keymap.set("n", "j", function()
+    editor_move(editor, 1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select next row" })
+
+  vim.keymap.set("n", "k", function()
+    editor_move(editor, -1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select previous row" })
+
+  vim.keymap.set({ "i", "n" }, "<C-n>", function()
+    editor_move(editor, 1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select next row" })
+
+  vim.keymap.set({ "i", "n" }, "<C-p>", function()
+    editor_move(editor, -1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select previous row" })
+
+  vim.keymap.set({ "i", "n" }, "<Down>", function()
+    editor_move(editor, 1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select next row" })
+
+  vim.keymap.set({ "i", "n" }, "<Up>", function()
+    editor_move(editor, -1)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Select previous row" })
+
+  vim.keymap.set("n", "<Esc>", function()
+    editor.selected = #editor.rows
+    editor_activate(editor)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Cancel editor" })
+
+  vim.keymap.set("n", "q", function()
+    editor.selected = #editor.rows
+    editor_activate(editor)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Cancel editor" })
+
+  vim.keymap.set("n", "i", function()
+    vim.cmd("startinsert")
+  end, { buffer = buf, silent = true, nowait = true, desc = "Edit command" })
+
+  vim.keymap.set("i", "<Esc>", "<Cmd>stopinsert<CR>", { buffer = buf, silent = true, nowait = true, desc = "Leave insert mode" })
+
+  vim.keymap.set("i", "<Tab>", function()
+    if not editor_insert_origin_bufpath(editor, true) then
+      editor_insert_text(editor, "\t")
+    end
+  end, { buffer = buf, silent = true, nowait = true, desc = "Insert tab or current buffer path" })
+
+  vim.keymap.set({ "i", "n" }, "<C-Space>", function()
+    editor_insert_origin_bufpath(editor, false)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Insert current buffer path" })
+
+  vim.keymap.set({ "i", "n" }, "<C-@>", function()
+    editor_insert_origin_bufpath(editor, false)
+  end, { buffer = buf, silent = true, nowait = true, desc = "Insert current buffer path" })
+
+  vim.api.nvim_create_autocmd({ "TextChangedI", "TextChanged" }, {
+    buffer = buf,
+    callback = function()
+      if editor.closed or editor.syncing or not editor_valid(editor) then
+        return
+      end
+
+      local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+      local line = table.concat(lines, " ")
+      if #lines > 1 then
+        editor_set_command_input(editor, line, #line)
+        return
+      end
+
+      editor.command_input = line
+      editor_clear_notice(editor)
+      editor_render(editor)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("WinClosed", {
+    pattern = tostring(win),
+    once = true,
+    callback = function()
+      if editor.closed then
+        return
+      end
+      editor_close(editor, "cancel")
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("BufWipeout", {
+    buffer = buf,
+    once = true,
+    callback = function()
+      if M.state.editor == editor then
+        M.state.editor = nil
+      end
+      editor.closed = true
+    end,
+  })
+
+  editor_render(editor)
+  vim.cmd("startinsert")
+  return true
+end
+
 ---@param id JobId
 ---@param initial JobConfig
 ---@param opts { running: boolean }
----@param callback fun(action: "save"|"save_start"|"save_restart"|"cancel", config: JobConfig): nil
+---@param callback fun(action: "save"|"save_start"|"save_restart"|"show"|"delete"|"cancel", config: JobConfig): nil
 local function configure_job_ui(id, initial, opts, callback)
   local config = normalize_config(initial)
   local origin_buf = vim.api.nvim_get_current_buf()
@@ -1194,66 +1797,45 @@ function M.configure_job(id)
   local key, job = ensure_job(id)
   id = key
 
-  -- Quick menu when job exists (parity with existing module)
   local running = job.runtime ~= nil and runtime_is_valid(job.runtime) and job.status == "running"
+  local can_show = job.runtime ~= nil and runtime_is_valid(job.runtime)
+  local function handle_action(action, cfg)
+    if action == "cancel" then
+      return
+    end
+    if action == "show" then
+      M.show_job(id)
+      return
+    end
+    if action == "delete" then
+      M.delete_job(id)
+      return
+    end
+
+    M.define_job(id, cfg)
+    if action == "save_start" then
+      M.start_job(id)
+    elseif action == "save_restart" then
+      M.restart_job(id)
+    else
+      notify("Saved Job[" .. tostring(id) .. "] (not started)")
+    end
+  end
+
   if job.config and job.config.command ~= nil then
-    local options = {
-      running and "🔄 Restart job" or "▶️ Start job",
-      "🔎 View job",
-      "⚙️ Configure job",
-      "🗑️ Delete job definition",
-      "❌ Cancel",
-    }
-    vim.ui.select(options, { prompt = "Job[" .. tostring(id) .. "]" }, function(choice)
-      if not choice or choice:match("Cancel") then
-        return
-      end
+    if configure_job_picker_ui(id, job.config, { running = running, can_show = can_show }, handle_action) then
+      return
+    end
 
-      if choice:match("Start") then
-        M.start_job(id)
-        return
-      end
-      if choice:match("Restart") then
-        M.restart_job(id)
-        return
-      end
-      if choice:match("View") then
-        M.show_job(id)
-        return
-      end
-      if choice:match("Delete") then
-        M.delete_job(id)
-        return
-      end
-
-      configure_job_ui(id, job.config, { running = running }, function(action, cfg)
-        if action == "cancel" then
-          return
-        end
-        M.define_job(id, cfg)
-        if action == "save_start" then
-          M.start_job(id)
-        elseif action == "save_restart" then
-          M.restart_job(id)
-        else
-          notify("Saved Job[" .. tostring(id) .. "] (not started)")
-        end
-      end)
+    configure_job_ui(id, job.config, { running = running }, function(action, cfg)
+      handle_action(action, cfg)
     end)
     return
   end
 
   -- Should not happen (ensure_job always sets config), but keep for safety.
   configure_job_ui(id, normalize_config(nil), { running = false }, function(action, cfg)
-    if action == "cancel" then
-      return
-    end
-    M.define_job(id, cfg)
-    if action == "save_start" then
-      M.start_job(id)
-    else
-      notify("Saved Job[" .. tostring(id) .. "] (not started)")
-    end
+    handle_action(action, cfg)
   end)
 end
 
