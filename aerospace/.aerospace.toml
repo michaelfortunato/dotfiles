@@ -362,11 +362,15 @@ run = "layout floating"
 
 [[on-window-detected]]
 if.app-id = "com.openai.chat"
-run = "move-node-to-workspace V"  # mnemonics C - Chat/Codex
+run = "move-node-to-workspace V"  # mnemonics V - (next to C [Chat]) on QWERTY
 
 [[on-window-detected]]
 if.app-id = "com.openai.codex"
-run = "move-node-to-workspace C"  # mnemonics C - Chat/Codex
+run = "move-node-to-workspace C"  # mnemonics C - Chat/Codex/Cluade
+
+[[on-window-detected]]
+if.app-id = "com.anthropic.claudefordesktop"
+run = "move-node-to-workspace C"  # mnemonics C - Chat/Codex/Claude
 
 [[on-window-detected]]
 if.app-id = "org.python.python"
