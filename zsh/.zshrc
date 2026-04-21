@@ -773,7 +773,7 @@ mnf_alias_profile_cloud_on() {
   function nid() { 
     local img="${1}"
     printf '%s' "$img" | grep -q ':' || img="${img}:latest"
-    nerdctl image rm ${img} "${@:2}" 
+    nerdctl image rm "$img" "${@:2}" 
   }
   print 'nid=nerdctl image rm ${1} # usage nid <image> [args ...]'
   #
@@ -842,7 +842,7 @@ mnf_alias_profile_cloud_on() {
       container="${1}"
       cmd="${2:-bash}"
       printf "Running: nerdctl exec -it "${container}" "${cmd}" "${@:3}"\n" >&2;
-      nerdctl exec -it "${img}" "${cmd}" "${@:3}"
+      nerdctl exec -it "${container}" "${cmd}" "${@:3}"
     fi
   }
   print 'nce=nerdctl exec -it "${1:-$(ncli)}" "${2:-bash}" "${@:3}" # usage: nce [container] [cmd] [args...]'
