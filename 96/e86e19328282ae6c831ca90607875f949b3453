@@ -1,0 +1,44 @@
+_MANIFESTS/nix/profile.json
+  b1b3d1e6714c5627 1
+_MANIFESTS/brew/Brewfile
+  b1b3d1e6714c5627 1,16,36,46,52,57,74,107-108,116,119
+  2a43bed375ed6e2d 69,71
+_MANIFESTS/uv/uv_tool_list_output.txt
+  b1b3d1e6714c5627 5-6
+  2a43bed375ed6e2d 7
+_MANIFESTS/cargo/cargo_install_list_output.txt
+  b1b3d1e6714c5627 48-49,69-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "96e86e19328282ae6c831ca90607875f949b3453",
+  "prompts": {
+    "2a43bed375ed6e2d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db088-03b3-7c70-864f-93f547a7972a",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 2,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    },
+    "b1b3d1e6714c5627": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dac4a-3587-7d93-bb9e-c051e23fe9dd",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1081,
+      "overriden_lines": 0
+    }
+  }
+}
