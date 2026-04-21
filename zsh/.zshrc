@@ -180,6 +180,7 @@ export MNF_TEMPLATE_DIR=$HOME/dotfiles/_templates #TODO: should be $HOME/.templa
 export MNF_BIB_DIR=$HOME/.local/share/zotero/bib
 export BIBINPUTS=$MNF_BIB_DIR
 
+[[ -r "$HOME/.secrets.zsh" ]] && source "$HOME/.secrets.zsh"
 
 #==============================================================================
 # NOTE: Only set path here!
