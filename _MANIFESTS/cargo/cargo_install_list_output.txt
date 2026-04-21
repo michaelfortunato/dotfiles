@@ -45,6 +45,8 @@ rheo v0.1.1:
     rheo
 samply v0.13.1:
     samply
+selene v0.30.0:
+    selene
 skim v3.5.0:
     sk
 sql-cli v1.67.0:
@@ -64,3 +66,5 @@ tree-sitter-cli v0.26.7:
     tree-sitter
 typst-cli v0.14.2 (https://github.com/typst/typst#e7256a63):
     typst
+worktrunk v0.35.3:
+    wt
