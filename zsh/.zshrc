@@ -97,7 +97,7 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git gpg-agent fzf-tab)
+plugins=(git fzf-tab)
 source $ZSH/oh-my-zsh.sh
 
 # setopt settings -- putting it here because oh-my-zsh.sh plugings may override them 
@@ -941,6 +941,24 @@ _mnf_cache_completion() {
 (( ${+commands[cargo]} )) && _mnf_cache_completion cargo _clap_dynamic_completer_cargo env CARGO_COMPLETE=zsh cargo +nightly
 (( ${+commands[pueue]} )) && _mnf_cache_completion pueue _pueue pueue completions zsh
 (( ${+commands[mnf]} )) && _mnf_cache_completion mnf _clap_dynamic_completer_mnf mnf completion zsh
+export GPG_TTY=$TTY
+if (( ${+commands[gpg-connect-agent]} )); then
+  _mnf_gpg_update_tty_preexec() {
+    command gpg-connect-agent updatestartuptty /bye &>/dev/null
+  }
+  autoload -Uz add-zsh-hook
+  add-zsh-hook preexec _mnf_gpg_update_tty_preexec
+fi
+
+# Fast path: avoid `gpgconf --list-dirs agent-ssh-socket` during zsh startup.
+# Generic version if this path ever stops matching:
+#   _mnf_gpg_agent_ssh_sock="$(gpgconf --list-dirs agent-ssh-socket 2>/dev/null)"
+_mnf_gpg_agent_ssh_sock="${GNUPGHOME:-$HOME/.gnupg}/S.gpg-agent.ssh"
+if [[ -S "$_mnf_gpg_agent_ssh_sock" ]]; then
+  unset SSH_AGENT_PID
+  export SSH_AUTH_SOCK="$_mnf_gpg_agent_ssh_sock"
+fi
+unset _mnf_gpg_agent_ssh_sock
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
