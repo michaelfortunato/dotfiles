@@ -191,7 +191,7 @@ end, {
 -- TODO: Its possible the persistence load screws up refresh for Vimtex
 vim.api.nvim_create_user_command(
   "Restart",
-  'restart lua require("persistence").load({ last = true })',
+  'restart lua require("persistence").load()',
   { desc = "Restart Neovim and reload last session on reopen" }
 )
 
