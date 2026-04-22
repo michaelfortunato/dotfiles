@@ -1,0 +1,49 @@
+kitty/.config/kitty/current-theme.conf
+  b1b3d1e6714c5627 3,6,12-15,18-19,22,25-27,34-38,41-46,51-52,55-56,59-60,63-64,67-68,71-72,75-76,79-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "fdc134bd16ce76fa66e622ed88ff937503cd3b99",
+  "prompts": {
+    "2996c714a4f1f505": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db5b7-17fd-7bb2-90b6-eff6299de7f9",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 27,
+      "total_deletions": 4,
+      "accepted_lines": 27,
+      "overriden_lines": 0
+    },
+    "b1b3d1e6714c5627": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dac4a-3587-7d93-bb9e-c051e23fe9dd",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 844,
+      "overriden_lines": 0
+    },
+    "c6a943bf6b74cecf": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db588-bf60-74b1-8693-0f032e2f10e8",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
