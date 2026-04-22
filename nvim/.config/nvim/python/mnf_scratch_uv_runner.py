@@ -11,6 +11,8 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
+READY_SENTINEL = "__MNF_SCRATCH_UV_RUNNER_READY__"
+
 
 class _State:
     target_filename: str | None = None
@@ -239,6 +241,8 @@ def _run_once() -> int:
 
 
 def _serve_jsonl() -> int:
+    print(READY_SENTINEL, file=sys.stderr, flush=True)
+
     for raw in sys.stdin:
         raw = raw.strip("\n")
         if not raw.strip():

@@ -412,6 +412,8 @@ local uv_session = {
   uv_cache_dir = nil,
 }
 
+local uv_ready_sentinel = "__MNF_SCRATCH_UV_RUNNER_READY__"
+
 ---@type fun():nil
 local drain_uv_queue
 
@@ -646,7 +648,13 @@ local function ensure_uv_session(item)
       end
       for _, line in ipairs(data) do
         line = tostring(line or "")
-        if line ~= "" then
+        if line == uv_ready_sentinel then
+          vim.schedule(function()
+            if epoch == uv_session.epoch and not uv_session.stopping then
+              vim.notify("Python scratch: uv runner booted and listening.", vim.log.levels.INFO)
+            end
+          end)
+        elseif line ~= "" then
           uv_session.stderr[#uv_session.stderr + 1] = line
           if #uv_session.stderr > 50 then
             table.remove(uv_session.stderr, 1)
@@ -688,7 +696,7 @@ local function ensure_uv_session(item)
   end
 
   uv_session.jobid = jobid
-  vim.notify("Starting uv server this might take a moment...")
+  vim.notify("Python scratch: starting uv runner...")
   return true, nil
 end
 
