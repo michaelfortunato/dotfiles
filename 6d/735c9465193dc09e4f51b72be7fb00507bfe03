@@ -1,0 +1,60 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "6d735c9465193dc09e4f51b72be7fb00507bfe03",
+  "prompts": {
+    "2996c714a4f1f505": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db5b7-17fd-7bb2-90b6-eff6299de7f9",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 50,
+      "overriden_lines": 0
+    },
+    "4dfed2c78f5d228b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db606-5deb-7300-9e77-63790695b4a4",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "50b5b8a9c3acd272": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db607-a266-7432-ad6f-17b57881a9e4",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 7,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "ce264e508c3b3fcc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db608-6661-7700-9360-30a56efd87ac",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 7,
+      "accepted_lines": 1,
+      "overriden_lines": 2
+    }
+  }
+}
