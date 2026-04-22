@@ -1,11 +1,11 @@
-Double-link (macOS): Repo manages `~/.config/sioyek` (via stow). macOS reads `~/Library/Application Support/sioyek`. Link only config files; leave state files in App Support.
+Sioyek on macOS reads directly from `~/.config/sioyek/` (see upstream `main.cpp:220-224`), so a single stow is enough — no `~/Library/Application Support/` double-link needed.
+
+Versioned files:
+- `keys_user.config` — user keybinding overrides.
+- `prefs_user.config` — user preference overrides.
 
 Fresh install (macOS):
-- `cd ~/dotfiles && stow -S sioyek`
-- ln -sfn "$HOME/.config/sioyek/keys.config" "$HOME/Library/Application Support/sioyek/keys.config"
-- ln -sfn "$HOME/.config/sioyek/prefs_user.config" "$HOME/Library/Application Support/sioyek/prefs_user.config"
+- `cd ~/dotfiles && stow sioyek`
+- Restart Sioyek.
 
-ln flags (brief):
-- -s: symbolic link
-- -f: replace destination if it exists
-- -n: don’t dereference DEST if it’s a symlink to a dir
+State (`shared.db`, `local.db`, `auto.config`, `last_document_path.txt`) lives in `~/Library/Application Support/Sioyek/` and is intentionally not versioned. Any `keys.config` / `prefs.config` symlinks in App Support are vestigial — sioyek merges user overrides from `~/.config/sioyek/keys_user.config` and `prefs_user.config` directly.
