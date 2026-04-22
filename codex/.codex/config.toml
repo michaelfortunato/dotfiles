@@ -1,80 +1,20 @@
-model = "gpt-5.4"
-network_access = true
 approval_policy = "on-request"
-sandbox_mode = "read-only"
-ask_for_approval = "always"
-model_reasoning_effort = "xhigh"
-personality = "pragmatic"
-web_search = "live"
-service_tier = "fast"
-plan_mode_reasoning_effort = "xhigh"
 approvals_reviewer = "user"
-
-[tui]
-notifications = true
+ask_for_approval = "always"
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+network_access = true
+personality = "pragmatic"
+plan_mode_reasoning_effort = "xhigh"
+sandbox_mode = "read-only"
+service_tier = "fast"
+suppress_unstable_features_warning = true
+web_search = "live"
 
 [features]
-steer = true
+codex_hooks = true
 multi_agent = true
-
-[sandbox_workspace_write]
-network_access = true
-
-[notice]
-hide_gpt5_1_migration_prompt = true
-hide_full_access_warning = true
-"hide_gpt-5.1-codex-max_migration_prompt" = true
-hide_rate_limit_model_nudge = true
-
-[notice.model_migrations]
-"gpt-5.2" = "gpt-5.3-codex"
-"gpt-5.1-codex-mini" = "gpt-5.2-codex"
-"gpt-5.2-codex" = "gpt-5.3-codex"
-
-[projects."/Users/michaelfortunato/scratch/sambodee"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/dotfiles"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/notes/daily"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/scratch/spending"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/scratch/spending/jp-debit"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/projects/neovim-plugins/agentic.nvim"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/projects/loci"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/notes"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/projects/personal-website"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/Finance/spending"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/Finance/spending_v2"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/Music"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/projects/AGED"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/projects/codex"]
-trust_level = "trusted"
-
-[plugins."github@openai-curated"]
-enabled = true
+steer = true
 
 [mcp_servers.context7]
 command = "npx"
@@ -87,16 +27,15 @@ args = ["mcp-server-fetch"]
 [mcp_servers.fetch.tools.fetch]
 approval_mode = "approve"
 
-[mcp_servers.sequential_thinking]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-
-[mcp_servers.sequential_thinking.tools.sequentialthinking]
-approval_mode = "approve"
+[mcp_servers.linear]
+url = "https://mcp.linear.app/mcp"
 
 [mcp_servers.memory]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-memory"]
+
+[mcp_servers.memory.tools.add_observations]
+approval_mode = "approve"
 
 [mcp_servers.memory.tools.create_entities]
 approval_mode = "approve"
@@ -104,20 +43,107 @@ approval_mode = "approve"
 [mcp_servers.memory.tools.create_relations]
 approval_mode = "approve"
 
-[mcp_servers.memory.tools.add_observations]
-approval_mode = "approve"
-
 [mcp_servers.memory.tools.read_graph]
 approval_mode = "approve"
 
-# These do not even work
-# [projects."/Users/michaelfortunato/dotfiles"]
-# trust_level = "full-access"
-# network_access = true
-# approval_policy = "never"
-# sandbox_mode = "danger-full-access"
-# [projects."/Users/michaelfortunato/projects/SymD"]
-# trust_level = "full-access"
-# network_access = true
-# approval_policy = "never"
-# sandbox_mode = "danger-full-access"
+[mcp_servers.sequential_thinking]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+
+[mcp_servers.sequential_thinking.tools.sequentialthinking]
+approval_mode = "approve"
+
+[mcp_servers.github]
+bearer_token_env_var = "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN"
+url = "https://api.githubcopilot.com/mcp/"
+
+[notice]
+hide_full_access_warning = true
+"hide_gpt-5.1-codex-max_migration_prompt" = true
+hide_gpt5_1_migration_prompt = true
+hide_rate_limit_model_nudge = true
+
+[notice.model_migrations]
+"gpt-5.1-codex-mini" = "gpt-5.2-codex"
+"gpt-5.2" = "gpt-5.3-codex"
+"gpt-5.2-codex" = "gpt-5.3-codex"
+
+[plugins."github@openai-curated"]
+enabled = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[plugins."linear@openai-curated"]
+enabled = true
+
+[plugins."slack@openai-curated"]
+enabled = true
+
+[projects."/Users/michaelfortunato/Finance/spending"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/Finance/spending_v2"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/Music"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/OUT-245"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/notes"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/notes/daily"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/AGED"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/codex"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/loci"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/loci-app-command-surface"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/neovim-plugins/agentic.nvim"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/personal-website"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/scratch/sambodee"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/scratch/spending"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/scratch/spending/jp-debit"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/cleartrace-api"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/credit-product-dashboard"]
+trust_level = "trusted"
+
+[sandbox_workspace_write]
+network_access = true
+
+[tui]
+notifications = true
+
+[marketplaces.openai-bundled]
+last_updated = "2026-04-21T16:39:30Z"
+source_type = "local"
+source = "/Users/michaelfortunato/dotfiles/codex/.codex/.tmp/bundled-marketplaces/openai-bundled"
