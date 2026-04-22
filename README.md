@@ -135,15 +135,34 @@ via the repos `pre-push` hook (see `./git/.config/git-hooks/pre-push/dotfiles` f
 
 ### Double Linking on macOS
 
-See sioyek/.config/sioyek/README.md for how this is done.
-Upshot is:
+Some macOS apps (Sioyek, Claude Desktop) refuse to read config from XDG
+locations and insist on `~/Library/Application Support/<App>/`. Stow can't
+reach into `Library/` cleanly, so we do a two-hop symlink: stow manages
+`~/.config/<app>/` as usual, and a hand-created `ln -sfn` bridges App Support
+to that.
 
-0. `rm -rf ~/Library/Application \Support/<mydir>`
-1. `mkdir -p ~/dotfiles/<mydir>/.config/<mydir>`
-2. `cd ~/dotfiles && stow <mydir>`
-3. `ln -sfn ~/.config/<mydir>/<myfile> ~/Library/Application \Support/<mydir>/<myfile>`
+```
+~/Library/Application Support/<App>/<file>
+  → ~/.config/<app>/<file>                    (hand-created)
+     → ~/dotfiles/<pkg>/.config/<app>/<file>  (created by stow)
+```
 
-All done!
+Generic recipe:
+
+1. `cd ~/dotfiles && stow <pkg>`
+2. `ln -sfn "$HOME/.config/<app>/<file>" "$HOME/Library/Application Support/<App>/<file>"`
+
+Each package documents its own variant in a sibling `README.md`:
+
+- [`claude/README.md`](claude/README.md) — Claude Desktop needs the double-link; Claude Code CLI does not.
+
+Some apps that live under `~/Library/Application Support/` still read
+configs directly from `~/.config/<app>/` (e.g. sioyek — see
+[`sioyek/.config/sioyek/README.md`](sioyek/.config/sioyek/README.md)), so a
+single stow suffices. Check each app before assuming you need the double-hop.
+
+Link only config files. Leave state (databases, caches, OAuth tokens) in App
+Support where the app expects to write it.
 
 <details>
 
