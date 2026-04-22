@@ -222,21 +222,8 @@ vim.keymap.del({ "n" }, "f")
 --   { desc = "Open buffer in new tab", noremap = true, silent = true }
 -- )
 
--- Buffer stuff
+-- Tab stuff
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
--- TODO: FInd a better use for these guys
-vim.keymap.set("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "Prev Buffer" })
-vim.keymap.set("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Next Buffer" })
---- A bit of discpline
--- vim.keymap.set({ "n" }, "f<Tab>", function()
---   Snacks.picker.tabs()
--- end, { desc = "Search open tabs", noremap = true, silent = true })
-
--- Find something else for tabmove. Well tabmove is not too helpful rn so leave it later.
--- vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>-tabmove<CR>", { desc = "Move tab left" })
--- vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>+tabmove<CR>", { desc = "Move tab right" })
-
 -- NOTE: It could be worth it to reconsider using tabs at all
 -- neovim just might not be made for the feature. I like the idea
 -- of having persistent layout I can do , but at the end of the day,
@@ -245,13 +232,22 @@ vim.keymap.set("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Next Buffer" })
 -- loading a buffer into tab y when that buffer is already placed--intentionally
 -- mind you-- into tab x.
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+vim.keymap.set("n", "H", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
+vim.keymap.set("n", "L", "<Cmd>tabnext<CR>", { desc = "Next Tab" })
+vim.keymap.set({ "n" }, "<leader>t", function()
+  Snacks.picker.tabs()
+end, { desc = "Search open tabs", noremap = true, silent = true })
+vim.keymap.set({ "n" }, "<leader><Tab>", function()
+  Snacks.picker.tabs()
+end, { desc = "Search open tabs", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>f", function()
   Snacks.picker.tabs()
 end, { desc = "Search open tabs", noremap = true, silent = true })
-vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>tabprev<CR>", { desc = "Goto left tab" })
-vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>tabnext<CR>", { desc = "Goto rightl tab" })
-
+-- Find something else for tabmove. Well tabmove is not too helpful rn so leave it later.
+vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>tabprev<CR>", { desc = "Previous Tab" }) -- vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>-tabmove<CR>", { desc = "Move tab left" })
+vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>tabnext<CR>", { desc = "Next Tab" }) -- vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>+tabmove<CR>", { desc = "Move tab right" })
+--
 vim.keymap.set({ "n" }, "<Tab>1", "<Cmd>tabn 1<CR>", { desc = "Go to tab 1", noremap = true })
 vim.keymap.set({ "n" }, "<Tab>2", "<Cmd>tabn 2<CR>", { desc = "Go to tab 2", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>3", "<Cmd>tabn 3<CR>", { desc = "Go to tab 3", noremap = true, silent = true })
@@ -262,14 +258,9 @@ vim.keymap.set({ "n" }, "<Tab>7", "<Cmd>tabn 7<CR>", { desc = "Go to tab 7", nor
 vim.keymap.set({ "n" }, "<Tab>8", "<Cmd>tabn 8<CR>", { desc = "Go to tab 8", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
--- vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
--- WARN: Mapping <Tab> might conflict with <C-i>
--- vim.keymap.set({ "n" }, "<Tab><Tab>", "<Cmd>tabnext #<CR>", { desc = "Last Accessed Tab" })
--- Consider this
 vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
-vim.keymap.set({ "n" }, "<Tab>p", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
-vim.keymap.set({ "n" }, "<Tab>n", "<Cmd>tabnext<CR>", { desc = "Nest Tab" })
+vim.keymap.set({ "n" }, "<Tab>n", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 -- WARN: SUPER IMPORTANT, <Tab> and <C-i> are the same, its important therefore
 -- to get neovim to distinguish it. THis works on ghostty at least.
 vim.keymap.set({ "n", "t", "x", "o" }, "<C-i>", "<C-i>")
