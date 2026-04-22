@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup Dotfiles Worktree"
+  short_description: "Prepare this dotfiles repo in a worktree"
+  default_prompt: "Use $setup-dotfiles-worktree to prepare this dotfiles repository for agent work in a git worktree."

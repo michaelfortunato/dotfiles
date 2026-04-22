@@ -1,0 +1,12 @@
+interface:
+  display_name: "Vibework"
+  short_description: "Ship Linear tickets through PRs"
+  default_prompt: "Use $vibework to implement Linear ticket OUT-255 through a worktree feature branch and draft PR."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "linear"
+      description: "Linear MCP server for issue lookup, workflow state updates, and comments"
+    - type: "mcp"
+      value: "github"
+      description: "GitHub MCP server for repository metadata, reviewer discovery, and pull request creation"
