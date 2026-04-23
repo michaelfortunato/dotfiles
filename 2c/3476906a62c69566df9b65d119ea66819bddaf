@@ -1,0 +1,23 @@
+zsh/.zshrc
+  4788f9781eeb2245 661-762,767-769
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "2c3476906a62c69566df9b65d119ea66819bddaf",
+  "prompts": {
+    "4788f9781eeb2245": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db8a8-61e5-7312-831f-4e2c309b5dcb",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 301,
+      "total_deletions": 57,
+      "accepted_lines": 301,
+      "overriden_lines": 0
+    }
+  }
+}
