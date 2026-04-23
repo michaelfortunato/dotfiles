@@ -1,0 +1,32 @@
+{
+  "model": "opus",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/michaelfortunato/.git-ai/bin/git-ai checkpoint claude --hook-input stdin"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/michaelfortunato/.git-ai/bin/git-ai checkpoint claude --hook-input stdin"
+          }
+        ]
+      }
+    ]
+  },
+  "effortLevel": "low",
+  "skipAutoPermissionPrompt": true,
+  "permissions": {
+    "defaultMode": "auto"
+  }
+}

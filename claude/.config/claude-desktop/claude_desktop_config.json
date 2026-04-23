@@ -1,0 +1,24 @@
+{
+  "globalShortcut": "Alt+Space",
+  "preferences": {
+    "coworkWebSearchEnabled": true,
+    "coworkScheduledTasksEnabled": true,
+    "ccdScheduledTasksEnabled": true,
+    "sidebarMode": "epitaxy",
+    "bypassPermissionsModeEnabled": true,
+    "autoPermissionsModeEnabled": true
+  },
+  "mcpServers": {
+    "github": {
+      "command": "/usr/local/bin/nerdctl",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--env-file",
+        "/Users/michaelfortunato/Library/Application Support/Claude/mcp-env/github.env",
+        "ghcr.io/github/github-mcp-server"
+      ]
+    }
+  }
+}
