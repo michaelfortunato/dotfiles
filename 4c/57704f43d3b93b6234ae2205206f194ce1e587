@@ -1,0 +1,55 @@
+claude/.config/claude-desktop/claude_desktop_config.json
+  4788f9781eeb2245 1-24
+claude/README.md
+  237219d64fe58804 1-29
+claude/.config/claude-desktop/README.md
+  237219d64fe58804 1-7
+claude/.claude/settings.json
+  4788f9781eeb2245 1-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "4c57704f43d3b93b6234ae2205206f194ce1e587",
+  "prompts": {
+    "237219d64fe58804": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dbaf9-07a0-7ed0-98ac-5da18bdd6763",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 36,
+      "total_deletions": 0,
+      "accepted_lines": 36,
+      "overriden_lines": 0
+    },
+    "4788f9781eeb2245": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db8a8-61e5-7312-831f-4e2c309b5dcb",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 92,
+      "total_deletions": 0,
+      "accepted_lines": 517,
+      "overriden_lines": 0
+    },
+    "d2eb89cda2046297": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db9a0-4bec-7193-a666-f658ad61af8a",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 13,
+      "overriden_lines": 0
+    }
+  }
+}
