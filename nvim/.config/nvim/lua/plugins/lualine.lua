@@ -35,6 +35,7 @@ return {
       component_separators = { left = "", right = "" },
       section_separators = { left = "", right = "" },
       globalstatus = true,
+      always_show_tabline = false,
     })
 
     -- Only apply custom high-contrast settings for default theme
@@ -211,6 +212,22 @@ return {
         cond = function()
           return #vim.api.nvim_list_tabpages() > 1
         end,
+      },
+    }
+
+    opts.tabline = {
+      lualine_a = {
+        {
+          "tabs",
+          mode = 2,
+          path = 0,
+          tab_max_length = 20,
+          max_length = function()
+            return vim.o.columns
+          end,
+          use_mode_colors = true,
+          symbols = { modified = " *" },
+        },
       },
     }
   end,

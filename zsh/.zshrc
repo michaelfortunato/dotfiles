@@ -993,10 +993,14 @@ _mnf_cache_zsh_init() {
   local cache_dir="${cache_file:h}"
   [[ -d "$cache_dir" ]] || command mkdir -p "$cache_dir"
 
-  local tmp="${cache_file}.tmp"
+  local tmp="${cache_file}.tmp.$$"
   if [[ -n "${MNF_ZSH_CACHE_REGEN:-}" || ! -s "$cache_file" || ( -n "$watch_file" && "$watch_file" -nt "$cache_file" ) ]]; then
     if "$@" >| "$tmp" 2>/dev/null; then
-      command mv -f "$tmp" "$cache_file"
+      if [[ -s "$tmp" ]]; then
+        command mv -f "$tmp" "$cache_file"
+      else
+        command rm -f "$tmp" 2>/dev/null
+      fi
     else
       command rm -f "$tmp" 2>/dev/null
     fi
