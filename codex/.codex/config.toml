@@ -15,6 +15,8 @@ web_search = "live"
 codex_hooks = true
 multi_agent = true
 steer = true
+memories = true
+chronicle = false
 
 [mcp_servers.context7]
 command = "npx"
@@ -49,6 +51,7 @@ approval_mode = "approve"
 [mcp_servers.sequential_thinking]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+enabled = true
 
 [mcp_servers.sequential_thinking.tools.sequentialthinking]
 approval_mode = "approve"
@@ -56,6 +59,12 @@ approval_mode = "approve"
 [mcp_servers.github]
 bearer_token_env_var = "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN"
 url = "https://api.githubcopilot.com/mcp/"
+
+[mcp_servers.github.tools.create_pull_request]
+approval_mode = "approve"
+
+[mcp_servers.github.tools.update_pull_request]
+approval_mode = "approve"
 
 [notice]
 hide_full_access_warning = true
@@ -135,6 +144,18 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/Users/michaelfortunato/OuterProduct/credit-product-dashboard"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/DMB"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/mnf/credit-product-dashboard"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/Sal"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/scratch"]
 trust_level = "trusted"
 
 [sandbox_workspace_write]
