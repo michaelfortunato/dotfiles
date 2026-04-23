@@ -942,6 +942,7 @@ c.content.fullscreen.window = True
 ##   - access-paste: Allow accessing the clipboard and pasting clipboard content.
 ##   - ask: Prompt when requested (grants 'access-paste' permission).
 # c.content.javascript.clipboard = 'ask'
+c.content.javascript.clipboard = "access-paste"
 
 ## Enable JavaScript.
 ## Type: Bool
@@ -2393,6 +2394,7 @@ config.bind("<Shift-Esc>", "mode-enter passthrough")
 # config.bind('b', 'cmd-set-text -s :quickmark-load')
 # config.bind('cd', 'download-clear')
 # config.bind('co', 'tab-only')
+config.bind("ca", "tab-only")
 # config.bind('d', 'tab-close')
 # config.bind('f', 'hint')
 # config.bind('g$', 'tab-focus -1')
@@ -2496,8 +2498,12 @@ config.bind("<space>uA", "config-cycle tabs.show always switching")
 config.bind("<space>ut", "config-cycle tabs.show always switching")
 config.bind("<space>ua", "config-cycle statusbar.show always never")
 config.bind("<space>e", "config-cycle tabs.show always switching")
+config.bind("<space>h", "cmd-set-text -s :quickmark-load")
+config.bind("<space>H", "quickmark-save")
 config.bind("<space>sh", "history")
 config.bind("<space>sf", "cmd-set-text -s :open ~/")
+config.bind("<space>sm", "cmd-set-text -s :bookmark-load")
+config.bind("<space>sM", "cmd-set-text -s :bookmark-load")
 config.bind("<space>st", "cmd-set-text -s :tab-select")
 config.bind("<space>zz", "spawn --userscript qute-zotero")
 config.bind("<Ctrl-space>", "spawn --userscript qute-bitwarden")
@@ -2514,6 +2520,10 @@ config.bind("L", "tab-next")
 config.bind("H", "tab-prev")
 config.bind("<Ctrl-R>", "reload")
 config.bind("<Cmd-t>", "open -t")
+config.bind("tp", "tab-pin")
+config.bind("S", "back -b")
+config.bind("m", "quickmark-save")
+config.bind("M", "bookmark-add")
 config.bind("I", "mode-enter insert")
 # GitHub's global search hint targets a button-backed opener, and the actual
 # textbox gets focused by page JS shortly afterward. Re-enter insert on the

@@ -23,6 +23,7 @@
     chooserItems: [],
     chooserContext: null,
     selectedIndex: 0,
+    dismissedCurrentFlow: false,
   };
 
   function text(value) {
@@ -373,12 +374,13 @@
       return false;
     }
 
+    const nextValue = String(value);
     const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
     const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
     if (descriptor && typeof descriptor.set === "function") {
-      descriptor.set.call(element, value);
+      descriptor.set.call(element, nextValue);
     } else {
-      element.value = value;
+      element.value = nextValue;
     }
 
     try {
@@ -387,14 +389,14 @@
           bubbles: true,
           composed: true,
           inputType: "insertText",
-          data: value,
+          data: nextValue,
         }),
       );
     } catch {
       element.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
     }
     element.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
-    return true;
+    return element.value === nextValue;
   }
 
   function hideUi() {
@@ -406,6 +408,43 @@
     state.anchor = null;
     state.chooserItems = [];
     state.chooserContext = null;
+  }
+
+  function focusElement(element) {
+    if (element instanceof HTMLElement) {
+      element.focus({ preventScroll: true });
+    }
+  }
+
+  function preferredFocusTarget(context = null) {
+    const activeContext = context || state.chooserContext;
+    return (
+      activeContext?.activeField ||
+      activeContext?.passwordField ||
+      activeContext?.usernameField ||
+      activeContext?.otpField ||
+      state.anchor ||
+      null
+    );
+  }
+
+  function dismissFlow({ restoreFocus = false } = {}) {
+    const focusTarget = preferredFocusTarget();
+    state.payload = null;
+    state.pendingReady = false;
+    state.dismissedCurrentFlow = true;
+    hideUi();
+    if (restoreFocus) {
+      focusElement(focusTarget);
+    }
+  }
+
+  function renderFillError(message, context = null) {
+    const focusTarget = preferredFocusTarget(context);
+    state.payload = null;
+    state.pendingReady = false;
+    renderStatus("error", message, focusTarget);
+    focusElement(focusTarget);
   }
 
   function ensureRoot() {
@@ -512,7 +551,7 @@
     }
     const filled = fillItem(entry.item, state.chooserContext, state.payload);
     if (!filled) {
-      renderStatus("error", "Could not fill the focused login fields.", state.anchor);
+      renderFillError("Could not fill the focused login fields.", state.chooserContext);
     }
   }
 
@@ -565,7 +604,7 @@
           </div>`;
         })
         .join("") +
-      `<div class="chooserFooter">Enter to fill. Ctrl-n/Ctrl-p, arrows, or j/k to move.</div>`;
+      `<div class="chooserFooter">Click to fill. Ctrl-n/Ctrl-p moves selection. Esc cancels.</div>`;
     panel.addEventListener("click", (event) => {
       const target = event.target instanceof Element ? event.target : null;
       const reveal = target ? target.closest(".choiceReveal") : null;
@@ -584,7 +623,7 @@
     state.chooserContext = context;
     setSelectedIndex(0);
     positionPanel(panel, state.anchor);
-    panel.focus({ preventScroll: true });
+    focusElement(context.activeField);
   }
 
   function fillItem(item, context, payload) {
@@ -593,7 +632,7 @@
       return false;
     }
 
-    let didFill = false;
+    const results = [];
     const mode = payload.mode || "auto";
 
     const fillUsername =
@@ -607,24 +646,23 @@
     const fillOtp = mode === "totp" || (mode === "auto" && activeContext.activeRole === "otp");
 
     if (fillUsername && activeContext.usernameField && text(item.username)) {
-      didFill = setFieldValue(activeContext.usernameField, item.username) || didFill;
+      results.push(setFieldValue(activeContext.usernameField, item.username));
     }
     if (fillPassword && activeContext.passwordField && text(item.password)) {
-      didFill = setFieldValue(activeContext.passwordField, item.password) || didFill;
+      results.push(setFieldValue(activeContext.passwordField, item.password));
     }
     if (fillOtp && activeContext.otpField && text(item.totpCode)) {
-      didFill = setFieldValue(activeContext.otpField, item.totpCode) || didFill;
+      results.push(setFieldValue(activeContext.otpField, item.totpCode));
     }
 
+    const didFill = results.length > 0 && results.every(Boolean);
     if (didFill) {
       state.payload = null;
       state.pendingReady = false;
       hideUi();
       const focusTarget =
         activeContext.passwordField || activeContext.usernameField || activeContext.otpField || activeContext.activeField;
-      if (focusTarget instanceof HTMLElement) {
-        focusTarget.focus({ preventScroll: true });
-      }
+      focusElement(focusTarget);
     }
 
     return didFill;
@@ -681,7 +719,12 @@
     if (payload.phase === "loading") {
       state.payload = null;
       state.pendingReady = false;
+      state.dismissedCurrentFlow = false;
       renderStatus("loading", "Looking up Bitwarden matches...", collectContext()?.activeField || activeElementDeep());
+      return;
+    }
+
+    if (state.dismissedCurrentFlow) {
       return;
     }
 
@@ -729,39 +772,51 @@
   }
 
   function handleKeyDown(event) {
-    if (state.uiKind !== "chooser" || !state.panel || !state.chooserItems.length) {
+    if (!state.panel || !["chooser", "status"].includes(state.uiKind)) {
       return;
     }
 
     const key = lower(event.key);
+    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+    const fromPanel = path.includes(state.panel);
+    if (key === "escape") {
+      if (fromPanel) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      dismissFlow({ restoreFocus: true });
+      return;
+    }
+
+    if (state.uiKind !== "chooser" || !state.chooserItems.length) {
+      return;
+    }
+
+    const target = event.target instanceof Element ? event.target : null;
+    const fromEditable = !fromPanel && (isEditable(target) || isEditable(activeElementDeep()));
     const isCtrlN = event.ctrlKey && !event.metaKey && !event.altKey && (key === "n" || event.code === "KeyN");
     const isCtrlP = event.ctrlKey && !event.metaKey && !event.altKey && (key === "p" || event.code === "KeyP");
+    const isChooserTarget = fromPanel || !fromEditable;
 
-    if (key === "arrowdown" || key === "down" || key === "j" || isCtrlN) {
+    if ((isChooserTarget && (key === "arrowdown" || key === "down" || key === "j")) || isCtrlN) {
       event.preventDefault();
       event.stopPropagation();
       setSelectedIndex(state.selectedIndex + 1);
       return;
     }
-    if (key === "arrowup" || key === "up" || key === "k" || isCtrlP) {
+    if ((isChooserTarget && (key === "arrowup" || key === "up" || key === "k")) || isCtrlP) {
       event.preventDefault();
       event.stopPropagation();
       setSelectedIndex(state.selectedIndex - 1);
       return;
     }
-    if (key === "enter") {
+    if (isChooserTarget && key === "enter") {
       event.preventDefault();
       event.stopPropagation();
       chooseIndex(state.selectedIndex);
       return;
     }
-    if (key === "escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      hideUi();
-      return;
-    }
-    if (/^[1-9]$/.test(key)) {
+    if (isChooserTarget && /^[1-9]$/.test(key)) {
       const index = Number(key) - 1;
       if (index < state.chooserItems.length) {
         event.preventDefault();
@@ -783,7 +838,7 @@
       }
       const path = typeof event.composedPath === "function" ? event.composedPath() : [];
       if (!path.includes(state.panel) && (state.uiKind === "chooser" || state.uiKind === "status")) {
-        hideUi();
+        dismissFlow();
       }
     },
     true,
