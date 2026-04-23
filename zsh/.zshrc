@@ -658,21 +658,125 @@ yi() {
   y "$dir"
 }
 
+# Process picker helpers used by `pi` and `ki`.
+_mnf_process_ports() {
+  command -v lsof >/dev/null 2>&1 || return 0
+
+  lsof -nP -iTCP -sTCP:LISTEN -iUDP 2>/dev/null | awk '
+    NR == 1 { next }
+    {
+      pid = $2
+      port = $9
+      for (i = 10; i <= NF; ++i) {
+        port = port " " $i
+      }
+      sub(/ \(LISTEN\)$/, "", port)
+
+      if (!seen[pid SUBSEP port]++) {
+        ports[pid] = ports[pid] ? ports[pid] ", " port : port
+      }
+    }
+    END {
+      for (pid in ports) {
+        print pid "\t" ports[pid]
+      }
+    }
+  '
+}
+
+_mnf_process_table() {
+  local state_field="state"
+  [[ $MNF_OS == "Darwin" ]] || state_field="stat"
+
+  awk '
+    BEGIN {
+      OFS = "\t"
+      print "PID", "USER", "CPU", "MEM", "STATE", "PORTS", "COMMAND"
+    }
+    FNR == NR {
+      tab = index($0, "\t")
+      if (tab > 0) {
+        pid = substr($0, 1, tab - 1)
+        ports[pid] = substr($0, tab + 1)
+      }
+      next
+    }
+    {
+      pid = $1
+      user = $2
+      cpu = $3
+      mem = $4
+      state = $5
+      $1 = $2 = $3 = $4 = $5 = ""
+      sub(/^[[:space:]]+/, "", $0)
+      gsub(/\t+/, " ", $0)
+      command = $0
+      ports_field = (pid in ports ? ports[pid] : "-")
+      print pid, user, cpu, mem, state, ports_field, command
+    }
+  ' <(_mnf_process_ports) <(ps -Ao pid= -o user= -o %cpu= -o %mem= -o ${state_field}= -o command=)
+}
+
+_mnf_pick_pids() {
+  local selection
+
+  selection=$(
+    _mnf_process_table | fzf --multi --header-lines=1 \
+      --delimiter=$'\t' \
+      --accept-nth=1 \
+      --nth='1,2,3,4,5,6,7' \
+      --tabstop=8 \
+      --height='100%' \
+      --layout='reverse' \
+      --prompt='proc[all]> ' \
+      --header='scope: all | ctrl-]/ctrl-h cycle | ctrl-backslash reset | ctrl-space preview' \
+      --preview-window='right,50%,border-left' \
+      --bind 'ctrl-/:change-preview-window(right,50%,border-left|hidden)' \
+      --bind $'ctrl-]:transform:case "$FZF_NTH" in\n\
+("6")\n\
+  echo "change-nth(7)+change-prompt(proc[cmd]> )+change-header(scope: cmd | ctrl-]/ctrl-h cycle | ctrl-backslash reset | ctrl-space preview)"\n\
+  ;;\n\
+("7")\n\
+  echo "change-nth(2)+change-prompt(proc[user]> )+change-header(scope: user | ctrl-]/ctrl-h cycle | ctrl-backslash reset | ctrl-space preview)"\n\
+  ;;\n\
+("2")\n\
+  echo "change-nth(1)+change-prompt(proc[pid]> )+change-header(scope: pid | ctrl-]/ctrl-h cycle | ctrl-backslash reset | ctrl-space preview)"\n\
+  ;;\n\
+("1")\n\
+  echo "change-nth(1,2,3,4,5,6,7)+change-prompt(proc[all]> )+change-header(scope: all | ctrl-]/ctrl-h cycle | ctrl-backslash reset | ctrl-space preview)"\n\
+  ;;\n\
+(*)\n\
+  echo "change-nth(6)+change-prompt(proc[net]> )+change-header(scope: net | ctrl-]/ctrl-h cycle | ctrl-backslash reset | ctrl-space preview)"\n\
+  ;;\n\
+esac' \
+      --bind 'ctrl-\:change-nth(1,2,3,4,5,6,7)+change-prompt(proc[all]> )+change-header(scope: all | ctrl-]/ctrl-h cycle | ctrl-backslash reset | ctrl-space preview)' \
+      --preview $'ps -p {1} -o pid= -o ppid= -o user= -o %cpu= -o %mem= -o etime= -o command=\n\
+\n\
+if command -v lsof >/dev/null 2>&1; then\n\
+  echo\n\
+  lsof -nP -a -p {1} -i 2>/dev/null || echo "No network sockets"\n\
+fi'
+  ) || return 1
+
+  print -r -- "$selection"
+}
 
 # fkill - kill process
 ki() {
   local pid
-  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
+  local signal="${1:-15}"
+  signal="${signal#-}"
+  pid=$(_mnf_pick_pids) || return 1
 
-  if [ "x$pid" != "x" ]
-  then
-    echo $pid | xargs kill -${1:-15}
+  if [[ -n "$pid" ]]; then
+    print -r -- "$pid" | xargs kill -"${signal}"
   fi
 }
+
 pi() {
   local pid
-  pid=$(ps -ef | sed 1d | fzf -m | awk '{print $2}')
-  echo pid
+  pid=$(_mnf_pick_pids) || return 1
+  print -r -- "$pid"
 }
 
 mani() {
