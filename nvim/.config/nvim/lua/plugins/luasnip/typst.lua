@@ -548,6 +548,17 @@ supplement: <>,
     }),
     { condition = in_mathzone }
   ),
+  --- Transpose (real dagger)
+  s(
+    { trig = "([%w%)%]%}])top", wordTrig = false, regTrig = true, snippetType = "autosnippet" },
+    fmta([[<>^(top)<>]], {
+      f(function(_, snip)
+        return snip.captures[1]
+      end),
+      i(0),
+    }),
+    { condition = in_mathzone }
+  ),
   --- This kinda works with \infty and \int too!
   --- NOTE: This won't expand on newline but I tried a regTrig and that did not work
   --- its probably because trigger_does_not_follow_alpha_char has a bug on newlines
