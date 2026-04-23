@@ -1086,7 +1086,7 @@ return {
                   -- Change this to <C-S-j> after debugging
                   ["<C-S-j>"] = { "move_tab_down", mode = { "n", "i" } },
                   -- Change this to <C-S-k> after debugging
-                  ["<C-S-j>"] = { "move_tab_up", mode = { "n", "i" } },
+                  ["<C-S-k>"] = { "move_tab_up", mode = { "n", "i" } },
                 },
               },
             },
