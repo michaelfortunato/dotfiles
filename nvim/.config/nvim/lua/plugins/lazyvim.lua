@@ -7,8 +7,8 @@ return {
       -- { "zenbones-theme/zenbones.nvim" },
     },
     opts = {
-      colorscheme = "catppuccin-latte",
-      -- colorscheme = "catppuccin-mocha",
+      -- colorscheme = "catppuccin-latte",
+      colorscheme = "catppuccin-mocha",
       -- colorscheme = "github_dark_high_contrast",
       -- colorscheme = "github_light",
       -- colorscheme = "tokyonight-night",
