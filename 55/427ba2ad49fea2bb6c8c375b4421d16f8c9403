@@ -1,0 +1,66 @@
+nvim/.config/nvim/lua/plugins/lualine.lua
+  82194897773bc445 231-232
+  dc84e179cded683b 38,217-230
+zsh/.zshrc
+  9c7f02ed825a1827 996,999
+  4788f9781eeb2245 1000-1003
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "55427ba2ad49fea2bb6c8c375b4421d16f8c9403",
+  "prompts": {
+    "4788f9781eeb2245": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db8a8-61e5-7312-831f-4e2c309b5dcb",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 425,
+      "overriden_lines": 0
+    },
+    "82194897773bc445": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db958-c72b-7521-ac19-70471170a325",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 44,
+      "total_deletions": 125,
+      "accepted_lines": 225,
+      "overriden_lines": 0
+    },
+    "9c7f02ed825a1827": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db953-a084-7c81-b216-eb28f74d8874",
+        "model": "gpt-5.4"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 6,
+      "overriden_lines": 0
+    },
+    "dc84e179cded683b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019db954-1ee2-7100-ab52-6822328a717b",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    }
+  }
+}
