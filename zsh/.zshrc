@@ -3,6 +3,11 @@
 # zprof # put at bottom of .zshrc
 #
 
+# New shells can inherit an already-mutated FPATH from a parent zsh/Kitty
+# process. Keep fpath unique so OMZ's zcompdump metadata stays stable.
+typeset -gaU fpath
+typeset +x FPATH 2>/dev/null
+
 # direnv: load after instant prompt so .envrc evaluation doesn't block prompt rendering
 (( ${+commands[direnv]} )) && emulate zsh -c "$(direnv hook zsh)"
 
@@ -25,6 +30,7 @@ fi
 # - zsh's `use-cache` caches some completer data, not `cmd completion zsh`
 #   output, so we keep generated completions in this shared OMZ cache dir too.
 [[ -n "$ZSH_CACHE_DIR" ]] || ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/oh-my-zsh"
+[[ -d "$ZSH_CACHE_DIR" ]] || command mkdir -p "$ZSH_CACHE_DIR"
 
 
 
@@ -56,7 +62,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 
 # Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
+zstyle ':omz:update' frequency 180
 
 # Uncomment the following line if pasting URLs and other text is messed up.
 # DISABLE_MAGIC_FUNCTIONS="true"
@@ -98,7 +104,9 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git fzf-tab)
+[[ -n "${MNF_ZSH_CACHE_REGEN:-}" ]] || alias compinit='compinit -C'
 source $ZSH/oh-my-zsh.sh
+unalias compinit 2>/dev/null
 
 # setopt settings -- putting it here because oh-my-zsh.sh plugings may override them 
 # otherwise 
@@ -934,7 +942,7 @@ _mnf_cache_completion() {
 # - `fzf --zsh` emits init code, not a compinit-style `_foo` file
 # - for generated `_foo` files, _mnf_cache_completion binds them into `_comps`
 #   if compinit already ran earlier via Oh My Zsh
-(( ${+commands[fzf]} )) && _mnf_cache_zsh_source "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/fzf.zsh" "${commands[fzf]}" fzf --zsh
+(( ${+commands[fzf]} )) && _mnf_cache_zsh_source "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/fzf.zsh" "${commands[fzf]}" "${commands[fzf]}" --zsh
 (( ${+commands[codex]} )) && _mnf_cache_completion codex _codex codex completion zsh
 (( ${+commands[uv]} )) && _mnf_cache_completion uv _uv uv generate-shell-completion zsh
 (( ${+commands[typst]} )) && _mnf_cache_completion typst _typst typst completions zsh
