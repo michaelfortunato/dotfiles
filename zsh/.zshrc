@@ -5,6 +5,7 @@
 
 # New shells can inherit an already-mutated FPATH from a parent zsh/Kitty
 # process. Keep fpath unique so OMZ's zcompdump metadata stays stable.
+# Normalize inherited FPATH before OMZ snapshots fpath into zcompdump.
 typeset -gaU fpath
 typeset +x FPATH 2>/dev/null
 
@@ -104,6 +105,7 @@ ZSH_CUSTOM="$HOME/.oh-my-zsh-custom"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git fzf-tab)
+# Fast cache path: skips compaudit when zcompdump exists; set MNF_ZSH_CACHE_REGEN=1 to force a full refresh.
 [[ -n "${MNF_ZSH_CACHE_REGEN:-}" ]] || alias compinit='compinit -C'
 source $ZSH/oh-my-zsh.sh
 unalias compinit 2>/dev/null
