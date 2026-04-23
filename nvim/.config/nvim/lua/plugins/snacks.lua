@@ -51,6 +51,24 @@ local function picker_focus_part(picker, part)
   return false
 end
 
+local function initial_buffers_filter_level(opts)
+  if opts.buf_all then
+    return 3
+  end
+  if opts.buf_terms then
+    return 2
+  end
+  return opts.nofile and 3 or 1
+end
+
+local function active_buffers_filter_level(picker)
+  local filter = picker.input and picker.input.filter
+  local level = filter and filter.meta and filter.meta.buf_filter_level
+  return level or initial_buffers_filter_level(picker.opts)
+end
+
+local file_scopes = require("mnf.picker_file_scopes")
+
 -- Keep picker borders consistent (avoids the lighter input border tint).
 vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()
@@ -716,6 +734,12 @@ return {
             end)
           end,
           toggle_hidden_ignored = function(picker)
+            local scope = file_scopes.cycle_snacks_picker(picker)
+            if scope then
+              vim.notify("Picker: " .. scope.label, vim.log.levels.INFO)
+              return
+            end
+
             picker.opts.hidden = not picker.opts.hidden
             picker.opts.ignored = not picker.opts.ignored
             picker.list:set_target()
@@ -738,6 +762,12 @@ return {
 
             picker.list:set_target()
             picker:find()
+          end,
+          buffer_open_or_drop = function(picker)
+            picker:action(active_buffers_filter_level(picker) == 2 and "drop" or "confirm")
+          end,
+          buffer_drop_or_open = function(picker)
+            picker:action(active_buffers_filter_level(picker) == 2 and "confirm" or "drop")
           end,
           cycle_diagnostics_severity = function(picker)
             local order = {
@@ -821,6 +851,7 @@ return {
               -- Probably won't work given this is Tab
               ["<Tab><Enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
               ["<C-t>"] = { "tabe", mode = { "n", "i" }, desc = "Edit in new tab" },
+              ["O"] = { "tabe", mode = { "n", "i" }, desc = "Edit in new tab" },
               -- Open file in new tab in background?
               ["<C-S-t>"] = {
                 function(picker, item)
@@ -1074,7 +1105,7 @@ return {
               local filter = picker.input.filter
               local level = filter.meta.buf_filter_level
               if level == nil then
-                level = picker.opts.nofile and 3 or 1
+                level = initial_buffers_filter_level(picker.opts)
                 filter.meta.buf_filter_level = level
               end
 
@@ -1085,7 +1116,7 @@ return {
             end,
             finder = function(opts, ctx)
               if ctx.filter.meta.buf_filter_level == nil then
-                ctx.filter.meta.buf_filter_level = opts.nofile and 3 or 1
+                ctx.filter.meta.buf_filter_level = initial_buffers_filter_level(opts)
               end
 
               local items = require("snacks.picker.source.buffers").buffers(opts, ctx)
@@ -1189,7 +1220,7 @@ return {
                   return bt == ""
                 end
                 if level == 2 then
-                  return bt == "" or bt == "terminal"
+                  return bt == "terminal"
                 end
                 return true
               end,
@@ -1200,18 +1231,27 @@ return {
                   ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
                   -- NOTE snacks default cr action refocuses the buffer to its oprior slot even if
                   -- its no longer vissible, at least for terminals super fuckign annoying
-                  ["<Enter>"] = { "confirm", mode = { "n", "i" }, desc = "Open buffer here" },
+                  ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Open buffer here" },
-                  ["<C-Enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<C-Enter>"] = {
+                    "buffer_drop_or_open",
+                    mode = { "n", "i" },
+                    desc = "Drop/focus (term: open here)",
+                  },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
                   -- TODO: Get <c-g><c-i> to toggle hidden buffers
                 },
               },
               list = {
                 keys = {
+                  ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
                   ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
-                  ["<C-Enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<C-Enter>"] = {
+                    "buffer_drop_or_open",
+                    mode = { "n", "i" },
+                    desc = "Drop/focus (term: open here)",
+                  },
                   ["dd"] = { "bufdelete", mode = { "n", "i" } },
                 },
               },
@@ -1644,12 +1684,11 @@ return {
       --- Modified true does not give us what we want, which is modifed
       --- since before we opened it.
       -- { "ff", function() Snacks.picker.buffers({ modified = true }) end, desc = "List Modified Buffers" },
-      { "ff", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
-      -- Get this to list terminal buffers last
+      -- Buffer picker; <C-h> cycles files, terminal buffers, then all buffers.
       { "<leader>,", function() Snacks.picker.buffers() end, desc = "Buffers" },
+      { "<leader>;", function() Snacks.picker.buffers({ buf_terms = true }) end, desc = "Terminal Buffers" },
       { "<leader>/", LazyVim.pick("grep"), desc = "Grep (Root Dir)" },
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
-      { "<leader><space>", LazyVim.pick("files"), desc = "Find Files (Root Dir)" },
       { "<leader>n", function()
           wins = vim.api.nvim_tabpage_list_wins(0)
           cur_buf = vim.api.nvim_get_current_buf()
