@@ -1,3 +1,10 @@
+--[[
+Neovim UI line modes (quick reference)
+- statusline (this file): shown per-window unless `globalstatus = true` (we set true, so one line across all splits).
+- tabline (native): sits above windows, controlled by `showtabline` (0 never, 1 with tabs, 2 always). We default to 0; toggle via <leader>ut in options.lua.
+- winbar: per-window header line; we leave it empty here (commented block below).
+]]
+
 local M = {
   show_statusline = true,
 }
@@ -11,12 +18,6 @@ vim.keymap.set("n", "<leader>ut", function()
   vim.notify("Tabline showtabline=" .. next)
 end, { desc = "Toggle tabline visibility" })
 
---[[
-Neovim UI line modes (quick reference)
-- statusline (this file): shown per-window unless `globalstatus = true` (we set true, so one line across all splits).
-- tabline (native): sits above windows, controlled by `showtabline` (0 never, 1 with tabs, 2 always). We default to 0; toggle via <leader>ut in options.lua.
-- winbar: per-window header line; we leave it empty here (commented block below).
-]]
 return {
   ---@module "lualine"
   "nvim-lualine/lualine.nvim",
@@ -112,34 +113,7 @@ return {
       { "location", padding = { left = 0, right = 1 } },
       { "navic", color_correction = "dynamic" },
     }
-    opts.sections.lualine_z = {
-      function()
-        local bufnum = vim.api.nvim_get_current_buf()
-        return "📄 " .. bufnum
-      end,
-      {
-        "filetype",
-        icon_only = false,
-        separator = "",
-        color = "StatusLine", -- <- key line
-        padding = { left = 1, right = 1 },
-      },
-      {
-        function()
-          local tabs = vim.api.nvim_list_tabpages()
-          local total = #tabs
-          if total <= 1 then
-            return ""
-          end
-          local current = vim.api.nvim_tabpage_get_number(vim.api.nvim_get_current_tabpage())
-          return string.format(" %d/%d", current, total)
-        end,
-        cond = function()
-          return #vim.api.nvim_list_tabpages() > 1
-        end,
-      },
-    }
-    -- Explicit lualine_x stack (Lazy updates removed)
+    -- Explicit lualine_x stack
     opts.sections.lualine_x = {
       -- Noice command status
       {
@@ -211,34 +185,34 @@ return {
         end,
       },
     }
-
-    opts.sections.lualine_y = {
-      -- LazyVim had this, not a fan.
-      -- { "progress", separator = " ", padding = { left = 1, right = 0 } },
+    opts.sections.lualine_y = {}
+    opts.sections.lualine_z = {
+      function()
+        local bufnum = vim.api.nvim_get_current_buf()
+        return "📄 " .. bufnum
+      end,
+      {
+        "filetype",
+        icon_only = false,
+        separator = "",
+        color = "StatusLine", -- <- key line
+        padding = { left = 1, right = 1 },
+      },
+      {
+        function()
+          local tabs = vim.api.nvim_list_tabpages()
+          local total = #tabs
+          if total <= 1 then
+            return ""
+          end
+          local current = vim.api.nvim_tabpage_get_number(vim.api.nvim_get_current_tabpage())
+          return string.format(" %d/%d", current, total)
+        end,
+        cond = function()
+          return #vim.api.nvim_list_tabpages() > 1
+        end,
+      },
     }
-    -- Add a minimal winbar component rendered by lualine (top-right)
-    -- Shows "MAX" and/or the tab count when > 1
-    -- FIXME: Uncomment whne you get the tabline to actually go away
-    -- when tab1 and there is no flash at startup
-    -- local function winbar_status()
-    --   local parts = {}
-    --   if vim.t.maximized then
-    --     table.insert(parts, "MAX")
-    --   end
-    --   local tabs = #vim.api.nvim_list_tabpages()
-    --   if tabs > 1 then
-    --     table.insert(parts, tostring(tabs))
-    --   end
-    --   return table.concat(parts, " ")
-    -- end
-    -- opts.tabline = {}
-    -- opts.tabline.lualine_z = opts.tabline.lualine_z or {}
-    -- table.insert(opts.tabline.lualine_z, {
-    --   winbar_status,
-    --   cond = function()
-    --     return vim.t.maximized or #vim.api.nvim_list_tabpages() > 1
-    --   end,
-    -- })
   end,
   ---@type LazyKeysSpec[]
   keys = {
@@ -265,6 +239,13 @@ return {
         end
       end,
       desc = "Toggle Statusline",
+    },
+    {
+      "<leader>uA",
+      function()
+        vim.o.showtabline = (vim.o.showtabline > 0) and 0 or 2
+      end,
+      desc = "Toggle Tabline",
     },
   },
 }
