@@ -164,14 +164,53 @@ local function remember_scratch_layout(style)
   end
 end
 
+local function visible_scratch_win(snacks_local, opts)
+  local ok, scratch = pcall(snacks_local.scratch.get, opts)
+  if not ok or type(scratch) ~= "table" or type(scratch.file) ~= "string" then
+    return nil
+  end
+  local buf = vim.fn.bufnr(scratch.file, false)
+  local win = buf ~= -1 and vim.fn.bufwinid(buf) or -1
+  return win ~= -1 and win or nil
+end
+
 local function scratch_open(opts)
   local snacks_local = require("snacks")
   opts = vim.tbl_deep_extend("force", {}, opts or {})
-  local style = scratch_layout()
+  local style = opts.win and scratch_layout_styles[opts.win.style] and opts.win.style
+    or scratch_layout()
+    or "scratch_vsplit"
+  local native_window = require("mnf.terminal.window")
   if style and opts.win == nil then
     opts.win = { style = style }
   end
-  return snacks_local.scratch.open(opts)
+  if opts.win and scratch_layout_styles[opts.win.style] then
+    remember_scratch_layout(opts.win.style)
+  end
+
+  if style == "scratch_vsplit" and not visible_scratch_win(snacks_local, opts) and native_window.find("right") then
+    local holder = vim.api.nvim_create_buf(false, true)
+    vim.bo[holder].bufhidden = "wipe"
+    local win = native_window.open(holder, { position = "right", stack = true })
+    local native_opts = vim.tbl_deep_extend("force", {}, opts, { win = { position = "current" } })
+    local ok, result = pcall(snacks_local.scratch.open, native_opts)
+    if vim.api.nvim_buf_is_valid(holder) then
+      pcall(vim.api.nvim_buf_delete, holder, { force = true })
+    end
+    if not ok then
+      if vim.api.nvim_win_is_valid(win) then
+        pcall(vim.api.nvim_win_close, win, true)
+      end
+      error(result)
+    end
+    return result
+  end
+
+  local result = snacks_local.scratch.open(opts)
+  if style == "scratch_vsplit" and result and result.win and vim.api.nvim_win_is_valid(result.win) then
+    native_window.mark(result.win, "right")
+  end
+  return result
 end
 
 vim.t.scratch = "python"
@@ -449,7 +488,7 @@ return {
             linebreak = true,
           },
         },
-        scratch_vsplit = { position = "right", width = 0.5, border = false, backdrop = false, fixbuf = false },
+        scratch_vsplit = { position = "right", width = 0.50, border = false, backdrop = false, fixbuf = false },
         scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false, fixbuf = false },
         scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75, fixbuf = false },
         --- TODO: Figure out a way to make sure ever buffer in a floating window, even not the first buffer
