@@ -1,5 +1,9 @@
 agg v1.5.0 (https://github.com/asciinema/agg#f043c1f5):
     agg
+amoxide v0.7.0:
+    am
+amoxide-tui v0.7.0:
+    am-tui
 asm-lsp v0.6.0:
     asm-lsp
 cargo-binstall v1.16.6:

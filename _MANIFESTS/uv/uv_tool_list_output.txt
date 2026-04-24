@@ -4,5 +4,5 @@ py-spy v0.4.1
 - py-spy
 rustfava v1.30.12
 - rustfava
-ty v0.0.31
+ty v0.0.32
 - ty
