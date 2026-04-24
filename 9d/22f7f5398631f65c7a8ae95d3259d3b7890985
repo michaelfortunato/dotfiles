@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "9d22f7f5398631f65c7a8ae95d3259d3b7890985",
+  "prompts": {
+    "6eb641fae3ed044a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dbda6-b45d-7c32-a66a-0186b99a99c1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
