@@ -62,7 +62,7 @@ vim.o.exrc = true
 -- To disable root detection set to just "cwd"
 -- vim.g.root_spec = { "cwd" }
 
--- Never show the native tabline (even with multiple tabs)
+-- Hidden, by default
 vim.o.showtabline = 0
 
 -- Don't show pending key sequences (e.g. "^Wc", "gj") in statusline

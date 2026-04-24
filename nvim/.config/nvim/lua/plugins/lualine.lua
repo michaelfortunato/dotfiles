@@ -9,15 +9,6 @@ local M = {
   show_statusline = true,
 }
 
--- Toggle native tabline on demand (0 = never, 1 = only with tabs, 2 = always)
-vim.keymap.set("n", "<leader>ut", function()
-  local v = vim.o.showtabline
-  -- cycle 0 -> 1 -> 2 -> 0
-  local next = (v == 0) and 1 or (v == 1) and 2 or 0
-  vim.o.showtabline = next
-  vim.notify("Tabline showtabline=" .. next)
-end, { desc = "Toggle tabline visibility" })
-
 return {
   ---@module "lualine"
   "nvim-lualine/lualine.nvim",
@@ -227,6 +218,33 @@ return {
           end,
           use_mode_colors = true,
           symbols = { modified = " *" },
+          fmt = function(name, tab)
+            local tabpage = tab and tab.tabId or vim.api.nvim_get_current_tabpage()
+            local ok, display_name = pcall(vim.api.nvim_tabpage_get_var, tabpage, "display_name")
+            if ok and type(display_name) == "string" and vim.trim(display_name) ~= "" then
+              return vim.trim(display_name):gsub("%%", "%%%%")
+            end
+
+            if name:lower() ~= "[no name]" then
+              return name
+            end
+
+            local ok_win, win = pcall(vim.api.nvim_tabpage_get_win, tabpage)
+            if not (ok_win and vim.api.nvim_win_get_config(win).relative ~= "") then
+              return name
+            end
+
+            for _, candidate in ipairs(vim.api.nvim_tabpage_list_wins(tabpage)) do
+              if vim.api.nvim_win_get_config(candidate).relative == "" then
+                local file = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(candidate))
+                if file ~= "" then
+                  return vim.fn.fnamemodify(file, ":t"):gsub("%%", "%%%%")
+                end
+              end
+            end
+
+            return name
+          end,
         },
       },
     }
@@ -257,12 +275,20 @@ return {
       end,
       desc = "Toggle Statusline",
     },
+    -- Toggle native tabline on demand (0 = never, 1 = only with tabs, 2 = always)
     {
       "<leader>uA",
       function()
-        vim.o.showtabline = (vim.o.showtabline > 0) and 0 or 2
+        vim.o.showtabline = (vim.o.showtabline == 0) and 0 or 1
       end,
       desc = "Toggle Tabline",
+    },
+    {
+      "<leader>ut",
+      function()
+        vim.o.showtabline = (vim.o.showtabline == 0) and 0 or 1
+      end,
+      { desc = "Toggle tabline visibility" },
     },
   },
 }
