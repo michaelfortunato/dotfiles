@@ -8,4 +8,5 @@ vim.g.mapleader = " " -- Make sure to set `mapleader` before lazy so your mappin
 vim.g.root_spec = { "lsp", { ".git", "lua" }, "cwd" }
 -- To disable root detection set to just "cwd"
 -- vim.g.root_spec = { "cwd" }
+require("config.startup_terminal").setup()
 require("config.lazy")
