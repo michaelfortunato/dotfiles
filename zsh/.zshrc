@@ -260,7 +260,7 @@ alias icat="kitten icat" # to see images
 alias help='run-help'
 # py-spy should be call pyspy imo
 alias pyspy='py-spy'
-alias codexconf="cd $HOME/.codex/config.toml && nvim config.toml"
+alias codexconf="(cd $HOME/.codex && nvim config.toml)"
 alias cm='codex -m gpt-5.4-mini'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
