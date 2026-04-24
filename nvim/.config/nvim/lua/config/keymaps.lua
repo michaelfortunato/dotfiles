@@ -213,7 +213,7 @@ end, { desc = "Find files (Cwd dir)" })
 vim.keymap.set({ "n" }, "<leader>,", function()
   Snacks.picker.buffers()
 end, { desc = "Find files (Cwd dir)" })
-vim.keymap.del({ "n" }, "f")
+del({ "n" }, "f")
 -- This is causing a ton of tabs to be created
 -- vim.keymap.set(
 --   { "n" },
@@ -235,15 +235,21 @@ vim.keymap.del({ "n" }, "f")
 vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 vim.keymap.set("n", "H", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
 vim.keymap.set("n", "L", "<Cmd>tabnext<CR>", { desc = "Next Tab" })
-vim.keymap.set({ "n" }, "<leader>t", function()
-  Snacks.picker.tabs()
-end, { desc = "Search open tabs", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<leader><Tab>", function()
   Snacks.picker.tabs()
 end, { desc = "Search open tabs", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>f", function()
   Snacks.picker.tabs()
 end, { desc = "Search open tabs", noremap = true, silent = true })
+vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
+vim.keymap.set({ "n" }, "<Tab>n", "<Cmd>tabnew<CR>", { desc = "New Tab" })
+vim.keymap.set(
+  { "n" },
+  "<Tab>t",
+  "<Cmd>tab terminal<CR>",
+  { desc = "Open a new terminal in a new tab", noremap = true }
+)
 -- Find something else for tabmove. Well tabmove is not too helpful rn so leave it later.
 vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>tabprev<CR>", { desc = "Previous Tab" }) -- vim.keymap.set({ "n" }, "<Tab>h", "<Cmd>-tabmove<CR>", { desc = "Move tab left" })
 vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>tabnext<CR>", { desc = "Next Tab" }) -- vim.keymap.set({ "n" }, "<Tab>l", "<Cmd>+tabmove<CR>", { desc = "Move tab right" })
@@ -258,9 +264,6 @@ vim.keymap.set({ "n" }, "<Tab>7", "<Cmd>tabn 7<CR>", { desc = "Go to tab 7", nor
 vim.keymap.set({ "n" }, "<Tab>8", "<Cmd>tabn 8<CR>", { desc = "Go to tab 8", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>9", "<Cmd>tabn 9<CR>", { desc = "Go to tab 9", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>0", "<Cmd>tabn 10<CR>", { desc = "Go to tab 10", noremap = true, silent = true })
-vim.keymap.set("n", "<Tab>c", "<Cmd>tabnew<CR>", { desc = "New Tab" })
-vim.keymap.set("n", "<Tab>d", "<Cmd>tabclose<CR>", { desc = "Close Tab" })
-vim.keymap.set({ "n" }, "<Tab>n", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 -- WARN: SUPER IMPORTANT, <Tab> and <C-i> are the same, its important therefore
 -- to get neovim to distinguish it. THis works on ghostty at least.
 vim.keymap.set({ "n", "t", "x", "o" }, "<C-i>", "<C-i>")
@@ -340,26 +343,17 @@ map({ "t", "i" }, "<C-l>", function(e)
   vim.cmd("stopinsert")
   require("smart-splits").move_cursor_right()
 end)
+-- <S-C-H> and <S-C-L>
 vim.keymap.set({ "n", "i", "v" }, "<C-S-l>", function()
   local ls = require("luasnip")
   if ls.choice_active() then
     ls.change_choice(-1)
-    return true
+    return
   end
-  return "<C-w>r"
-end, { desc = "Rotate windows backward", silent = true })
--- Rotate windows forward (like <C-w>r) while staying in terminal mode
-vim.keymap.set("t", "<C-S-l>", function()
-  vim.cmd("silent! wincmd r")
-end, { silent = true, desc = "Rotate windows forward (terminal)" })
--- --- Kitty like layout rotation keybinding
-vim.keymap.set({ "n", "v" }, "<C-S-l>", "<C-w>L", { desc = "Rotate windows left", silent = true })
-vim.keymap.set({ "n", "i", "v" }, "<C-S-h>", "<C-w>R", { desc = "Rotate windows forward", silent = true })
-
--- Optional: rotate backward (like <C-w>R)
-vim.keymap.set("t", "<C-S-h>", function()
-  vim.cmd("silent! wincmd R")
-end, { silent = true, desc = "Rotate windows backward (terminal)" })
+  vim.cmd.tabnext()
+end, { desc = "Previous Choice Snippet or Next Tab", silent = true })
+vim.keymap.set("t", "<C-S-l>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
+vim.keymap.set({ "n", "i", "v", "t" }, "<C-S-h>", "<Cmd>tabnext<CR>", { desc = "Next Tab", silent = true })
 
 del("n", "m")
 map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })

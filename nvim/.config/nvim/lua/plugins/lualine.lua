@@ -279,16 +279,16 @@ return {
     {
       "<leader>uA",
       function()
-        vim.o.showtabline = (vim.o.showtabline == 0) and 0 or 1
+        vim.o.showtabline = (vim.o.showtabline == 0) and 1 or 0
       end,
       desc = "Toggle Tabline",
     },
     {
       "<leader>ut",
       function()
-        vim.o.showtabline = (vim.o.showtabline == 0) and 0 or 1
+        vim.o.showtabline = (vim.o.showtabline == 0) and 1 or 0
       end,
-      { desc = "Toggle tabline visibility" },
+      desc = "Toggle tabline visibility",
     },
   },
 }
