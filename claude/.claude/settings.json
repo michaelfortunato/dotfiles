@@ -1,5 +1,7 @@
 {
-  "model": "opus",
+  "permissions": {
+    "defaultMode": "auto"
+  },
   "hooks": {
     "PostToolUse": [
       {
@@ -24,9 +26,9 @@
       }
     ]
   },
-  "effortLevel": "low",
+  "effortLevel": "high",
   "skipAutoPermissionPrompt": true,
-  "permissions": {
-    "defaultMode": "auto"
+  "enabledPlugins": {
+    "figma@claude-plugins-official": true
   }
 }
