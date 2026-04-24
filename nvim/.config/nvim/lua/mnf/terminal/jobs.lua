@@ -298,7 +298,7 @@ end
 local function open_vsplit(buf, _)
   return native_window.open(buf, {
     position = "right",
-    width = 0.4,
+    width = 0.45,
     wo = {
       winhighlight = "Normal:Normal",
       wrap = false,

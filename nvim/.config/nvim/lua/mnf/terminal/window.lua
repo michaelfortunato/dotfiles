@@ -31,7 +31,11 @@ local function find_position_win(position)
   end
 end
 
-local function equalize_position(position)
+function M.find(position)
+  return find_position_win(position)
+end
+
+function M.equalize(position)
   local wins = vim.tbl_filter(function(win)
     return native_position(win) == position
   end, vim.api.nvim_tabpage_list_wins(0))
@@ -49,6 +53,11 @@ local function equalize_position(position)
       vim.cmd(("%sresize %d"):format(vertical and "horizontal " or "vertical ", each))
     end)
   end
+end
+
+function M.mark(win, position)
+  vim.w[win].mnf_native_position = position
+  M.equalize(position)
 end
 
 function M.open(buf, opts)
@@ -82,24 +91,25 @@ function M.open(buf, opts)
     local parent = stack_parent or (opts.win and vim.api.nvim_win_is_valid(opts.win) and opts.win or 0)
     win = vim.api.nvim_win_call(parent, function()
       local config = {
-        split = stack_parent and "below"
-          or ({
-            left = "left",
-            right = "right",
-            top = "above",
-            bottom = "below",
-          })[position]
-          or "below",
+        split = stack_parent and "below" or ({
+          left = "left",
+          right = "right",
+          top = "above",
+          bottom = "below",
+        })[position] or "below",
       }
       if stack_parent then
         config.height = size(opts.height, vim.api.nvim_win_get_height(0), 0.5)
       elseif vertical then
-        config.width = size(opts.width, vim.api.nvim_win_get_width(0), 0.4)
+        config.width = size(opts.width, vim.api.nvim_win_get_width(0), 0.45)
       else
         config.height = size(opts.height, vim.api.nvim_win_get_height(0), 0.4)
       end
       return vim.api.nvim_open_win(buf, enter, config)
     end)
+    if enter then
+      vim.api.nvim_set_current_win(win)
+    end
     if vertical then
       vim.wo[win].winfixwidth = true
     else
@@ -107,9 +117,8 @@ function M.open(buf, opts)
     end
   end
 
-  vim.w[win].mnf_native_position = position
+  M.mark(win, position)
   apply_wo(win, opts.wo)
-  equalize_position(position)
   return win
 end
 
