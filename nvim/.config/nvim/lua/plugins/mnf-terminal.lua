@@ -13,6 +13,8 @@ return {
       require("mnf.terminal").setup(opts)
     end,
     init = function()
+      require("mnf.terminal.jobs").setup_session()
+
       -- TODO: makes me safe and fix the operator pending issue
       -- local del = function(...)
       --   return pcall(vim.keymap.del, ...)

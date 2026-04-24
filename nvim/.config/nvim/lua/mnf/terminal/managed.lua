@@ -7,6 +7,7 @@ M.notify = Snacks.notify.notify or vim.ui.notify
 
 -- Kitty external terminal support
 local kitty = require("mnf.terminal.kitty")
+local native_window = require("mnf.terminal.window")
 -- Off by default
 local use_external_kitty = false
 local DEFAULT_LAYOUT = "vsplit"
@@ -21,7 +22,7 @@ M.config = vim.deepcopy(M.defaults)
 ---@param title string
 ---@return integer
 local function create_floating_window(buf, title)
-  local win = Snacks.win.new({
+  return native_window.open(buf, {
     position = "float",
     width = 0.8,
     height = 0.8,
@@ -40,16 +41,15 @@ local function create_floating_window(buf, title)
     title = { { title, "FloatTitle" } },
     title_pos = "center",
   })
-  return win.win
 end
 
 ---@param buf integer
 ---@param title string
 ---@return integer
 local function create_vsplit_window(buf, title)
-  local win = Snacks.win.new({
+  return native_window.open(buf, {
     position = "right",
-    width = 0.4,
+    width = 0.45,
     wo = {
       winhighlight = "Normal:Normal",
       wrap = false,
@@ -64,14 +64,13 @@ local function create_vsplit_window(buf, title)
     fixbuf = false,
     title = title,
   })
-  return win.win
 end
 
 ---@param buf integer
 ---@param title string
 ---@return integer
 local function create_split_window(buf, title)
-  local win = Snacks.win.new({
+  return native_window.open(buf, {
     position = "bottom",
     wo = {
       winhighlight = "Normal:Normal",
@@ -87,7 +86,6 @@ local function create_split_window(buf, title)
     fixbuf = false,
     title = title,
   })
-  return win.win
 end
 
 ---@return nil
@@ -116,6 +114,15 @@ M.layout_functions = {
   -- bottom = function(...) return M.layout_functions.split(...) end,
 }
 
+---@param layout unknown
+---@return string?
+local function normalize_layout(layout)
+  if layout == "split" then
+    layout = "hsplit"
+  end
+  return type(layout) == "string" and M.layout_functions[layout] and layout or nil
+end
+
 -- Terminal state
 ---@class TerminalState
 ---@field win integer?
@@ -138,15 +145,47 @@ M.terminal_state = {
 ---@param layout unknown
 ---@return boolean
 local function set_layout(layout)
-  if layout == "split" then
-    layout = "hsplit"
-  end
-  if type(layout) ~= "string" or M.layout_functions[layout] == nil then
+  layout = normalize_layout(layout)
+  if not layout then
     return false
   end
   M.terminal_state.layout = layout
   M.terminal_state.create_window = M.layout_functions[layout]
   return true
+end
+
+---@return string
+local function tab_layout()
+  return normalize_layout(vim.t.mnf_terminal_layout) or normalize_layout(M.config.initial_layout) or DEFAULT_LAYOUT
+end
+
+---@param layout unknown
+---@return boolean
+local function remember_tab_layout(layout)
+  layout = normalize_layout(layout)
+  if not layout then
+    return false
+  end
+  vim.t.mnf_terminal_layout = layout
+  return set_layout(layout)
+end
+
+---@return nil
+local function apply_tab_layout()
+  set_layout(tab_layout())
+end
+
+---@return integer?
+local function current_tab_terminal_win()
+  local win = M.terminal_state.win
+  if
+    win
+    and vim.api.nvim_win_is_valid(win)
+    and vim.api.nvim_win_get_tabpage(win) == vim.api.nvim_get_current_tabpage()
+  then
+    return win
+  end
+  return nil
 end
 
 ---@param opts? { initial_layout?: "vsplit"|"hsplit"|"floating"|"split" }
@@ -279,16 +318,21 @@ function M.toggle_terminal(id)
 
   -- Original neovim terminal logic
   -- If same terminal is open, close it
-  if M.terminal_state.current == id and M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
+  local current_tab_win = current_tab_terminal_win()
+  if M.terminal_state.current == id and current_tab_win then
     serialize_and_create_closure()
-    vim.api.nvim_win_close(M.terminal_state.win, true)
+    vim.api.nvim_win_close(current_tab_win, true)
     M.terminal_state.current = nil
+    M.terminal_state.win = nil
     return
   end
 
   local buf = get_or_create_terminal_buffer(id)
   -- Reuse existing window if it's valid and same layout type
-  if M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
+  apply_tab_layout()
+  current_tab_win = current_tab_terminal_win()
+  if current_tab_win then
+    M.terminal_state.win = current_tab_win
     vim.api.nvim_win_set_buf(M.terminal_state.win, buf)
     -- TODO: WHY?
     -- vim.api.nvim_set_current_win(M.terminal_state.win)
@@ -316,7 +360,7 @@ end
 -- probably be disabled or reworked to manage kitty layouts instead.
 ---@return nil
 function M.toggle_layout()
-  local current_layout = M.terminal_state.layout
+  local current_layout = tab_layout()
   if current_layout == "split" then
     current_layout = "hsplit"
   end
@@ -330,7 +374,7 @@ function M.toggle_layout()
     next_layout = "floating"
   end
 
-  set_layout(next_layout)
+  remember_tab_layout(next_layout)
   -- Path 1 if the terminal is closed no need to do anything else but
   -- notify
   if not M.terminal_state.current then
@@ -338,12 +382,20 @@ function M.toggle_layout()
     return
   end
 
-  local buf = M.terminal_state.buffers[M.terminal_state.current].buf
+  local buffer_entry = M.terminal_state.buffers[M.terminal_state.current]
+  if not buffer_entry then
+    M.notify("Layout: " .. M.terminal_state.layout)
+    return
+  end
+  local buf = buffer_entry.buf
   -- Path 2 if the terminal is open close the current window and
   -- Close current window
-  if M.terminal_state.win and vim.api.nvim_win_is_valid(M.terminal_state.win) then
-    vim.api.nvim_win_close(M.terminal_state.win, false)
+  local current_tab_win = current_tab_terminal_win()
+  if not current_tab_win then
+    M.notify("Layout: " .. M.terminal_state.layout)
+    return
   end
+  vim.api.nvim_win_close(current_tab_win, false)
   -- Open new one
   M.terminal_state.win = M.terminal_state.create_window(buf, "Terminal " .. M.terminal_state.current .. " ")
   vim.cmd("startinsert")
@@ -702,18 +754,8 @@ function M.pick_terminal_buffer(callback, opts)
   local items = {}
   for _, entry in ipairs(collect_terminal_buffers()) do
     local indicator = entry.visible_in_current_tab and "●" or (entry.has_windows and "○" or " ")
-    local tabs_label
-    if #entry.tabs > 0 then
-      local prefix = (#entry.tabs == 1) and "Tab " or "Tabs "
-      tabs_label = prefix .. table.concat(entry.tabs, ",")
-      if entry.visible_in_current_tab then
-        tabs_label = tabs_label .. " (current)"
-      end
-    else
-      tabs_label = "Hidden"
-    end
-
-    local display = string.format("%s %s · %s (buf %d)", indicator, tabs_label, entry.name, entry.buf)
+    local tabs = #entry.tabs > 0 and ("T:" .. table.concat(entry.tabs, ",")) or "hidden"
+    local display = string.format("%s %s (buf %d) · %s", indicator, entry.name, entry.buf, tabs)
     table.insert(items, { buf = entry.buf, display = display })
   end
 

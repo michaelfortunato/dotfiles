@@ -33,6 +33,8 @@
 local M = {}
 
 local kitty = require("mnf.terminal.kitty")
+local native_window = require("mnf.terminal.window")
+local DEFAULT_LAYOUT = "vsplit"
 
 ---@type fun(msg: string, level?: integer): nil
 local function notify(msg, level)
@@ -110,7 +112,7 @@ M.state = {
   current_job_id = nil,
   last_focused_job_id = nil,
   last_focused_terminal_buf = nil,
-  layout = "vsplit",
+  layout = DEFAULT_LAYOUT,
   create_window = nil,
   jobs = {},
   editor = nil,
@@ -118,7 +120,10 @@ M.state = {
 
 -- Input helper (Snacks if available, otherwise vim.ui.input)
 ---@type fun(opts: table, on_confirm: fun(input: string?)): nil
-M.input = (Snacks and Snacks.input and Snacks.input.input) or vim.ui.input
+M.input = function(opts, on_confirm)
+  local input = (Snacks and Snacks.input and Snacks.input.input) or vim.ui.input
+  return input(opts, on_confirm)
+end
 
 ---@param buf integer
 ---@return string? abspath
@@ -262,18 +267,11 @@ end
 -- Layout functions (same semantics as existing module)
 ---@type table<string, fun(buf: integer, title: string): integer>
 local function open_floating(buf, title)
-  local width = math.floor(vim.o.columns * 0.8)
-  local height = math.floor(vim.o.lines * 0.8)
-  local row = math.floor((vim.o.lines - height) / 2)
-  local col = math.floor((vim.o.columns - width) / 2)
-
-  local config = {
-    relative = "editor",
-    width = width,
-    height = height,
-    row = row,
-    col = col,
+  return native_window.open(buf, {
     style = "minimal",
+    position = "float",
+    width = 0.8,
+    height = 0.8,
     border = {
       { "╭", "FloatBorder" },
       { "─", "FloatBorder" },
@@ -287,20 +285,18 @@ local function open_floating(buf, title)
     title = { { title, "FloatTitle" } },
     title_pos = "center",
     noautocmd = true,
-  }
-
-  local win = vim.api.nvim_open_win(buf, true, config)
-  vim.wo[win].winhighlight = "Normal:FloatBorder,FloatBorder:FloatBorder"
-  vim.wo[win].winblend = 0
-  vim.wo[win].wrap = false
-  vim.wo[win].sidescrolloff = 0
-  vim.wo[win].scrolloff = 0
-  return win
+    wo = {
+      winhighlight = "Normal:FloatBorder,FloatBorder:FloatBorder",
+      winblend = 0,
+      wrap = false,
+      sidescrolloff = 0,
+      scrolloff = 0,
+    },
+  })
 end
 
 local function open_vsplit(buf, _)
-  --- see snacks.lua
-  local win = require("snacks").win.new({
+  return native_window.open(buf, {
     position = "right",
     width = 0.4,
     wo = {
@@ -316,24 +312,10 @@ local function open_vsplit(buf, _)
     fixbuf = false,
     enter = false,
   })
-  return win.win
-  -- local config = {
-  --   width = math.floor(vim.o.columns * 0.5),
-  --   split = "right",
-  -- }
-  -- local win = vim.api.nvim_open_win(buf, true, config)
-  -- vim.wo[win].winhighlight = "Normal:Normal"
-  -- vim.wo[win].wrap = false
-  -- vim.wo[win].number = false
-  -- vim.wo[win].relativenumber = false
-  -- vim.wo[win].signcolumn = "no"
-  -- vim.wo[win].foldcolumn = "0"
-  -- vim.wo[win].colorcolumn = ""
-  -- return win
 end
 
 local function open_split(buf, _)
-  local win = require("snacks").win.new({
+  return native_window.open(buf, {
     position = "bottom",
     wo = {
       winhighlight = "Normal:Normal",
@@ -348,20 +330,6 @@ local function open_split(buf, _)
     fixbuf = false,
     enter = false,
   })
-  return win.win
-  -- local config = {
-  --   height = math.floor(vim.o.lines * 0.3),
-  --   split = "below",
-  -- }
-  -- local win = vim.api.nvim_open_win(buf, true, config)
-  -- vim.wo[win].winhighlight = "Normal:Normal"
-  -- vim.wo[win].wrap = false
-  -- vim.wo[win].number = false
-  -- vim.wo[win].relativenumber = false
-  -- vim.wo[win].signcolumn = "no"
-  -- vim.wo[win].foldcolumn = "0"
-  -- vim.wo[win].colorcolumn = ""
-  -- return win
 end
 
 ---@type table<string, fun(buf: integer, title: string): integer>
@@ -371,13 +339,22 @@ local layout_functions = {
   split = open_split,
 }
 
+local layout_cycle = { "vsplit", "floating", "split" }
+
+---@param layout unknown
+---@return string?
+local function normalize_layout(layout)
+  if layout == "hsplit" then
+    layout = "split"
+  end
+  return type(layout) == "string" and layout_functions[layout] and layout or nil
+end
+
 ---@param layout string
 ---@return boolean
 local function set_layout(layout)
-  if type(layout) ~= "string" then
-    return false
-  end
-  local fn = layout_functions[layout]
+  layout = normalize_layout(layout)
+  local fn = layout and layout_functions[layout] or nil
   if not fn then
     return false
   end
@@ -386,8 +363,52 @@ local function set_layout(layout)
   return true
 end
 
+---@return string
+local function tab_layout()
+  return normalize_layout(vim.t.mnf_jobs_layout) or DEFAULT_LAYOUT
+end
+
+---@param layout unknown
+---@return boolean
+local function remember_tab_layout(layout)
+  layout = normalize_layout(layout)
+  if not layout then
+    return false
+  end
+  vim.t.mnf_jobs_layout = layout
+  return set_layout(layout)
+end
+
+---@return nil
+local function apply_tab_layout()
+  set_layout(tab_layout())
+end
+
+---@return integer?
+local function current_tab_job_win()
+  local win = M.state.win
+  if win and vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_tabpage(win) == vim.api.nvim_get_current_tabpage() then
+    return win
+  end
+  return nil
+end
+
+---@param layout string
+---@return string
+local function next_layout(layout)
+  if layout == "hsplit" then
+    layout = "split"
+  end
+  for i, name in ipairs(layout_cycle) do
+    if name == layout then
+      return layout_cycle[(i % #layout_cycle) + 1]
+    end
+  end
+  return layout_cycle[1]
+end
+
 if not set_layout(M.state.layout) then
-  set_layout("vsplit")
+  set_layout(DEFAULT_LAYOUT)
 end
 
 ---@param id JobId
@@ -944,10 +965,13 @@ function M.show_job(id)
   end
 
   local original_win = vim.api.nvim_get_current_win()
-  if not (M.state.win and vim.api.nvim_win_is_valid(M.state.win)) then
+  local current_tab_win = current_tab_job_win()
+  if not current_tab_win then
+    apply_tab_layout()
     local create_window = M.state.create_window or layout_functions[M.state.layout] or open_vsplit
     M.state.win = create_window(job.runtime.buffer, "Job[" .. id .. "]")
   else
+    M.state.win = current_tab_win
     vim.api.nvim_win_set_buf(M.state.win, job.runtime.buffer)
   end
 
@@ -1031,9 +1055,10 @@ function M.list_jobs()
 end
 
 function M.toggle()
-  if M.state.win and vim.api.nvim_win_is_valid(M.state.win) then
+  local current_tab_win = current_tab_job_win()
+  if current_tab_win then
     -- serialize_and_create_closure()
-    vim.api.nvim_win_close(M.state.win, false)
+    vim.api.nvim_win_close(current_tab_win, false)
     --- TODO: Move to winclose autocmd
     M.state.win = nil
     return
@@ -1055,33 +1080,39 @@ function M.toggle()
 end
 
 function M.toggle_layout()
-  notify("NOOP. Deprecarted")
-  -- if M.state.layout == "floating" then
-  --   M.state.layout = "split"
-  -- elseif M.state.layout == "split" then
-  --   M.state.layout = "vsplit"
-  -- else
-  --   M.state.layout = "floating"
-  -- end
-  -- M.state.create_window = layout_functions[M.state.layout]
-  -- if not (M.state.win and vim.api.nvim_win_is_valid(M.state.win)) then
-  --   notify("Job layout: " .. M.state.layout)
-  --   return
-  -- end
-  --
-  -- local _, job = ensure_job(M.state.current_job_id)
-  -- if not job.runtime or not runtime_is_valid(job.runtime) or job.runtime.config.external_terminal then
-  --   return
-  -- end
-  --
-  -- -- serialize_and_create_closure()
-  -- vim.api.nvim_win_close(M.state.win, false)
-  -- M.state.win = M.state.create_window(job.runtime.buffer, "Job[" .. tostring(M.state.current_job_id) .. "]")
-  -- if should_focus(job.runtime.config) and job.runtime.config.use_terminal then
-  --   vim.api.nvim_set_current_win(M.state.win)
-  --   vim.cmd("startinsert")
-  -- end
-  -- notify("Job layout: " .. M.state.layout)
+  remember_tab_layout(next_layout(tab_layout()))
+  if M.session_save then
+    pcall(M.session_save, { quiet = true })
+  end
+
+  local current_tab_win = current_tab_job_win()
+  if not current_tab_win then
+    notify("Job layout: " .. M.state.layout)
+    return
+  end
+
+  local id = M.state.current_job_id or M.state.last_focused_job_id
+  local job = id and M.state.jobs[resolve_job_id(id)] or nil
+  if not job or not job.runtime or not runtime_is_valid(job.runtime) or job.runtime.config.external_terminal then
+    notify("Job layout: " .. M.state.layout)
+    return
+  end
+
+  local original_win = vim.api.nvim_get_current_win()
+  local was_job_win = original_win == current_tab_win
+  vim.api.nvim_win_close(current_tab_win, false)
+  M.state.win = M.state.create_window(job.runtime.buffer, "Job[" .. tostring(id) .. "]")
+
+  if was_job_win or should_focus(job.runtime.config) then
+    vim.api.nvim_set_current_win(M.state.win)
+    if job.runtime.config.use_terminal then
+      vim.cmd("startinsert")
+    end
+  elseif vim.api.nvim_win_is_valid(original_win) then
+    vim.api.nvim_set_current_win(original_win)
+  end
+
+  notify("Job layout: " .. M.state.layout)
 end
 
 -- Configure UI --------------------------------------------------------------
@@ -1948,6 +1979,21 @@ local function session_sidecar_path(session_path)
   return session_path .. ".mnf-jobs.json"
 end
 
+---@param event? table
+---@return string?
+local function session_event_path(event)
+  if event and event.file and event.file ~= "" then
+    return event.file
+  end
+  if vim.v.this_session and vim.v.this_session ~= "" then
+    return vim.v.this_session
+  end
+  if event and event.match and event.match ~= "" then
+    return event.match
+  end
+  return nil
+end
+
 ---@return boolean
 local function has_running_jobs()
   for _, job in pairs(M.state.jobs) do
@@ -2023,7 +2069,7 @@ function M.session_apply(payload, opts)
 
   if payload.state and type(payload.state) == "table" then
     local layout = payload.state.layout
-    set_layout(layout)
+    remember_tab_layout(layout)
     local current = payload.state.current_job_id
     if current and payload.jobs and payload.jobs[current] then
       set_last_focused_job(current)
@@ -2111,7 +2157,7 @@ function M.setup_session(opts)
     vim.api.nvim_create_autocmd("SessionWritePost", {
       group = group,
       callback = function(event)
-        M.session_save({ quiet = true, session_path = event.file })
+        M.session_save({ quiet = true, session_path = session_event_path(event) })
       end,
       desc = "Persist jobs_refactor definitions alongside :mksession",
     })
@@ -2121,7 +2167,7 @@ function M.setup_session(opts)
     vim.api.nvim_create_autocmd("SessionLoadPost", {
       group = group,
       callback = function(event)
-        M.session_load({ quiet = true, replace = true, session_path = event.file })
+        M.session_load({ quiet = true, replace = true, session_path = session_event_path(event) })
       end,
       desc = "Restore jobs_refactor definitions after loading a session",
     })

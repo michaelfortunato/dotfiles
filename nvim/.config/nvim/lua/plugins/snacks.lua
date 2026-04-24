@@ -67,7 +67,40 @@ local function active_buffers_filter_level(picker)
   return level or initial_buffers_filter_level(picker.opts)
 end
 
-local file_scopes = require("mnf.picker_file_scopes")
+local function move_tabpage_from_picker(picker, item, direction)
+  item = item or (picker and picker:selected({ fallback = true })[1])
+  if not (item and item.tabpage and vim.api.nvim_tabpage_is_valid(item.tabpage)) then
+    return
+  end
+
+  local restore_tab = vim.api.nvim_get_current_tabpage()
+  local restore_part = picker_cur_part()
+  local moved = false
+  local ok, err = pcall(function()
+    vim.api.nvim_set_current_tabpage(item.tabpage)
+    local tabnr = vim.api.nvim_tabpage_get_number(item.tabpage)
+    local tab_count = #vim.api.nvim_list_tabpages()
+    if (direction < 0 and tabnr <= 1) or (direction > 0 and tabnr >= tab_count) then
+      return
+    end
+    vim.cmd(direction < 0 and "-tabmove" or "+tabmove")
+    moved = true
+  end)
+
+  if vim.api.nvim_tabpage_is_valid(restore_tab) then
+    vim.api.nvim_set_current_tabpage(restore_tab)
+  end
+
+  if not ok then
+    vim.notify("Failed to move tab: " .. tostring(err), vim.log.levels.ERROR)
+    return
+  end
+
+  if moved then
+    picker:find()
+    picker_focus_part(picker, restore_part or "input")
+  end
+end
 
 -- Keep picker borders consistent (avoids the lighter input border tint).
 vim.api.nvim_create_autocmd("ColorScheme", {
@@ -114,11 +147,37 @@ vim.keymap.set({ "n" }, "<Leader>ux", function()
   end
 end, { desc = "Toggle Dim Mode" })
 
+local scratch_layout_styles = {
+  scratch_float = true,
+  scratch_split = true,
+  scratch_vsplit = true,
+}
+
+local function scratch_layout()
+  local style = vim.t.scratch_layout
+  return scratch_layout_styles[style] and style or nil
+end
+
+local function remember_scratch_layout(style)
+  if scratch_layout_styles[style] then
+    vim.t.scratch_layout = style
+  end
+end
+
+local function scratch_open(opts)
+  local snacks_local = require("snacks")
+  opts = vim.tbl_deep_extend("force", {}, opts or {})
+  local style = scratch_layout()
+  if style and opts.win == nil then
+    opts.win = { style = style }
+  end
+  return snacks_local.scratch.open(opts)
+end
+
 vim.t.scratch = "python"
 vim.keymap.set("n", "''", function()
-  local snacks = require("snacks")
   if vim.t.scratch ~= nil then
-    snacks.scratch.open({ ft = vim.t.scratch })
+    scratch_open({ ft = vim.t.scratch })
   end
 end, { desc = "Python scratch buffer" })
 
@@ -130,71 +189,52 @@ end, { desc = "List scratch buffers" })
 
 -- Filetype-specific shortcuts
 vim.keymap.set("n", "'py", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "python" })
+  scratch_open({ ft = "python" })
 end, { desc = "Python scratch buffer" })
 
 vim.keymap.set("n", "'jss", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "javascript" })
+  scratch_open({ ft = "javascript" })
 end, { desc = "JavaScript scratch buffer" })
 
 vim.keymap.set("n", "'json", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "json" })
+  scratch_open({ ft = "json" })
 end, { desc = "JSON scratch buffer" })
 
 vim.keymap.set("n", "'lua", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "lua" })
+  scratch_open({ ft = "lua" })
 end, { desc = "Lua scratch buffer" })
 
 vim.keymap.set("n", "'ty", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "typst" })
+  scratch_open({ ft = "typst" })
 end, { desc = "Typst scratch buffer" })
 
 vim.keymap.set("n", "'toml", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "toml" })
+  scratch_open({ ft = "toml" })
 end, { desc = "TOML scratch buffer" })
 
 vim.keymap.set("n", "'tex", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "tex" })
+  scratch_open({ ft = "tex" })
 end, { desc = "TeX scratch buffer" })
 
 vim.keymap.set("n", "'md", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "markdown" })
+  scratch_open({ ft = "markdown" })
 end, { desc = "Markdown scratch buffer" })
 
 vim.keymap.set("n", "'sql", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "sql" })
+  scratch_open({ ft = "sql" })
 end, { desc = "SQL scratch buffer" })
 
 vim.keymap.set("n", "'sh", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "sh" })
+  scratch_open({ ft = "sh" })
 end, { desc = "Shell scratch buffer" })
 
 vim.keymap.set("n", "'rust", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "rust" })
+  scratch_open({ ft = "rust" })
 end, { desc = "Rust scratch buffer" })
 
 vim.keymap.set("n", "'rs", function()
-  local snacks_local = require("snacks")
-  snacks_local.scratch.open({ ft = "rust" })
+  scratch_open({ ft = "rust" })
 end, { desc = "Rust scratch buffer" })
-
-local function scratch_open_current(opts)
-  local snacks_local = require("snacks")
-  opts = opts or {}
-  opts.win = vim.tbl_deep_extend("force", opts.win or {}, { position = "current", wo = { winhighlight = "" } })
-  return snacks_local.scratch.open(opts)
-end
 
 vim.api.nvim_create_user_command("Scratch", function(cmd)
   local snacks_local = require("snacks")
@@ -202,7 +242,7 @@ vim.api.nvim_create_user_command("Scratch", function(cmd)
   local origin_win = vim.api.nvim_get_current_win()
 
   if ft then
-    return scratch_open_current({ ft = ft })
+    return scratch_open({ ft = ft })
   end
 
   return snacks_local.picker.scratch({
@@ -215,19 +255,19 @@ vim.api.nvim_create_user_command("Scratch", function(cmd)
         if vim.api.nvim_win_is_valid(origin_win) then
           vim.api.nvim_set_current_win(origin_win)
         end
-        scratch_open_current({ icon = item.item.icon, file = item.item.file, name = item.item.name, ft = item.item.ft })
+        scratch_open({ icon = item.item.icon, file = item.item.file, name = item.item.name, ft = item.item.ft })
       end,
       scratch_new = function(picker)
         picker:close()
         if vim.api.nvim_win_is_valid(origin_win) then
           vim.api.nvim_set_current_win(origin_win)
         end
-        scratch_open_current()
+        scratch_open()
       end,
     },
   })
 end, {
-  desc = "Scratch buffer (current win)",
+  desc = "Scratch buffer",
   nargs = "?",
   complete = function(arglead)
     return vim.fn.getcompletion(arglead, "filetype")
@@ -236,47 +276,47 @@ end, {
 
 vim.api.nvim_create_user_command("ScratchPython", function()
   vim.cmd("Scratch python")
-end, { desc = "Python scratch buffer (current win)" })
+end, { desc = "Python scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchJavaScript", function()
   vim.cmd("Scratch javascript")
-end, { desc = "JavaScript scratch buffer (current win)" })
+end, { desc = "JavaScript scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchJson", function()
   vim.cmd("Scratch json")
-end, { desc = "JSON scratch buffer (current win)" })
+end, { desc = "JSON scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchLua", function()
   vim.cmd("Scratch lua")
-end, { desc = "Lua scratch buffer (current win)" })
+end, { desc = "Lua scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchTypst", function()
   vim.cmd("Scratch typst")
-end, { desc = "Typst scratch buffer (current win)" })
+end, { desc = "Typst scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchToml", function()
   vim.cmd("Scratch toml")
-end, { desc = "TOML scratch buffer (current win)" })
+end, { desc = "TOML scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchTeX", function()
   vim.cmd("Scratch tex")
-end, { desc = "TeX scratch buffer (current win)" })
+end, { desc = "TeX scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchMarkdown", function()
   vim.cmd("Scratch markdown")
-end, { desc = "Markdown scratch buffer (current win)" })
+end, { desc = "Markdown scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchSQL", function()
   vim.cmd("Scratch sql")
-end, { desc = "SQL scratch buffer (current win)" })
+end, { desc = "SQL scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchSh", function()
   vim.cmd("Scratch sh")
-end, { desc = "Shell scratch buffer (current win)" })
+end, { desc = "Shell scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchRust", function()
   vim.cmd("Scratch rust")
-end, { desc = "Rust scratch buffer (current win)" })
+end, { desc = "Rust scratch buffer" })
 
 return {
   {
@@ -320,13 +360,11 @@ return {
           },
         },
         win = {
+          style = "scratch_vsplit",
           wo = {
             colorcolumn = "",
             winfixbuf = false,
           },
-          -- make it big
-          width = 0.86,
-          height = 0.86,
           on_close = function(win)
             assert(win and win.buf, "We need this to be not none here")
             local buf = win.buf
@@ -357,6 +395,7 @@ return {
                 right = "scratch_float",
                 left = "scratch_float",
               })[win.opts.position] or "scratch_float"
+              remember_scratch_layout(next_style)
 
               local buf = win.buf
               local file = vim.api.nvim_buf_get_name(buf)
@@ -365,7 +404,7 @@ return {
               if win.close then
                 win:close()
               end
-              Snacks.scratch.open({ file = file, ft = ft, win = { style = next_style } })
+              scratch_open({ file = file, ft = ft, win = { style = next_style } })
             end,
 
             ["''"] = function(win) -- value is fun(self: snacks.win)
@@ -388,40 +427,7 @@ return {
       },
 
       dashboard = {
-        preset = {
-          header = [[mnf.]],
-          -- Defaults to a picker that supports `fzf-lua`, `telescope.nvim` and `mini.pick`
-          ---@type fun(cmd:string, opts:table)|nil
-          pick = nil,
-          -- Used by the `keys` section to show keymaps.
-          -- Set your custom keymaps here.
-          -- When using a function, the `items` argument are the default keymaps.
-          ---@type snacks.dashboard.Item[]
-          keys = {
-            -- Enable once fff gets better?
-            -- { icon = " ", key = "f", desc = "Find File", action = ":lua require('fff').find_files()" },
-            {
-              icon = " ",
-              key = "f",
-              desc = "Find File",
-              -- action = ":Telescope find_files sort_mru=true sort_lastused=true ignore_current_buffer=true",
-              action = LazyVim.pick("files"),
-            },
-            { icon = " ", key = "n", desc = "New File", action = ":ene | startinsert" },
-            { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
-            { icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.dashboard.pick('oldfiles')" },
-            {
-              icon = " ",
-              key = "c",
-              desc = "Config",
-              action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})",
-            },
-            { icon = " ", key = "s", desc = "Restore Session", section = "session" },
-            { icon = " ", key = "t", desc = "Open New Terminal", action = ":term" },
-            { icon = "󰒲 ", key = "L", desc = "Lazy", action = ":Lazy", enabled = package.loaded.lazy ~= nil },
-            { icon = " ", key = "q", desc = "Quit", action = ":qa" },
-          },
-        },
+        enabled = false,
       },
       -- For quarto plugins, but also keep here so I can centrally
       -- manage this monoltith plugin and disable it for typst
@@ -443,7 +449,7 @@ return {
             linebreak = true,
           },
         },
-        scratch_vsplit = { position = "right", width = 0.45, backdrop = false, fixbuf = false },
+        scratch_vsplit = { position = "right", width = 0.5, border = false, backdrop = false, fixbuf = false },
         scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false, fixbuf = false },
         scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75, fixbuf = false },
         --- TODO: Figure out a way to make sure ever buffer in a floating window, even not the first buffer
@@ -734,12 +740,6 @@ return {
             end)
           end,
           toggle_hidden_ignored = function(picker)
-            local scope = file_scopes.cycle_snacks_picker(picker)
-            if scope then
-              vim.notify("Picker: " .. scope.label, vim.log.levels.INFO)
-              return
-            end
-
             picker.opts.hidden = not picker.opts.hidden
             picker.opts.ignored = not picker.opts.ignored
             picker.list:set_target()
@@ -1036,42 +1036,10 @@ return {
                 picker:find()
               end,
               move_tab_up = function(picker, item)
-                vim.notify(
-                  "Not implemented yet, picker is scoped to current tab so difficult without nvim letting us move tabs that are not the current see :tabmove",
-                  "error"
-                )
-                return
-                -- if item == nil then
-                --   vim.notify("Null item", "warn")
-                --   return
-                -- end
-                -- local current_tabpage = vim.api.nvim_get_current_tabpage()
-                -- local tabnr = item.tabnr
-                -- if not item.is_current then
-                --   vim.api.nvim_set_current_tabpage(item.tabpage)
-                -- end
-                -- vim.cmd("-tabmove")
-                -- vim.api.nvim_set_current_tabpage(current_tabpage)
-                -- picker:find()
+                move_tabpage_from_picker(picker, item, -1)
               end,
               move_tab_down = function(picker, item)
-                vim.notify(
-                  "Not implemented yet, picker is scoped to current tab so difficult without nvim letting us move tabs that are not the current see :tabmove",
-                  "error"
-                )
-                return
-                -- if item == nil then
-                --   vim.notify("Null item", "warn")
-                --   return
-                -- end
-                -- local current_tabpage = vim.api.nvim_get_current_tabpage()
-                -- local tabnr = item.tabnr
-                -- if not item.is_current then
-                --   vim.api.nvim_set_current_tabpage(item.tabpage)
-                -- end
-                -- vim.cmd("+tabmove")
-                -- vim.api.nvim_set_current_tabpage(current_tabpage)
-                -- picker:find()
+                move_tabpage_from_picker(picker, item, 1)
               end,
             },
             win = {
@@ -1257,9 +1225,27 @@ return {
               },
             },
           },
-          files = {},
+          files = {
+            win = {
+              input = {
+                keys = {
+                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                },
+              },
+              list = {
+                keys = {
+                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                },
+              },
+            },
+          },
           git_files = {},
           recent = {},
+          smart = {
+            -- Smart merges keys from each source. Keep files last so its <C-h>
+            -- visibility cycle wins over the buffers source filter cycle.
+            multi = { "buffers", "recent", "files" },
+          },
           -- NOTE: Snacks' built-in LSP pickers default to `jump.reuse_win=true`, so `<Enter>`/`<C-y>` (confirm) can
           -- jump to an *existing* window already showing the selected buffer (i.e. it can feel like it "opened in
           -- another window"). If you ever want a strict "always open in the picker origin window" invariant, override
@@ -1332,6 +1318,19 @@ return {
               -- NOTE:  The confirm action for this picker is dfiferent so
               -- override the varioau sactions
               -- ~/projects/neovim-plugins/snacks.nvim/lua/snacks/picker/config/sources.lua
+              scratch_open = function(picker, item)
+                local selected = picker:selected({ fallback = true })
+                item = item or selected[1]
+                if not item then
+                  return
+                end
+                picker:close()
+                scratch_open({ icon = item.item.icon, file = item.item.file, name = item.item.name, ft = item.item.ft })
+              end,
+              scratch_new = function(picker)
+                picker:close()
+                scratch_open()
+              end,
               scratch_open_tab = function(picker, item)
                 vim.notify("TODO")
                 local selected = picker:selected({ fallback = true })
