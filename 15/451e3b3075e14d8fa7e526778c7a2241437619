@@ -1,0 +1,25 @@
+nvim/.config/nvim/lua/config/keymaps.lua
+  2bfa856159eef174 216,244-252,346,351,353-356
+nvim/.config/nvim/lua/plugins/lualine.lua
+  2bfa856159eef174 282,289,291
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "15451e3b3075e14d8fa7e526778c7a2241437619",
+  "prompts": {
+    "2bfa856159eef174": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dc0b8-e55d-7c71-bd8c-a4fe93d75a9e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 16,
+      "total_deletions": 22,
+      "accepted_lines": 19,
+      "overriden_lines": 0
+    }
+  }
+}
