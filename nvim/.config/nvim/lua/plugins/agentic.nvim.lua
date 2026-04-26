@@ -200,7 +200,7 @@ return {
       },
 
       windows = {
-        width = "32%",
+        width = "40%",
       },
 
       diff_preview = {

@@ -16,41 +16,62 @@ local function apply_wo(win, wo)
   end
 end
 
-local function native_position(win)
-  local ok, position = pcall(vim.api.nvim_win_get_var, win, "mnf_native_position")
-  return ok and position or nil
-end
-
-local function find_position_win(position)
-  local wins = vim.api.nvim_tabpage_list_wins(0)
-  for i = #wins, 1, -1 do
-    local win = wins[i]
-    if native_position(win) == position then
-      return win
+local function collect_row_leaves(node, leaves)
+  if node[1] == "leaf" then
+    leaves[#leaves + 1] = node[2]
+    return true
+  end
+  if node[1] ~= "row" then
+    return false
+  end
+  for _, child in ipairs(node[2]) do
+    if not collect_row_leaves(child, leaves) then
+      return false
     end
   end
+  return true
 end
 
-function M.find(position)
-  return find_position_win(position)
+local function row_leaves()
+  local leaves = {}
+  if not collect_row_leaves(vim.fn.winlayout(), leaves) then
+    return nil
+  end
+  return leaves
+end
+
+local function count_position(wins, position)
+  local count = 0
+  for _, win in ipairs(wins) do
+    local ok, win_position = pcall(vim.api.nvim_win_get_var, win, "mnf_native_position")
+    if ok and win_position == position then
+      count = count + 1
+    end
+  end
+  return count
 end
 
 function M.equalize(position)
-  local wins = vim.tbl_filter(function(win)
-    return native_position(win) == position
-  end, vim.api.nvim_tabpage_list_wins(0))
-  if #wins <= 1 then
+  if position ~= "left" and position ~= "right" then
     return
   end
-  local vertical = position == "left" or position == "right"
+
+  local wins = row_leaves()
+  if not wins or #wins < 3 then
+    return
+  end
+  if count_position(wins, position) < 2 then
+    return
+  end
+
   local total = 0
   for _, win in ipairs(wins) do
-    total = total + (vertical and vim.api.nvim_win_get_height(win) or vim.api.nvim_win_get_width(win))
+    total = total + vim.api.nvim_win_get_width(win)
   end
   local each = math.max(1, math.floor(total / #wins))
   for _, win in ipairs(wins) do
     vim.api.nvim_win_call(win, function()
-      vim.cmd(("%sresize %d"):format(vertical and "horizontal " or "vertical ", each))
+      vim.cmd(("vertical resize %d"):format(each))
     end)
   end
 end
@@ -87,20 +108,17 @@ function M.open(buf, opts)
     vim.api.nvim_win_set_buf(win, buf)
   else
     local vertical = position == "left" or position == "right"
-    local stack_parent = vertical and opts.stack ~= false and find_position_win(position) or nil
-    local parent = stack_parent or (opts.win and vim.api.nvim_win_is_valid(opts.win) and opts.win or 0)
+    local parent = opts.win and vim.api.nvim_win_is_valid(opts.win) and opts.win or 0
     win = vim.api.nvim_win_call(parent, function()
       local config = {
-        split = stack_parent and "below" or ({
+        split = ({
           left = "left",
           right = "right",
           top = "above",
           bottom = "below",
         })[position] or "below",
       }
-      if stack_parent then
-        config.height = size(opts.height, vim.api.nvim_win_get_height(0), 0.5)
-      elseif vertical then
+      if vertical then
         config.width = size(opts.width, vim.api.nvim_win_get_width(0), 0.45)
       else
         config.height = size(opts.height, vim.api.nvim_win_get_height(0), 0.4)
