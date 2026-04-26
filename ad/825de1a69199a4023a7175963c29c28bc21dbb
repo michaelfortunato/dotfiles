@@ -1,0 +1,79 @@
+qutebrowser/.qutebrowser/config.py
+  ef081d182dbfda5c 2506
+  000229f8f2ebbac4 935,1188-1189
+  0f3780df2821286c 27
+  de999405975c4464 26,2513
+  a127232eda5effd5 2529,2533-2534,2536-2538
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "ad825de1a69199a4023a7175963c29c28bc21dbb",
+  "prompts": {
+    "000229f8f2ebbac4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dc00d-f096-79b0-ad8a-ce1198f453ff",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    },
+    "0f3780df2821286c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcab1-2767-75b1-bb40-de09b79ac0aa",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 9,
+      "overriden_lines": 0
+    },
+    "a127232eda5effd5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dbfc9-92b7-7022-8f23-262baf30a95a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    },
+    "de999405975c4464": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dc060-d7ff-7320-83b0-191ca25282eb",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    },
+    "ef081d182dbfda5c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dca9c-37cd-7793-9ccf-d72b321902b7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
