@@ -14,6 +14,12 @@
 ## Remove it to not load settings done via the GUI.
 # type: ignore
 # ruff: noqa
+import os
+
+from qutebrowser.api import cmdutils
+from qutebrowser.misc import objects
+from qutebrowser.utils import message, objreg, urlutils
+
 config.load_autoconfig(False)
 
 ## Aliases for commands. The keys of the given dictionary are the
@@ -22,6 +28,7 @@ config.load_autoconfig(False)
 # c.aliases = {'w': 'session-save', 'q': 'close', 'qa': 'quit', 'wq': 'quit --save', 'wqa': 'quit --save'}
 c.aliases = {
     "ReloadConfig": "config-source",
+    "ReloadUrl": "reload-url-or-open",
     "Clear": "clear-messages ;; download-clear",
     "ToggleTor": "config-cycle -t -p content.proxy socks://localhost:9050/ system",
     "PrintPath": "message-info {url}",
@@ -1756,8 +1763,6 @@ c.input.insert_mode.auto_load = True
 ## variable to null/None will unset it.
 ## Type: Dict
 ### NOTE: This is for the bitwarden plugin (see <ctrl-space> keymap below)
-import os
-
 c.qt.environ = {
     "PATH": os.pathsep.join(
         dict.fromkeys(
@@ -2497,6 +2502,106 @@ config.bind("ca", "tab-only")
 # config.bind('yy', 'yank')
 # config.bind('{{', 'navigate prev -t')
 # config.bind('}}', 'navigate next -t')
+for command_name in ("pinned-tab-focus", "pintab", "reload-url-or-open"):
+    objects.commands.pop(command_name, None)
+
+
+def _current_tabbed_browser(win_id):
+    return objreg.get("tabbed-browser", scope="window", window=win_id)
+
+
+def _url_match_key(url):
+    return url.toString().rstrip("/")
+
+
+@cmdutils.register()
+@cmdutils.argument("win_id", value=cmdutils.Value.win_id)
+def pinned_tab_focus(index: int = 1, win_id=None):
+    """Focus the numbered tab only when that tab is pinned."""
+    tabbed_browser = _current_tabbed_browser(win_id)
+    tab_index = index - 1 if index > 0 else index + tabbed_browser.widget.count()
+    tab = tabbed_browser.widget.widget(tab_index)
+
+    if tab is not None and tab.data.pinned:
+        tabbed_browser.widget.setCurrentIndex(tab_index)
+
+
+@cmdutils.register()
+@cmdutils.argument("win_id", value=cmdutils.Value.win_id)
+def pintab(win_id=None):
+    """Pin the current tab and move it after the last pinned tab."""
+    tabbed_browser = _current_tabbed_browser(win_id)
+    tab = tabbed_browser.widget.currentWidget()
+    if tab is None:
+        return
+
+    current_index = tabbed_browser.widget.indexOf(tab)
+    last_pinned_index = -1
+    for tab_index in range(tabbed_browser.widget.count()):
+        other_tab = tabbed_browser.widget.widget(tab_index)
+        if other_tab is not None and other_tab is not tab and other_tab.data.pinned:
+            last_pinned_index = tab_index
+
+    if not tab.data.pinned:
+        tab.set_pinned(True)
+
+    if last_pinned_index == -1:
+        target_index = 0
+    elif current_index < last_pinned_index:
+        target_index = last_pinned_index
+    else:
+        target_index = last_pinned_index + 1
+
+    if current_index != target_index:
+        tabbed_browser.widget.tabBar().moveTab(current_index, target_index)
+
+
+@cmdutils.register()
+@cmdutils.argument("win_id", value=cmdutils.Value.win_id)
+def reload_url_or_open(
+    current: bool = False,
+    tab: bool = False,
+    bg: bool = False,
+    force: bool = False,
+    keep_focus: bool = False,
+    url: str = None,
+    win_id=None,
+):
+    """Reload an existing tab for URL, or open it if no tab matches."""
+    if not url:
+        message.error("reload-url-or-open needs a URL")
+        return
+
+    try:
+        target_url = urlutils.fuzzy_url(url)
+    except urlutils.InvalidUrlError as error:
+        message.error(str(error))
+        return
+
+    if sum(bool(option) for option in (current, tab, bg)) > 1:
+        message.error("Choose only one of --current, --tab, or --bg")
+        return
+
+    tabbed_browser = _current_tabbed_browser(win_id)
+    target_key = _url_match_key(target_url)
+
+    for tab_index in range(tabbed_browser.widget.count()):
+        tab = tabbed_browser.widget.widget(tab_index)
+        if tab is not None and _url_match_key(tab.url()) == target_key:
+            if not keep_focus:
+                tabbed_browser.widget.setCurrentIndex(tab_index)
+            tab.reload(force=force)
+            return
+
+    if current:
+        current_tab = tabbed_browser.widget.currentWidget()
+        if current_tab is not None:
+            current_tab.load_url(target_url)
+            return
+
+    tabbed_browser.tabopen(target_url, background=bg, related=True)
+
+
 config.bind("<space><space>", "cmd-set-text -s :open")
 config.bind("<Cmd-L>", "cmd-set-text -s :open")
 config.bind("<space>uA", "config-cycle tabs.show always switching")
@@ -2525,7 +2630,7 @@ config.bind("L", "tab-next")
 config.bind("H", "tab-prev")
 config.bind("<Ctrl-R>", "reload")
 config.bind("<Cmd-t>", "open -t")
-config.bind("tp", "tab-pin")
+config.bind("tp", "pintab")  # custom pin tab
 config.bind("S", "hint all tab-bg")
 config.bind("M", "bookmark-add")
 config.bind("I", "mode-enter insert")
@@ -2549,6 +2654,7 @@ for i in range(10):
     config.bind(f"<Space>{i}", f"quickmark-loadl {i}")
 config.bind("<Space>n", "messages")  # like noice in my nvim
 config.bind("<Space>up", "PrintPath")
+config.bind("pu", "PrintPath")
 config.bind("[", "tab-prev")
 config.bind("]", "tab-next")
 config.bind("<Ctrl-Y>", "selection-follow")
