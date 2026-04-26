@@ -1,0 +1,153 @@
+nvim/.config/nvim/lua/plugins/lsp.lua
+  f1964a967e7a50d0 279,305-306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "750e3eac2f82db46af0a971e861908b1d356a5a8",
+  "prompts": {
+    "02e2084b2e1bd56b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dca93-e38a-7702-987b-cb0dfbd0b5b0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 11,
+      "total_deletions": 13,
+      "accepted_lines": 11,
+      "overriden_lines": 0
+    },
+    "0f3780df2821286c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcab1-2767-75b1-bb40-de09b79ac0aa",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 9,
+      "total_deletions": 5,
+      "accepted_lines": 9,
+      "overriden_lines": 0
+    },
+    "2bfa856159eef174": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dc0b8-e55d-7c71-bd8c-a4fe93d75a9e",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "5506389c96ef2747": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcac0-74d4-7ab1-8a14-2f68405d57fe",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "55ed21bb63402f2f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcac1-891a-77b0-b483-03fb1ff59100",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "5e4b26c1c6b67350": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dca92-53a7-7522-b9fa-f5e4c5e3fb27",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "7dca7717eac33fbb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcac0-a493-76f2-b16c-d253471ac0c8",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "ef081d182dbfda5c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dca9c-37cd-7793-9ccf-d72b321902b7",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 14,
+      "total_deletions": 14,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    },
+    "f1964a967e7a50d0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcac8-857a-7410-8741-6f190c55c756",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 0,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    },
+    "f95dba2075f0d289": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcab0-d649-7a71-b6c4-48a9a5d4a2ca",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "feb84666ae003a65": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dcaa0-1a62-7653-9e71-1591fe7c8a10",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 2,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
