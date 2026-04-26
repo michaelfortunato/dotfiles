@@ -115,6 +115,12 @@ vim.api.nvim_create_autocmd("FileType", {
       buffer = ev.buf,
       desc = "Agentic: Insert newline",
     })
+    vim.keymap.set("i", "<C-/>", function()
+      require("agentic").toggle()
+    end, {
+      buffer = ev.buf,
+      desc = "Toggle Agentic Chat",
+    })
     vim.keymap.set("i", ".,", function()
       require("agentic").toggle()
     end, {
@@ -170,6 +176,14 @@ return {
     cmd = {
       "AgenticChat",
       "AgenticInline",
+      "AgenticInlineStop",
+      "AgenticProvider",
+      "AgenticConfig",
+      "AgenticMode",
+      "AgenticModel",
+      "AgenticReasoning",
+      "AgenticApproval",
+      "AgenticPermissions",
     },
     opts = {
       -- Any ACP-compatible provider works. Built-in: "claude-agent-acp" | "gemini-acp" | "codex-acp" | "opencode-acp" | "cursor-acp" | "copilot-acp" | "auggie-acp" | "mistral-vibe-acp" | "cline-acp" | "goose-acp"
