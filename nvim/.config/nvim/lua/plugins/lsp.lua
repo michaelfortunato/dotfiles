@@ -276,6 +276,7 @@ return {
           "ruff_organize_imports",
         },
         quarto = { "injected" },
+        markdown = { "rumdl" },
       },
       formatters = {
         typstyle = {
@@ -301,6 +302,8 @@ return {
               -- python = { "ruff_fix", "ruff_format", "ruff_organize_imports" }, -- or just { "ruff_format" }
               -- Remove ruff_fix so that it does not remove unused imports
               python = { "ruff_format", "ruff_organize_imports" }, -- or just { "ruff_format" }
+              typescript = { "biome" },
+              javascript = { "biome" },
               -- add more if you like:
               -- r = { "styler" },        -- if you use an R formatter
               -- bash = { "shfmt" },
