@@ -47,6 +47,8 @@ ralph-cli v2.0.9:
     ralph
 rheo v0.1.1:
     rheo
+rumdl v0.1.82:
+    rumdl
 samply v0.13.1:
     samply
 selene v0.30.0:
