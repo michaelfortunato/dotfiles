@@ -23,6 +23,8 @@ config.load_autoconfig(False)
 c.aliases = {
     "ReloadConfig": "config-source",
     "Clear": "clear-messages ;; download-clear",
+    "ToggleTor": "config-cycle -t -p content.proxy socks://localhost:9050/ system",
+    "PrintPath": "message-info {url}",
     "w": "session-save",
     "q": "close",
     "qa": "quit",
@@ -930,6 +932,7 @@ c.content.fullscreen.window = True
 ## Allow JavaScript to open new tabs without user interaction.
 ## Type: Bool
 # c.content.javascript.can_open_tabs_automatically = False
+c.content.javascript.can_open_tabs_automatically = True
 
 ## Allow JavaScript to read from or write to the clipboard. With
 ## QtWebEngine, writing the clipboard as response to a user interaction
@@ -1182,6 +1185,8 @@ c.content.pdfjs = True
 ##   - allow-from-user-interaction: Allows navigation requests to URLs with unknown schemes that are issued from user-interaction (like a mouse-click), whereas other navigation requests (for example from JavaScript) are suppressed.
 ##   - allow-all: Allows all navigation requests to URLs with unknown schemes.
 # c.content.unknown_url_scheme_policy = 'allow-from-user-interaction'
+# OAuth/device-login redirects often hop through custom app URL schemes.
+c.content.unknown_url_scheme_policy = "allow-all"
 
 ## List of user stylesheet filenames to use.
 ## Type: List of File, or File
@@ -2498,17 +2503,17 @@ config.bind("<space>uA", "config-cycle tabs.show always switching")
 config.bind("<space>ut", "config-cycle tabs.show always switching")
 config.bind("<space>ua", "config-cycle statusbar.show always never")
 config.bind("<space>e", "config-cycle tabs.show always switching")
-config.bind("<space>h", "cmd-set-text -s :quickmark-load")
-config.bind("<space>H", "quickmark-save")
+config.bind("<space>H", "cmd-set-text -s :quickmark-load")
 config.bind("<space>sh", "history")
 config.bind("<space>sf", "cmd-set-text -s :open ~/")
 config.bind("<space>sm", "cmd-set-text -s :bookmark-load")
 config.bind("<space>sM", "cmd-set-text -s :bookmark-load")
 config.bind("<space>st", "cmd-set-text -s :tab-select")
-config.bind("<space>zz", "spawn --userscript qute-zotero")
+config.bind("<space>pt", "ToggleTor")
+config.bind("<space>pz", "spawn --userscript qute-zotero")
 config.bind("<Ctrl-space>", "spawn --userscript qute-bitwarden")
 config.bind("<Ctrl-space>", "spawn --userscript qute-bitwarden", mode="insert")
-config.bind("<space>zS", "hint links userscript qute-zotero")
+config.bind("<space>pZ", "hint links userscript qute-zotero")
 config.bind("ff", "cmd-set-text -s :open ~/")
 config.bind("<space>bd", "tab-close")
 config.bind("<space>wd", "tab-close")  # I like the overload its my editor.
@@ -2521,29 +2526,36 @@ config.bind("H", "tab-prev")
 config.bind("<Ctrl-R>", "reload")
 config.bind("<Cmd-t>", "open -t")
 config.bind("tp", "tab-pin")
-config.bind("S", "back -b")
-config.bind("m", "quickmark-save")
+config.bind("S", "hint all tab-bg")
 config.bind("M", "bookmark-add")
 config.bind("I", "mode-enter insert")
 # GitHub's global search hint targets a button-backed opener, and the actual
-# textbox gets focused by page JS shortly afterward. Re-enter insert on the
-# next tick so qutebrowser catches the real editable once it exists.
+# textbox gets focused by page JS shortly afterward. Re-enter insert over a
+# short window so qutebrowser catches the real editable after GitHub finishes.
 config.bind(
-    "i", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert"
+    "i",
+    "hint inputs --first ;; mode-enter insert ;; cmd-later 5 mode-enter insert ;; "
+    "cmd-later 50 mode-enter insert ;; cmd-later 100 mode-enter insert",
 )
 config.bind(
-    "gi", "mode-enter insert ;; hint inputs --first ;; cmd-later 1 mode-enter insert"
+    "gi",
+    "hint inputs --first ;; mode-enter insert ;; cmd-later 5 mode-enter insert ;; "
+    "cmd-later 50 mode-enter insert ;; cmd-later 100 mode-enter insert",
 )
 for i in range(10):
     config.bind(f"<Cmd-{i}>", f"tab-select {i}")
     config.bind(f"<Ctrl-{i}>", f"tab-select {i}")
+    config.bind(f"<Alt-{i}>", f"quickmark-add {{url}} {i}")
+    config.bind(f"<Space>{i}", f"quickmark-loadl {i}")
+config.bind("<Space>n", "messages")  # like noice in my nvim
+config.bind("<Space>up", "PrintPath")
 config.bind("[", "tab-prev")
 config.bind("]", "tab-next")
 config.bind("<Ctrl-Y>", "selection-follow")
 config.bind("<Ctrl-U>", "scroll-page 0 -0.25")
 config.bind("<Ctrl-D>", "scroll-page 0 0.25")
 config.unbind("d")
-config.bind("dd", "tab-close")
+config.bind("<Tab>d", "tab-close")  # Keep it inline with neovim
 config.bind("<Cmd-N>", "open -w")
 config.bind("<Cmd-Shift-W>", "close")
 config.bind("<Cmd-W>", "tab-close")
