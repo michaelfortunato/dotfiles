@@ -239,18 +239,18 @@ alias git-ignore-local="git_ignore_local"
 alias glo='git log --pretty=format:"%C(auto)%h %C(blue)%ad %C(auto)%d %Creset%s" --date=format:"%Y-%m-%d %H:%M"'
 alias gcm='git commit -m'
 #------------------------------------------------------------------------------
-alias shconf="nvim $HOME/.zshrc"
-alias shellconf="nvim $HOME/.zshrc"
-alias shellconfig="nvim $HOME/.zshrc"
-alias nvimconf="cd $HOME/.config/nvim && nvim"
-alias nvimconfig="cd $HOME/.config/nvim && nvim"
-alias termconf="cd $HOME/.config/kitty && nvim kitty.conf"
-alias termconfig="cd $HOME/.config/kitty && nvim kitty.conf"
-alias quteconf="cd $HOME/.qutebrowser/ && nvim config.py"
-alias quteconfig="cd $HOME/.qutebrowser/ && nvim config.py"
+alias shconf='(builtin cd "$HOME" && "${EDITOR:-nvim}" .zshrc)'
+alias shellconf='(builtin cd "$HOME" && "${EDITOR:-nvim}" .zshrc)'
+alias shellconfig='(builtin cd "$HOME" && "${EDITOR:-nvim}" .zshrc)'
+alias nvimconf='(builtin cd "$HOME/.config/nvim" && "${EDITOR:-nvim}")'
+alias nvimconfig='(builtin cd "$HOME/.config/nvim" && "${EDITOR:-nvim}")'
+alias termconf='(builtin cd "$HOME/.config/kitty" && "${EDITOR:-nvim}" kitty.conf)'
+alias termconfig='(builtin cd "$HOME/.config/kitty" && "${EDITOR:-nvim}" kitty.conf)'
+alias quteconf='(builtin cd "$HOME/.qutebrowser" && "${EDITOR:-nvim}" config.py)'
+alias quteconfig='(builtin cd "$HOME/.qutebrowser" && "${EDITOR:-nvim}" config.py)'
 alias conf="cd $HOME/dotfiles"
-alias dotconf="cd $HOME/dotfiles && nvim"
-alias dotconfig="cd $HOME/dotfiles && nvim"
+alias dotconf='(builtin cd "$HOME/dotfiles" && "${EDITOR:-nvim}")'
+alias dotconfig='(builtin cd "$HOME/dotfiles" && "${EDITOR:-nvim}")'
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
 #TODO: Do we need to make this smarter?
 alias yazi="y"
@@ -260,7 +260,7 @@ alias icat="kitten icat" # to see images
 alias help='run-help'
 # py-spy should be call pyspy imo
 alias pyspy='py-spy'
-alias codexconf="(cd $HOME/.codex && nvim config.toml)"
+alias codexconf='(builtin cd "$HOME/.codex" && "${EDITOR:-nvim}" config.toml)'
 alias cm='codex -m gpt-5.4-mini'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
