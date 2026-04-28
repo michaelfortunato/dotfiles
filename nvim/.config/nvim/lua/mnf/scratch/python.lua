@@ -379,6 +379,30 @@ local function uv_runner()
   return runner, nil
 end
 
+---@param buf number
+---@return string
+local function uv_root_for_buf(buf)
+  local filename = vim.api.nvim_buf_get_name(buf)
+  local start = vim.fn.getcwd()
+
+  if type(filename) == "string" and filename ~= "" then
+    start = vim.fn.fnamemodify(filename, ":p:h")
+  end
+
+  if type(vim.fs) == "table" and type(vim.fs.find) == "function" then
+    local marker = vim.fs.find({ "pyproject.toml", "uv.lock", ".python-version", ".git" }, {
+      path = start,
+      upward = true,
+    })[1]
+
+    if type(marker) == "string" and marker ~= "" then
+      return vim.fn.fnamemodify(marker, ":p:h")
+    end
+  end
+
+  return start
+end
+
 ---@class MNF.Scratch.Python.UvSessionItem
 ---@field ctx {buf:number,code:string,anchor:number,out:fun(text:string,line?:number,stream?:"stdout"|"stderr"),err:fun(message:string,line?:number,trace?:string[])}
 ---@field request string
@@ -771,10 +795,10 @@ M.exec = function(ctx)
     return
   end
 
-  local root = vim.fn.fnamemodify(runner, ":p:h:h")
+  local root = uv_root_for_buf(ctx.buf)
   local uv_cache_dir = vim.env.UV_CACHE_DIR
   if type(uv_cache_dir) ~= "string" or uv_cache_dir == "" then
-    uv_cache_dir = root .. "/.uv_cache"
+    uv_cache_dir = vim.fn.stdpath("cache") .. "/mnf-scratch-python/uv"
   end
   pcall(vim.fn.mkdir, uv_cache_dir, "p")
 

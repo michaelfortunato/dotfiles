@@ -22,6 +22,18 @@ class _State:
 
 
 STATE = _State()
+ENVS: dict[str, dict[str, Any]] = {}
+
+
+def _env_for(filename: str) -> dict[str, Any]:
+    env = ENVS.get(filename)
+    if env is None:
+        env = {
+            "__name__": "__mnf_scratch__",
+            "__builtins__": __builtins__,
+        }
+        ENVS[filename] = env
+    return env
 
 
 def _trace(frame, event, arg):  # noqa: ARG001
@@ -145,7 +157,7 @@ def _configure_matplotlib(*, cache_dir: str, filename: str, anchor: int) -> None
 
 
 def _run(code: str, filename: str, anchor: int, *, mpl: bool, cache_dir: str | None) -> list[dict[str, Any]]:
-    env: dict[str, Any] = {"__name__": "__mnf_scratch__"}
+    env = _env_for(filename)
 
     STATE.target_filename = filename
     STATE.current_line = 1
