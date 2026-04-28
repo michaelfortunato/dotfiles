@@ -352,8 +352,8 @@ vim.keymap.set({ "n", "i", "v" }, "<C-S-l>", function()
   end
   vim.cmd.tabnext()
 end, { desc = "Previous Choice Snippet or Next Tab", silent = true })
-vim.keymap.set("t", "<C-S-l>", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
-vim.keymap.set({ "n", "i", "v", "t" }, "<C-S-h>", "<Cmd>tabnext<CR>", { desc = "Next Tab", silent = true })
+vim.keymap.set("t", "<C-S-l>", "<Cmd>tabnext<CR>", { desc = "Next Tab" })
+vim.keymap.set({ "n", "i", "v", "t" }, "<C-S-h>", "<Cmd>tabprev<CR>", { desc = "Previous Tab", silent = true })
 
 del("n", "m")
 map("n", "mm", "<Cmd>Make!<CR>", { desc = "Run Make" })
