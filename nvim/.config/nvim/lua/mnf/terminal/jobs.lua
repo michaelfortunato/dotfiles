@@ -876,7 +876,7 @@ function M.start_job(id)
 
   set_last_focused_job(id)
 
-  if not job.config.silent then
+  if not job.config.silent or current_tab_job_win() then
     M.show_job(id)
   end
 end
@@ -915,12 +915,13 @@ end
 function M.restart_job(id, quiet)
   local key, job = ensure_job(id)
   id = key
+  local was_visible = current_tab_job_win() ~= nil
   M.kill_job(id)
   -- If it was internal, BufWipeout will clean runtime; external is immediate.
   vim.defer_fn(function()
     local _, j = ensure_job(id)
     M.start_job(id)
-    if quiet or j.config.silent then
+    if quiet or (j.config.silent and not was_visible) then
       return
     end
     M.show_job(id)
