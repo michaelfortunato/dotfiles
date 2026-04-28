@@ -2,6 +2,15 @@
 
 This is a GNU Stow-managed dotfiles repo. Each top-level directory is a stow package whose contents mirror `$HOME`. Running `stow <pkg>` from the repo root creates parallel symlinks into `~`.
 
+## Instruction-file terminology
+
+Use these terms precisely:
+
+- **Repo-root AGENTS.md** means this file: `~/dotfiles/AGENTS.md`. It contains instructions for working in the dotfiles repository itself.
+- **Codex home AGENTS.md** or **global Codex AGENTS.md** means `~/dotfiles/codex/.codex/AGENTS.md`, which is stowed to `~/.codex/AGENTS.md`. It contains global instructions for Codex across repositories.
+
+When the user asks for a "global AGENTS.md" while working in this repo, edit the Codex home AGENTS.md, not the repo-root AGENTS.md. If the request says "local AGENTS.md", "repo AGENTS.md", or "AGENTS.md here", edit the repo-root AGENTS.md unless the user names another path.
+
 ## Conventions
 
 - Only curated files belong in a package. Don't drop runtime state (caches, session logs, databases, tokens) into a stow package.
