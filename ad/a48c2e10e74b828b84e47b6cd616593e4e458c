@@ -1,0 +1,23 @@
+nvim/.config/nvim/lua/config/keymaps.lua
+  b56b559377f5d965 355-356
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "ada48c2e10e74b828b84e47b6cd616593e4e458c",
+  "prompts": {
+    "b56b559377f5d965": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dd1db-1a73-7ab2-b63a-6b885ca65922",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
