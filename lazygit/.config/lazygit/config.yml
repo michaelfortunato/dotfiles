@@ -1,11 +1,36 @@
 # If true, exit Lazygit when the user presses escape in a context where there is
 # nothing to cancel/close
 quitOnTopLevelReturn: true
+gui:
+  # Keep the normal view as two real panes: file tree/list on the left, diff/staging on the right.
+  sidePanelWidth: 0.25
+  expandFocusedSidePanel: false
+  enlargedSideViewLocation: left
+  showFileTree: true
+  showRootItemInFileTree: true
+  # When LazyGit splits staged/unstaged diffs, stack them instead of making narrow columns.
+  mainPanelSplitMode: vertical
+  # Diff-flow test: surface the list footer while keeping the noisy command log hidden.
+  showListFooter: true
+  showCommandLog: false
+  # Diff-flow test: leave the bottom status line visible for contrast.
+  showBottomLine: true
+  # Diff-flow test: allow the startup tip so this block has one more easy review target.
+  showRandomTip: true
+  # Candidate layout toggles to revisit after using the current split for a while:
+  # screenMode: half
+  # splitDiff: always
+  # border: single
+  # showPanelJumps: false
+  # showNumstatInFilesView: true
+  # fileTreeSortOrder: mixed
+  # portraitMode: never
 git:
   pagers:
     # lazy git says delta --dark --paging=never
     #- pager: delta --paging=never
-    - pager: delta --paging=never --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"
+    # Force inline diffs in lazygit even though global delta config uses side-by-side.
+    - pager: delta --paging=never --no-gitconfig --navigate --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}" --file-decoration-style="blue ul" --hunk-header-decoration-style="blue box" --hunk-header-style="file line-number syntax"
     - externalDiffCommand: difft --color=always
 keybinding:
   universal:
