@@ -139,6 +139,9 @@ return {
     cmd = "CodeDiff",
     opts = {
       diff = { layout = "inline" },
+      explorer = {
+        initial_focus = "modified",
+      },
       keymaps = {
         view = {
           quit = "q", -- Close diff tab
