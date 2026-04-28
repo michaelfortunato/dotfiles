@@ -1,0 +1,36 @@
+AGENTS.md
+  e97056619c0ab6a3 5-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "e7b8ade1e65226d74abbaf1e0ca573df339b9e2a",
+  "prompts": {
+    "39da4a56d54fef12": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dd1e0-eba4-7e22-bc5f-21aa7f4f8ad8",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    },
+    "e97056619c0ab6a3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dd1e0-b7f1-7300-8e2f-ceffbfd39600",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "messages": [],
+      "total_additions": 9,
+      "total_deletions": 0,
+      "accepted_lines": 9,
+      "overriden_lines": 0
+    }
+  }
+}
