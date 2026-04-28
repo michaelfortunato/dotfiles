@@ -11,13 +11,16 @@
   p = pull
   s = status #FIXME: `gs` Conflicts with ghostscript
   w = whatchanged
-  # Difftastic aliases, so `git slog` is `git log` with difftastic and so on.
-  # s is for "semantic".
-  slog = -c diff.external=difft log --ext-diff
-  sshow = -c diff.external=difft show --ext-diff
-  # the single letter f is intentional
-  sdif = -c diff.external=difft diff
-  sdiff = -c diff.external=difft diff
+  # Difftastic-backed views:
+  # - dlog: commit history. Add -p/--patch to see each commit's patch; this
+  #   reads the worktree's HEAD/branch, not unstaged or staged file changes.
+  dlog = -c diff.external=difft log --ext-diff
+  # - dshow: one object/commit, HEAD by default, plus its patch.
+  dshow = -c diff.external=difft show --ext-diff
+  # - ddif/ddiff: this worktree's file/index diff. With no args, unstaged
+  #   changes; use --staged for index vs HEAD, or HEAD for all local changes.
+  ddif = -c diff.external=difft diff
+  ddiff = -c diff.external=difft diff
 [credential "https://github.com"]
 	helper = 
 	helper = !/opt/homebrew/bin/gh auth git-credential
