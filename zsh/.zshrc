@@ -921,7 +921,8 @@ _mnf_cache_completion() {
 (( ${+commands[cargo]} )) && _mnf_cache_completion cargo _clap_dynamic_completer_cargo env CARGO_COMPLETE=zsh cargo +nightly
 (( ${+commands[pueue]} )) && _mnf_cache_completion pueue _pueue pueue completions zsh
 (( ${+commands[mnf]} )) && _mnf_cache_completion mnf _clap_dynamic_completer_mnf mnf completion zsh
-(( ${+commands[wt]} )) && _mnf_cache_completion wt _wt wt config shell init zsh
+# We need this here, can't do the chached route
+if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
 
 export GPG_TTY=$TTY
 if (( ${+commands[gpg-connect-agent]} )); then
