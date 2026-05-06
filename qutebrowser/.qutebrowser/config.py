@@ -2358,9 +2358,11 @@ c.window.hide_decoration = True
 # config.bind('<Ctrl-T>', 'open -t')
 # config.bind('<Ctrl-Tab>', 'tab-focus last')
 # config.bind('<Ctrl-U>', 'scroll-page 0 -0.5')
+## Bindings for passthrough mode
 # config.bind('<Ctrl-V>', 'mode-enter passthrough')
 config.unbind("<Ctrl-V>")
 config.bind("<Shift-Esc>", "mode-enter passthrough")
+config.bind("<Shift-Escape>", "mode-leave", mode="passthrough")
 # config.bind('<Ctrl-W>', 'tab-close')
 # config.bind('<Ctrl-X>', 'navigate decrement')
 # config.bind('<Ctrl-^>', 'tab-focus last')
@@ -2628,6 +2630,8 @@ config.bind("l", "forward")
 config.bind("h", "back")
 config.bind("L", "tab-next")
 config.bind("H", "tab-prev")
+config.bind("<Ctrl-Shift-L>", "tab-next")
+config.bind("<Ctrl-Shift-H>", "tab-prev")
 config.bind("<Ctrl-R>", "reload")
 config.bind("<Cmd-t>", "open -t")
 config.bind("tp", "pintab")  # custom pin tab
@@ -2651,7 +2655,7 @@ for i in range(10):
     config.bind(f"<Cmd-{i}>", f"tab-select {i}")
     config.bind(f"<Ctrl-{i}>", f"tab-select {i}")
     config.bind(f"<Alt-{i}>", f"quickmark-add {{url}} {i}")
-    config.bind(f"<Space>{i}", f"quickmark-loadl {i}")
+    config.bind(f"<Space>{i}", f"quickmark-load {i}")
 config.bind("<Space>n", "messages")  # like noice in my nvim
 config.bind("<Space>up", "PrintPath")
 config.bind("pu", "PrintPath")
@@ -2783,8 +2787,6 @@ config.bind("<Cmd-K>", "fake-key <Cmd-K> ;; mode-enter insert")
 # https://www.reddit.com/r/qutebrowser/comments/dqjnjw/i_made_a_hack_to_add_bashlike_u_into_insert_mode/
 config.bind("<Ctrl-u>", "fake-key <Shift-Home><Backspace>", "insert")
 
-## Bindings for passthrough mode
-# config.bind('<Shift-Escape>', 'mode-leave', mode='passthrough')
 
 ## Bindings for prompt mode
 # config.bind('<Alt-B>', 'rl-backward-word', mode='prompt')
