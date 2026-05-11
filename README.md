@@ -71,6 +71,15 @@ You can also just go into each submodule and pull
 
 ## Which directories do what
 
+### The `amoxide` directory
+
+`amoxide` manages my shell aliases now. Use `am` for CLI edits and `am-tui`
+for the interactive UI.
+
+The package stows `~/.config/amoxide/`. Global aliases live in
+`amoxide/.config/amoxide/config.toml`, while profiles and amoxide settings live
+alongside it in the same directory.
+
 ### The `git` directory
 
 Let us take a look at the structure here
