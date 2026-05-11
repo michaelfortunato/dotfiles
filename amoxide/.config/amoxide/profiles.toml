@@ -1,0 +1,19 @@
+[[profiles]]
+name = "mnf-cloud"
+
+[profiles.aliases]
+nca = ': {{@}}; nerdctl attach "${1:-$(ncli)}" "${@:2}" '
+ncacheclear = "nerdctl builder prune {{@}}"
+ncachekill = "nerdctl builder prune {{@}}"
+ncd = ': {{@}}; local container="${1:-$(ncli)}"; [[ -n "$container" ]] || return 1; nerdctl container rm "$container" "${@:2}" '
+nce = ': {{@}}; local container cmd; if [[ -z "${1:-}" ]]; then container="$(ncli)" || return $?; cmd="${2:-bash}"; print -z "nerdctl exec -it ${container} ${cmd} ${*:3}"; else container="$1"; cmd="${2:-bash}"; print -r -- "Running: nerdctl exec -it $container $cmd ${*:3}" >&2; nerdctl exec -it "$container" "$cmd" "${@:3}"; fi'
+nck = "nerdctl container kill {{@}}"
+ncl = "nerdctl ps {{@}}"
+ncli = ": {{@}}; nerdctl container list -a --format '{{.ID}} {{.Image}} {{.Command}} {{.Status}}' | fzf | awk '{print $1}'"
+ncr = ': {{@}}; local img cmd; if [[ -z "${1:-}" ]]; then img="$(nili)" || return $?; cmd="${2:-bash}"; print -z "nerdctl run --rm -it ${img} ${cmd} ${*:3}"; else img="$1"; cmd="${2:-bash}"; print -r -- "Running: nerdctl run --rm -it $img $cmd ${*:3}" >&2; nerdctl run --rm -it "$img" "$cmd" "${@:3}"; fi'
+nib = ': {{@}}; local containerfile="$1" ctx="$2" ref="${3:-}" git_or_cwd repo; git_or_cwd=$(git -C "$ctx" rev-parse --show-toplevel 2>/dev/null || pwd); repo=$(basename "$git_or_cwd" | tr "[:upper:]" "[:lower:]"); if [[ -z "$ref" ]]; then ref="${repo}:latest"; elif [[ "$ref" != *:* ]]; then ref="${repo}:${ref}"; fi; nerdctl build --progress=plain -f "$containerfile" -t "$ref" "$ctx" "${@:4}" '
+nid = ': {{@}}; local img="$1"; [[ "$img" == *:* ]] || img="${img}:latest"; nerdctl image rm "$img" "${@:2}" '
+nil = "nerdctl images {{@}}"
+nili = ": {{@}}; nerdctl images -a --format '{{.Repository}}:{{.Tag}} {{.ID}} {{.Size}} {{.CreatedSince}}' | fzf | awk '{print $1}'"
+nlog = "nerdctl logs -f {{@}}"
+nps = "nerdctl ps {{@}}"

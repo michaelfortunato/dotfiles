@@ -1,0 +1,6 @@
+tampered = []
+untrusted = []
+
+[[trusted]]
+path = "/Users/michaelfortunato/OuterProduct/.aliases"
+hash = "1ffef6835dca92e7ce03d8d2b04e2754532081f179b2dc446ea4fafc0c9c50de"
