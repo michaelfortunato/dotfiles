@@ -1,0 +1,50 @@
+amoxide/.config/amoxide/security.toml
+  f269d2fc8ef879f0 1-5
+  bc5c4ae19bc2a39a 6
+amoxide/.config/amoxide/config.toml
+  4d514bc4602b9af7 2
+  f269d2fc8ef879f0 1,3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b97153a0f3e16f155b0c888439a474fc66fc47a4",
+  "prompts": {
+    "4d514bc4602b9af7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ddef2-fd10-7223-80db-9b77e84a10bc",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "bc5c4ae19bc2a39a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019df415-83e8-74e3-84a1-fbb5b859bb49",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "f269d2fc8ef879f0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dda93-7900-7a10-a59c-ee070c8b41e6",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  }
+}
