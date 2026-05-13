@@ -3,7 +3,19 @@ local M = {}
 ---@type fun(opts: table, on_confirm: fun(input: string?)): nil
 M.input = Snacks.input.input or vim.ui.input
 ---@type fun(msg: string, level?: integer, opts?: table): nil
-M.notify = Snacks.notify.notify or vim.ui.notify
+M.notify = function(msg, level, opts)
+  if type(level) == "table" and opts == nil then
+    opts = level
+    level = nil
+  end
+  opts = opts or {}
+  opts.level = opts.level or level
+  local notify = Snacks.notify and Snacks.notify.notify
+  if notify then
+    return notify(msg, opts)
+  end
+  return vim.notify(msg, opts.level, opts)
+end
 
 -- Kitty external terminal support
 local kitty = require("mnf.terminal.kitty")
@@ -182,6 +194,7 @@ local function current_tab_terminal_win()
     win
     and vim.api.nvim_win_is_valid(win)
     and vim.api.nvim_win_get_tabpage(win) == vim.api.nvim_get_current_tabpage()
+    and vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "terminal"
   then
     return win
   end
@@ -276,7 +289,9 @@ local function get_or_create_terminal_buffer(id)
       vim.cmd("terminal")
     end)
   end
-  return M.terminal_state.buffers[id].buf
+  local buf = M.terminal_state.buffers[id].buf
+  vim.b[buf].mnf_terminal_id = id
+  return buf
 end
 
 -- Toggle terminal
@@ -883,6 +898,13 @@ focus_terminal_buffer = function(buf)
   if focused_id ~= nil then
     M.terminal_state.last_used_terminal = focused_id
     M.terminal_state.current = focused_id
+  end
+
+  local reusable_win = current_tab_terminal_win()
+  if reusable_win then
+    vim.api.nvim_win_set_buf(reusable_win, buf)
+    vim.api.nvim_set_current_win(reusable_win)
+    return
   end
 
   local wins = vim.fn.win_findbuf(buf)
