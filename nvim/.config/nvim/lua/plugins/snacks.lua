@@ -1630,7 +1630,7 @@ return {
             },
           },
           explorer = {
-            layout = { preset = "dropdown", preview = false },
+            layout = { preset = "left", preview = false },
             focus = "input",
             jump = { close = true },
             win = {
