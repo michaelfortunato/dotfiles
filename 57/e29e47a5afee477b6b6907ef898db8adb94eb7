@@ -1,0 +1,21 @@
+nvim/.config/nvim/lua/config/neovide.lua
+  s_97401dbb644983::t_1c60dc29037f5b 68-72
+  s_97401dbb644983::t_f6e68bea86083d 76-89,109
+  s_97401dbb644983::t_dd97336ab650ff 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "57e29e47a5afee477b6b6907ef898db8adb94eb7",
+  "prompts": {},
+  "sessions": {
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
