@@ -64,10 +64,27 @@ local function set_options()
     vim.g.neovide_scroll_animation_length = 0.00
   end
 
-  -- you are crazy for ths one!
-  -- vim.opt.guifont = "NewComputerModernMono10"
-  vim.opt.guifont = "MesloLGS NF"
+  -- Mirrors kitty/.config/kitty/kitty.conf font_family/font_size.
+  vim.opt.guifont = "Lilex Nerd Font Mono:h10:#e-subpixelantialias:#h-slight"
+  vim.opt.linespace = 0
+  vim.g.neovide_pixel_geometry = "RGBH"
+  vim.g.neovide_text_gamma = 0.8
+  vim.g.neovide_text_contrast = 0.1
   animation_profile1()
+end
+
+local function paste_into_terminal()
+  local channel = vim.b.terminal_job_id
+  if channel == nil then
+    return
+  end
+
+  local text = vim.fn.getreg("+")
+  if text == "" then
+    return
+  end
+
+  vim.api.nvim_chan_send(channel, "\027[200~" .. text .. "\027[201~")
 end
 
 local function set_keymaps()
@@ -89,10 +106,10 @@ local function set_keymaps()
   vim.keymap.set("v", "<D-v>", '"+P') -- Paste visual mode
   vim.keymap.set("c", "<D-v>", "<C-R>+") -- Paste command mode
   vim.keymap.set("i", "<D-v>", '<ESC>l"+Pli') -- Paste insert mode
+  vim.keymap.set("t", "<D-v>", paste_into_terminal, { desc = "Paste clipboard into terminal" })
   -- Allow clipboard copy paste in neovim
   vim.api.nvim_set_keymap("", "<D-v>", "+p<CR>", { noremap = true, silent = true })
   vim.api.nvim_set_keymap("!", "<D-v>", "<C-R>+", { noremap = true, silent = true })
-  vim.api.nvim_set_keymap("t", "<D-v>", "<C-R>+", { noremap = true, silent = true })
   vim.api.nvim_set_keymap("v", "<D-v>", "<C-R>+", { noremap = true, silent = true })
 
   local change_scale_factor = function(delta)
