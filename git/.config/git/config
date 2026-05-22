@@ -60,17 +60,23 @@
   # colorMoved = zebra
   renames = true # ???
 [merge]
-  tool = nvimdiff
+  tool = codediff
   conflictstyle = zdiff3 # could be cool
 [mergetool]
   prompt = false
   keepBackup = false
+[mergetool "codediff"]
+  cmd = nvim \"$MERGED\" -c \"CodeDiff merge \\\"$MERGED\\\"\"
+  trustExitCode = false
 [mergetool "nvimdiff"]
-  cmd = nvim -d "$LOCAL" "$MERGED" "$REMOTE"
+  cmd = nvim -d \"$LOCAL\" \"$MERGED\" \"$REMOTE\"
 [mergetool "opendiff"] # I don't mind the apple one, leave it as an optoin
-  cmd = opendiff -merge "$BASE" "$LOCAL" "$REMOTE" -merge "$MERGED"
+  cmd = opendiff -merge \"$BASE\" \"$LOCAL\" \"$REMOTE\" -merge \"$MERGED\"
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[trace2]
+	eventTarget = af_unix:stream:/Users/michaelfortunato/.git-ai/internal/daemon/trace2.sock
+	eventNesting = 10

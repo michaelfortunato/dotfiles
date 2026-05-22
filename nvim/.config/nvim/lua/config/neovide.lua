@@ -115,12 +115,17 @@ local function set_keymaps()
   local change_scale_factor = function(delta)
     vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * delta
   end
-  vim.keymap.set("n", "<D-=>", function()
+
+  local scale_modes = { "n", "i", "v", "t" }
+  local increase_scale = function()
     change_scale_factor(1.25)
-  end)
-  vim.keymap.set("n", "<D-->", function()
+  end
+  local decrease_scale = function()
     change_scale_factor(1 / 1.25)
-  end)
+  end
+  vim.keymap.set(scale_modes, "<D-=>", increase_scale, { desc = "Increase Neovide text size" })
+  vim.keymap.set(scale_modes, "<D-+>", increase_scale, { desc = "Increase Neovide text size" })
+  vim.keymap.set(scale_modes, "<D-->", decrease_scale, { desc = "Decrease Neovide text size" })
 
   vim.keymap.set("n", "<C-/>", function()
     Snacks.terminal(nil, { cwd = LazyVim.root() })
