@@ -890,6 +890,36 @@ local function terminal_id_for_buffer(buf)
 end
 
 ---@param buf integer
+---@return nil
+function M.show_terminal_buffer(buf)
+  if not (buf and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal") then
+    return
+  end
+
+  local id = terminal_id_for_buffer(buf)
+  if id ~= nil then
+    M.terminal_state.last_used_terminal = id
+    M.terminal_state.current = id
+  end
+
+  apply_tab_layout()
+  local title = id and (" Terminal " .. id .. " ") or " Terminal "
+  local win = current_tab_terminal_win()
+  if win then
+    M.terminal_state.win = win
+    vim.api.nvim_win_set_buf(win, buf)
+    if M.terminal_state.layout == "floating" then
+      vim.api.nvim_win_set_config(win, { title = { { title, "FloatTitle" } } })
+    end
+  else
+    M.terminal_state.win = M.terminal_state.create_window(buf, title)
+  end
+
+  vim.api.nvim_set_current_win(M.terminal_state.win)
+  vim.cmd("startinsert")
+end
+
+---@param buf integer
 focus_terminal_buffer = function(buf)
   if not vim.api.nvim_buf_is_valid(buf) then
     return

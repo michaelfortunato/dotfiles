@@ -90,16 +90,6 @@ local function picker_view_match(picker, matches)
   end
 end
 
-local function picker_current_file(picker)
-  local filter = picker.input and picker.input.filter
-  local buf = filter and filter.current_buf
-  if not (buf and vim.api.nvim_buf_is_valid(buf)) then
-    return nil
-  end
-  local file = vim.api.nvim_buf_get_name(buf)
-  return file ~= "" and vim.fs.normalize(file) or nil
-end
-
 local buffer_label_width = 14
 
 local function buffer_label(buf)
@@ -290,9 +280,11 @@ local function scratch_open(opts)
 end
 
 vim.t.scratch = "python"
+local last_scratch_ft = vim.t.scratch
 vim.keymap.set("n", "''", function()
-  if vim.t.scratch ~= nil then
-    scratch_open({ ft = vim.t.scratch })
+  local ft = vim.t.scratch or last_scratch_ft
+  if ft ~= nil then
+    scratch_open({ ft = ft })
   end
 end, { desc = "Python scratch buffer" })
 
@@ -485,6 +477,7 @@ return {
             local buf = win.buf
             local ft = vim.bo[buf].filetype
             vim.t.scratch = ft
+            last_scratch_ft = ft
           end,
           on_win = function(win)
             vim.t.scratch = nil
@@ -777,7 +770,7 @@ return {
                 return
               end
             end
-            picker:action("close")
+            picker:close()
           end,
           -- NOTE: Snacks does not expose select action by default
           -- only select_and_next. But it does have the public select()
@@ -884,6 +877,23 @@ return {
           buffer_drop_or_open = function(picker)
             picker:action(active_buffers_filter_level(picker) == 2 and "confirm" or "drop")
           end,
+          buffer_managed_terminal = function(picker, item)
+            if active_buffers_filter_level(picker) ~= 2 then
+              picker:action("oneoff_float")
+              return
+            end
+
+            item = item or picker:selected({ fallback = true })[1]
+            local buf = item and item.buf
+            if not (buf and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal") then
+              return
+            end
+
+            picker:close()
+            vim.schedule(function()
+              require("mnf.terminal.managed").show_terminal_buffer(buf)
+            end)
+          end,
           cycle_diagnostics_severity = function(picker)
             local order = {
               "all",
@@ -949,6 +959,8 @@ return {
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<C-y>"] = { "confirm", mode = { "i", "n" } },
               ["<C-o>"] = { "edit_split", mode = { "i", "n" } },
+              ["<C-s>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
+              ["<C-v>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
               -- TODO: ["<C-u>"] = { "disabled", mode = { "i", "n" } },
               ["<C-u>"] = false,
@@ -1001,6 +1013,8 @@ return {
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
+              ["<C-s>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
+              ["<C-v>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
               ["<c-space>"] = { "select_only", mode = { "n", "i" } },
               ["<C-h>"] = false,
@@ -1396,6 +1410,11 @@ return {
                   -- NOTE snacks default cr action refocuses the buffer to its oprior slot even if
                   -- its no longer vissible, at least for terminals super fuckign annoying
                   ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
+                  ["<S-enter>"] = {
+                    "buffer_managed_terminal",
+                    mode = { "n", "i" },
+                    desc = "Show terminal in managed window",
+                  },
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Open buffer here" },
                   ["<C-Enter>"] = {
                     "buffer_drop_or_open",
@@ -1403,7 +1422,10 @@ return {
                     desc = "Drop/focus (term: open here)",
                   },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
+                  ["<C-g>"] = { "toggle_help_input", mode = { "n", "i" }, desc = "Show picker help" },
+                  ["<C-g>m"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
                   ["<C-g>n"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
+                  ["<C-m>"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
                   -- TODO: Get <c-g><c-i> to toggle hidden buffers
                 },
               },
@@ -1412,9 +1434,16 @@ return {
                   ["<c-d>"] = { "bufdelete_force_term", mode = { "n", "i" } },
                   ["<c-x>"] = { "bufdelete_force_term", mode = { "n", "i" } },
                   ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
-                  ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
+                  ["<S-enter>"] = {
+                    "buffer_managed_terminal",
+                    mode = { "n", "i" },
+                    desc = "Show terminal in managed window",
+                  },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
+                  ["<C-g>"] = { "toggle_help_list", mode = { "n", "i" }, desc = "Show picker help" },
+                  ["<C-g>m"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
                   ["<C-g>n"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
+                  ["<C-m>"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
                   ["<C-Enter>"] = {
                     "buffer_drop_or_open",
                     mode = { "n", "i" },
@@ -1618,8 +1647,8 @@ return {
                   -- NOTE: For some reason the default tab command
                   -- for snacks treats scratch buffers differently.
                   ["<C-t>"] = { "scratch_open_tab", mode = { "n", "i" } },
-                  ["<C-s>"] = { "scratch_open_split", mode = { "n", "i" } },
-                  ["<C-v>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
+                  ["<C-s>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
+                  ["<C-v>"] = { "scratch_open_split", mode = { "n", "i" } },
                 },
               },
             },
@@ -1830,20 +1859,6 @@ return {
             -- itself, which breaks file opens from Snacks Zen.
             main = { current = false, float = true, file = true },
             jump = { close = true },
-            on_show = function(picker)
-              local current_file = picker_current_file(picker)
-              if not current_file then
-                return
-              end
-              local include = vim.deepcopy(picker.opts.include or {})
-              table.insert(include, current_file)
-              for parent in Snacks.picker.util.parents(current_file, picker:cwd()) do
-                table.insert(include, parent)
-              end
-              picker.opts.include = include
-              require("snacks.explorer.actions").update(picker, { target = current_file })
-              picker_focus_part(picker, "input")
-            end,
             actions = {
               toggle_left_dropdown_layout = function(picker)
                 local layout = picker.resolved_layout and picker.resolved_layout.layout
