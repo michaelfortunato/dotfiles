@@ -61,13 +61,58 @@ vim.keymap.set(
   "<Cmd>vsplit +terminal<CR>",
   { desc = "Open new terminal in new vertical split." }
 )
+
+local function existing_dir(path)
+  if not path or path == "" then
+    return nil
+  end
+  path = vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
+  local stat = vim.uv.fs_stat(path)
+  return stat and stat.type == "directory" and path or nil
+end
+
+local function terminal_cwd_from_pid(pid)
+  if not pid or vim.fn.executable("lsof") == 0 then
+    return nil
+  end
+
+  local result = vim.system({ "lsof", "-a", "-p", tostring(pid), "-d", "cwd", "-Fn" }, { text = true }):wait()
+  if result.code ~= 0 then
+    return nil
+  end
+
+  return existing_dir(result.stdout:match("\nn([^\n]+)") or result.stdout:match("^n([^\n]+)"))
+end
+
+local function terminal_cwd_from_name(bufname)
+  if bufname == "" then
+    return nil
+  end
+
+  local pid = bufname:match("^term://.-//(%d+):")
+  local cwd = terminal_cwd_from_pid(pid)
+  if cwd then
+    return cwd
+  end
+
+  return existing_dir(bufname:match("^term://(.-)//%d+:"))
+end
+
+local function current_buffer_dir()
+  local buf = vim.api.nvim_get_current_buf()
+  local bufname = vim.api.nvim_buf_get_name(buf)
+  if vim.bo[buf].buftype == "terminal" then
+    return terminal_cwd_from_name(bufname) or existing_dir(vim.uv.cwd())
+  end
+  return bufname ~= "" and existing_dir(vim.fs.dirname(bufname)) or nil
+end
+
 vim.keymap.set({ "n" }, "<leader>.", function()
-  local bufpath = vim.api.nvim_buf_get_name(0)
-  if bufpath == "" then
+  local dir = current_buffer_dir()
+  if not dir then
     vim.notify("No file in current buffer", vim.log.levels.WARN)
     return
   end
-  local dir = vim.fs.dirname(bufpath)
   Snacks.picker.files({ cwd = dir })
 end, { desc = "Search files in this buffer's cwd" })
 vim.keymap.set("n", "<Enter>", "za", { desc = "Toggle fold under cursor" })
@@ -203,13 +248,7 @@ end, { expr = true, silent = true, desc = "Scroll up faster" })
 
 vim.keymap.set({ "n" }, "<leader>cR", "<CMD>LspRestart<CR>", { desc = "Restart All LSPs" })
 del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
--- - Files only in your config folder:
---     - Snacks.picker.smart({ finders = { "files" }, cwd = vim.fn.stdpath("config") })
--- - Files only under git root’s src:
---     - Snacks.picker.smart({ finders = { "files" }, cwd = (LazyVim.root() or vim.uv.cwd()) .. "/src" })
-vim.keymap.set({ "n" }, "<leader><leader>", function()
-  Snacks.picker.smart()
-end, { desc = "Find files (Cwd dir)" })
+vim.keymap.set({ "n" }, "<leader><leader>", LazyVim.pick("files"), { desc = "Find Files (Root Dir)" })
 vim.keymap.set({ "n" }, "<leader>,", function()
   Snacks.picker.buffers()
 end, { desc = "Find files (Cwd dir)" })
@@ -339,6 +378,15 @@ map({ "t", "i" }, "<C-l>", function(e)
   if ls.choice_active() then
     ls.change_choice(1)
     return true
+  end
+  if vim.api.nvim_get_mode().mode:sub(1, 1) == "i" then
+    local ok, cmp = pcall(require, "blink.cmp")
+    if ok and cmp.is_visible() then
+      vim.schedule(function()
+        require("blink.cmp.completion.list").select_next({ auto_insert = false })
+      end)
+      return true
+    end
   end
   vim.cmd("stopinsert")
   require("smart-splits").move_cursor_right()

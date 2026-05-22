@@ -67,11 +67,43 @@ local function active_buffers_filter_level(picker)
   return level or initial_buffers_filter_level(picker.opts)
 end
 
-local function move_tabpage_from_picker(picker, item, direction)
+local buffer_label_width = 14
+
+local function buffer_label(buf)
+  local label = buf and vim.api.nvim_buf_is_valid(buf) and vim.b[buf].mnf_buffer_label or nil
+  return type(label) == "string" and label or ""
+end
+
+local function set_buffer_label(buf, label)
+  if not (buf and vim.api.nvim_buf_is_valid(buf)) then
+    return
+  end
+
+  label = vim.trim(label or "")
+  vim.b[buf].mnf_buffer_label = label ~= "" and label or nil
+end
+
+local function refresh_terminal_buffer_pos(item)
+  if not (item and item.buf and vim.api.nvim_buf_is_valid(item.buf) and vim.bo[item.buf].buftype == "terminal") then
+    return false
+  end
+
+  item.pos = { math.max(vim.api.nvim_buf_line_count(item.buf), 1), 0 }
+  return true
+end
+
+local function move_tabpage_to_picker(picker, item, target)
   item = item or (picker and picker:selected({ fallback = true })[1])
   if not (item and item.tabpage and vim.api.nvim_tabpage_is_valid(item.tabpage)) then
     return
   end
+
+  local tab_count = #vim.api.nvim_list_tabpages()
+  target = tonumber(target)
+  if not target then
+    return
+  end
+  target = math.max(1, math.min(target, tab_count))
 
   local restore_tab = vim.api.nvim_get_current_tabpage()
   local restore_part = picker_cur_part()
@@ -79,11 +111,10 @@ local function move_tabpage_from_picker(picker, item, direction)
   local ok, err = pcall(function()
     vim.api.nvim_set_current_tabpage(item.tabpage)
     local tabnr = vim.api.nvim_tabpage_get_number(item.tabpage)
-    local tab_count = #vim.api.nvim_list_tabpages()
-    if (direction < 0 and tabnr <= 1) or (direction > 0 and tabnr >= tab_count) then
+    if tabnr == target then
       return
     end
-    vim.cmd(direction < 0 and "-tabmove" or "+tabmove")
+    vim.cmd("tabmove " .. (target - 1))
     moved = true
   end)
 
@@ -100,6 +131,46 @@ local function move_tabpage_from_picker(picker, item, direction)
     picker:find()
     picker_focus_part(picker, restore_part or "input")
   end
+end
+
+local function move_tabpage_from_picker(picker, item, direction)
+  item = item or (picker and picker:selected({ fallback = true })[1])
+  if not (item and item.tabpage and vim.api.nvim_tabpage_is_valid(item.tabpage)) then
+    return
+  end
+  move_tabpage_to_picker(picker, item, vim.api.nvim_tabpage_get_number(item.tabpage) + direction)
+end
+
+local function picker_option_keys(keys)
+  local modes = { "n", "i" }
+  return vim.tbl_extend("force", {
+    -- <M-*> is reserved by the window manager. Keep picker knobs under <C-g>.
+    ["<a-d>"] = false,
+    ["<a-f>"] = false,
+    ["<a-h>"] = false,
+    ["<a-i>"] = false,
+    ["<a-m>"] = false,
+    ["<a-p>"] = false,
+    ["<a-r>"] = false,
+    ["<a-w>"] = false,
+    ["<C-g>"] = false,
+    ["<C-g>d"] = { "inspect", mode = modes, desc = "Inspect item" },
+    ["<C-g>f"] = { "toggle_follow", mode = modes, desc = "Toggle follow" },
+    ["<C-g>h"] = { "toggle_hidden", mode = modes, desc = "Toggle hidden" },
+    ["<C-g>i"] = { "toggle_ignored", mode = modes, desc = "Toggle ignored" },
+    ["<C-g>l"] = { "toggle_live", mode = modes, desc = "Toggle live" },
+    ["<C-g>m"] = { "toggle_maximize", mode = modes, desc = "Toggle maximize" },
+    ["<C-g>p"] = { "toggle_preview", mode = modes, desc = "Toggle preview" },
+    ["<C-g>r"] = { "toggle_regex", mode = modes, desc = "Toggle regex" },
+    ["<C-g>w"] = { "cycle_win", mode = modes, desc = "Cycle picker window" },
+  }, keys or {})
+end
+
+local function picker_preview_option_keys(keys)
+  return vim.tbl_extend("force", {
+    ["<a-w>"] = false,
+    ["<C-g>w"] = { "cycle_win", mode = { "i", "n" }, desc = "Cycle picker window" },
+  }, keys or {})
 end
 
 -- Keep picker borders consistent (avoids the lighter input border tint).
@@ -837,22 +908,19 @@ return {
         -- This controls the keys
         win = {
           input = {
-            keys = {
+            keys = picker_option_keys({
               -- ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
               -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
               -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<C-y>"] = { "confirm", mode = { "i", "n" } },
-              ["<C-g><C-i>"] = { "toggle_ignored", mode = { "n", "i" }, desc = "Toggle ignored" },
-              ["<C-g><C-h>"] = { "toggle_hidden", mode = { "n", "i" }, desc = "Toggle hidden" },
               ["<C-o>"] = { "edit_split", mode = { "i", "n" } },
               ["?"] = { "toggle_help_input", mode = { "i", "n" } },
               -- TODO: ["<C-u>"] = { "disabled", mode = { "i", "n" } },
               ["<C-u>"] = false,
               ["<C-d>"] = false,
               ["<C-a>"] = false,
-              ["<C-g>"] = false, -- no need
               ["<Tab>"] = false,
               ["<Del>"] = { "bufdelete", mode = { "n", "i" } },
               ["<C-c>"] = { "yank", mode = { "n", "i" } },
@@ -890,10 +958,10 @@ return {
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
               ---- Debug
               ["<C-i>"] = { "debug", mode = { "n", "i" } },
-            },
+            }),
           },
           list = {
-            keys = {
+            keys = picker_option_keys({
               -- ["<C-h>"] = { "focus_left", mode = { "i", "n" }, desc = "Picker focus left" },
               -- ["<C-j>"] = { "focus_down", mode = { "i", "n" }, desc = "Picker focus down" },
               -- ["<C-k>"] = { "focus_up", mode = { "i", "n" }, desc = "Picker focus up" },
@@ -908,7 +976,7 @@ return {
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
               ["yy"] = { "yank", mode = { "n" }, desc = "Copy entry" },
               ["<C-enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
-            },
+            }),
           },
           preview = {
             -- on_close = function(win)
@@ -948,7 +1016,7 @@ return {
             --   end, { buffer = win.buf })
             --   vim.keymap.del({ "i", "n" }, "<Esc>", { buffer = win.buf })
             -- end,
-            keys = {
+            keys = picker_preview_option_keys({
               -- WARN: Note rn there is a nto so great bug that
               -- where all of these keymaps will be added to buffer local maps
               --
@@ -962,12 +1030,12 @@ return {
               ["<Esc><Esc>"] = { "close", mode = { "n" }, desc = "Close help or picker" },
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
-            },
+            }),
             wo = {
               number = vim.wo.number,
               relativenumber = vim.wo.relativenumber,
               signcolumn = vim.wo.signcolumn,
-              cursorline = vim.wo.cursorline,
+              cursorline = false,
               wrap = true, -- Maybe?
               colorcolumn = "",
             },
@@ -1052,11 +1120,20 @@ return {
               move_tab_down = function(picker, item)
                 move_tabpage_from_picker(picker, item, 1)
               end,
+              move_tab_to_count = function(picker, item)
+                local count = vim.v.count
+                if count == 0 then
+                  vim.notify("Use a tab number before gm, e.g. 3gm", vim.log.levels.WARN)
+                  return
+                end
+                move_tabpage_to_picker(picker, item, count)
+              end,
             },
             win = {
               list = {
                 keys = {
                   ["dd"] = "close_tab",
+                  ["gm"] = { "move_tab_to_count", mode = { "n" }, desc = "Move tab to count" },
                 },
               },
               input = {
@@ -1066,6 +1143,7 @@ return {
                   ["<C-S-j>"] = { "move_tab_down", mode = { "n", "i" } },
                   -- Change this to <C-S-k> after debugging
                   ["<C-S-k>"] = { "move_tab_up", mode = { "n", "i" } },
+                  ["gm"] = { "move_tab_to_count", mode = { "n" }, desc = "Move tab to count" },
                 },
               },
             },
@@ -1080,6 +1158,34 @@ return {
               buf_terms = { icon = "T" },
               buf_all = { icon = "A" },
             },
+            actions = {
+              bufdelete_force_term = function(picker)
+                picker.preview:reset()
+                for _, item in ipairs(picker:selected({ fallback = true })) do
+                  if item.buf and vim.api.nvim_buf_is_valid(item.buf) then
+                    Snacks.bufdelete.delete({ buf = item.buf, force = vim.bo[item.buf].buftype == "terminal" })
+                  end
+                end
+                picker:refresh()
+              end,
+              set_buffer_label = function(picker, item)
+                item = item or (picker and picker:selected({ fallback = true })[1])
+                local buf = item and item.buf
+                if not (buf and vim.api.nvim_buf_is_valid(buf)) then
+                  return
+                end
+
+                vim.ui.input({ prompt = "Buffer label: ", default = buffer_label(buf) }, function(input)
+                  if input == nil then
+                    return
+                  end
+                  set_buffer_label(buf, input)
+                  pcall(function()
+                    picker:find()
+                  end)
+                end)
+              end,
+            },
             on_show = function(picker)
               local filter = picker.input.filter
               local level = filter.meta.buf_filter_level
@@ -1093,12 +1199,16 @@ return {
               picker.opts.buf_all = level == 3
               picker:update_titles()
             end,
+            on_change = function(_, item)
+              refresh_terminal_buffer_pos(item)
+            end,
             finder = function(opts, ctx)
               if ctx.filter.meta.buf_filter_level == nil then
                 ctx.filter.meta.buf_filter_level = initial_buffers_filter_level(opts)
               end
 
               local items = require("snacks.picker.source.buffers").buffers(opts, ctx)
+              local terminal_view = (ctx.filter.meta.buf_filter_level or initial_buffers_filter_level(opts)) == 2
               local visible_tabs_width = 10
               local tab_icon = "󰓩"
               local function add_visible_tabs(item)
@@ -1123,7 +1233,17 @@ return {
                 end
               end
               for _, item in ipairs(items) do
+                if refresh_terminal_buffer_pos(item) then
+                  if terminal_view then
+                    item.mnf_terminal_id = tonumber(vim.b[item.buf].mnf_terminal_id)
+                    item.mnf_terminal_label =
+                      Snacks.picker.util.align(item.mnf_terminal_id and tostring(item.mnf_terminal_id) or "", 3)
+                  end
+                end
                 add_visible_tabs(item)
+                item.mnf_buffer_label = buffer_label(item.buf)
+                item.mnf_buffer_label_col =
+                  Snacks.picker.util.align(item.mnf_buffer_label, buffer_label_width, { truncate = true })
               end
 
               local scratch_root = ctx.filter.meta.scratch_root
@@ -1143,12 +1263,22 @@ return {
                   table.insert(rest, item)
                 end
               end
+              if terminal_view then
+                table.sort(rest, function(a, b)
+                  local aid = a.mnf_terminal_id or math.huge
+                  local bid = b.mnf_terminal_id or math.huge
+                  if aid ~= bid then
+                    return aid < bid
+                  end
+                  return (a.buf or math.huge) < (b.buf or math.huge)
+                end)
+              end
               vim.list_extend(rest, scratch)
               return rest
             end,
             format = function(item, picker)
               local function inject_visible_tabs(ret)
-                local label = item.mnf_visible_tabs_label or Snacks.picker.util.align("", 10)
+                local tabs_label = item.mnf_visible_tabs_label or Snacks.picker.util.align("", 10)
                 local idx_file = nil
                 for i, chunk in ipairs(ret) do
                   if type(chunk) == "table" and (chunk.field == "file" or type(chunk.resolve) == "function") then
@@ -1157,15 +1287,32 @@ return {
                   end
                 end
 
-                if idx_file then
-                  table.insert(ret, idx_file, { label, "SnacksPickerComment" })
-                  table.insert(ret, idx_file + 1, { " " })
+                local function done()
+                  local prefix = {}
+                  if item.mnf_terminal_label then
+                    table.insert(prefix, { item.mnf_terminal_label, "SnacksPickerBufNr" })
+                    table.insert(prefix, { " " })
+                  end
+                  if item.mnf_buffer_label_col then
+                    table.insert(prefix, { item.mnf_buffer_label_col, "SnacksPickerSpecial" })
+                    table.insert(prefix, { " " })
+                  end
+                  if #prefix > 0 then
+                    vim.list_extend(prefix, ret)
+                    return prefix
+                  end
                   return ret
                 end
 
-                table.insert(ret, { label, "SnacksPickerComment" })
+                if idx_file then
+                  table.insert(ret, idx_file, { tabs_label, "SnacksPickerComment" })
+                  table.insert(ret, idx_file + 1, { " " })
+                  return done()
+                end
+
+                table.insert(ret, { tabs_label, "SnacksPickerComment" })
                 table.insert(ret, { " " })
-                return ret
+                return done()
               end
 
               local fmt = require("snacks.picker.format").buffer
@@ -1207,7 +1354,8 @@ return {
             win = {
               input = {
                 keys = {
-                  ["<c-d>"] = { "bufdelete", mode = { "n", "i" } },
+                  ["<c-d>"] = { "bufdelete_force_term", mode = { "n", "i" } },
+                  ["<c-x>"] = { "bufdelete_force_term", mode = { "n", "i" } },
                   -- NOTE snacks default cr action refocuses the buffer to its oprior slot even if
                   -- its no longer vissible, at least for terminals super fuckign annoying
                   ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
@@ -1218,14 +1366,18 @@ return {
                     desc = "Drop/focus (term: open here)",
                   },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
+                  ["<C-g>n"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
                   -- TODO: Get <c-g><c-i> to toggle hidden buffers
                 },
               },
               list = {
                 keys = {
+                  ["<c-d>"] = { "bufdelete_force_term", mode = { "n", "i" } },
+                  ["<c-x>"] = { "bufdelete_force_term", mode = { "n", "i" } },
                   ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
                   ["<S-enter>"] = { "oneoff_float", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
+                  ["<C-g>n"] = { "set_buffer_label", mode = { "n", "i" }, desc = "Set buffer label" },
                   ["<C-Enter>"] = {
                     "buffer_drop_or_open",
                     mode = { "n", "i" },
@@ -1425,7 +1577,7 @@ return {
                   ["<c-p>"] = { "list_up", mode = { "n", "i" } },
                   ["<c-d>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-x>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
-                  ["<c-g><c-i>"] = { "scratch_toggle_cwd", mode = { "n", "i" } },
+                  ["<c-g>c"] = { "scratch_toggle_cwd", mode = { "n", "i" }, desc = "Toggle cwd filter" },
                   -- NOTE: For some reason the default tab command
                   -- for snacks treats scratch buffers differently.
                   ["<C-t>"] = { "scratch_open_tab", mode = { "n", "i" } },
@@ -1499,7 +1651,6 @@ return {
                 end)
               end,
 
-              -- preserve original toggles (so <a-g>/<a-b> still work)
               toggle_global = function(picker)
                 picker.opts.global = not picker.opts.global
                 picker:find()
@@ -1509,7 +1660,6 @@ return {
                 picker:find()
               end,
             },
-
             -- This is AI generated not sure if its necessary
             ---@param opts snacks.picker.keymaps.Config
             finder = function(opts)
@@ -1616,6 +1766,10 @@ return {
             win = {
               input = {
                 keys = {
+                  ["<a-b>"] = false,
+                  ["<a-g>"] = false,
+                  ["<C-g>b"] = { "toggle_buffer", mode = { "n", "i" }, desc = "Toggle buffer keymaps" },
+                  ["<C-g>g"] = { "toggle_global", mode = { "n", "i" }, desc = "Toggle global keymaps" },
                   ["<c-h>"] = { "toggle_global", mode = { "n", "i" }, desc = "Toggle Global Keymaps" },
                   ["<Enter>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
                   ["<C-y>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
@@ -1623,6 +1777,8 @@ return {
               },
               list = {
                 keys = {
+                  ["<C-g>b"] = { "toggle_buffer", mode = { "n", "i" }, desc = "Toggle buffer keymaps" },
+                  ["<C-g>g"] = { "toggle_global", mode = { "n", "i" }, desc = "Toggle global keymaps" },
                   ["<C-y>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
                   ["<Enter>"] = { "goto_source", mode = { "n", "i" }, desc = "Go to keymap definition" },
                 },
@@ -1632,18 +1788,34 @@ return {
           explorer = {
             layout = { preset = "left", preview = false },
             focus = "input",
+            -- Explorer refreshes its main window when the list gains focus. The
+            -- global `main.current=true` then points at the picker list
+            -- itself, which breaks file opens from Snacks Zen.
+            main = { current = false, float = true, file = true },
             jump = { close = true },
+            actions = {
+              toggle_left_dropdown_layout = function(picker)
+                local layout = picker.resolved_layout and picker.resolved_layout.layout
+                local next_layout = layout and layout.position == "left" and "vertical" or "left"
+                require("snacks.picker.actions").layout(picker, nil, { layout = next_layout })
+              end,
+            },
             win = {
               input = {
                 keys = {
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
                   ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                  ["<C-l>"] = false,
                   ["<C-d>"] = {
                     { "focus_list", "list_scroll_down" },
                     mode = { "n", "i" },
                     desc = "Page down and enter the list",
                   },
-                  ["<C-w>"] = { "layout_left", mode = { "n", "i" } },
+                  ["<C-w>"] = {
+                    "toggle_left_dropdown_layout",
+                    mode = { "n", "i" },
+                    desc = "Toggle left/main layout",
+                  },
                   ["<C-n>"] = { { "focus_list", "list_down" }, mode = { "n", "i" } },
                   ["<C-p>"] = { { "focus_list", "list_up" }, mode = { "n", "i" } },
                 },
@@ -1654,7 +1826,11 @@ return {
                   ["<Right>"] = { "confirm", mode = { "n" }, desc = "Confirm" },
                   ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
                   ["<C-l>"] = false,
-                  ["<C-w>"] = { "layout_left", mode = { "n", "i" } },
+                  ["<C-w>"] = {
+                    "toggle_left_dropdown_layout",
+                    mode = { "n", "i" },
+                    desc = "Toggle left/main layout",
+                  },
                 },
               },
             },
@@ -1664,6 +1840,26 @@ return {
               preview = {
                 wo = {
                   wrap = true,
+                },
+              },
+            },
+          },
+          gh_issue = {
+            win = {
+              input = {
+                keys = {
+                  ["<a-b>"] = false,
+                  ["<C-g>b"] = { "gh_browse", mode = { "n", "i" }, desc = "Browse on GitHub" },
+                },
+              },
+            },
+          },
+          gh_pr = {
+            win = {
+              input = {
+                keys = {
+                  ["<a-b>"] = false,
+                  ["<C-g>b"] = { "gh_browse", mode = { "n", "i" }, desc = "Browse on GitHub" },
                 },
               },
             },
