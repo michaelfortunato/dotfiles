@@ -1,0 +1,31 @@
+git/.config/git/config
+  s_281070c94a8c1d::t_7ddfcf0b7b3597 69
+  s_281070c94a8c1d::t_c60ecff97b3180 72,74
+  s_281070c94a8c1d::t_e8457c2e15130e 63,68,70
+nvim/.config/nvim/lua/config/neovide.lua
+  s_97401dbb644983::t_eac7b7c439c913 118-120,122-123,125-128
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "f4a03b969046048a040d362cda443e36f8cf73fc",
+  "prompts": {},
+  "sessions": {
+    "s_281070c94a8c1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3d13-71cb-71a2-8d91-9dd05d5a1e8a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
