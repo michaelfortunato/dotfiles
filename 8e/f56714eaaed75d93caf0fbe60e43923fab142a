@@ -1,0 +1,23 @@
+nvim/.config/nvim/lua/plugins/snacks.lua
+  s_97401dbb644983::t_a1e56729bc8938 1234-1237
+  s_97401dbb644983::t_5d7e8c685e51b6 1833-1837,1846
+  s_97401dbb644983::t_484bde83fda85b 70-102
+  s_97401dbb644983::t_465e58be8a810a 1844-1845
+  s_97401dbb644983::t_8bfaf52b8c261a 1838-1843
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "8ef56714eaaed75d93caf0fbe60e43923fab142a",
+  "prompts": {},
+  "sessions": {
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
