@@ -1475,10 +1475,14 @@ return {
             -- visibility cycle wins over the buffers source filter cycle.
             multi = { "buffers", "recent", "files" },
           },
-          -- NOTE: Snacks' built-in LSP pickers default to `jump.reuse_win=true`, so `<Enter>`/`<C-y>` (confirm) can
-          -- jump to an *existing* window already showing the selected buffer (i.e. it can feel like it "opened in
-          -- another window"). If you ever want a strict "always open in the picker origin window" invariant, override
-          -- the LSP sources here with `jump = { reuse_win = false }`.
+          -- Keep `<Enter>` as "open from the picker origin" and reserve `<C-Enter>` for drop/focus semantics.
+          lsp_declarations = { jump = { tagstack = true, reuse_win = false } },
+          lsp_definitions = { jump = { tagstack = true, reuse_win = false } },
+          lsp_implementations = { jump = { tagstack = true, reuse_win = false } },
+          lsp_incoming_calls = { jump = { tagstack = true, reuse_win = false } },
+          lsp_outgoing_calls = { jump = { tagstack = true, reuse_win = false } },
+          lsp_references = { jump = { tagstack = true, reuse_win = false } },
+          lsp_type_definitions = { jump = { tagstack = true, reuse_win = false } },
           diagnostics = {
             sev_all = true, -- initial
             toggles = {
@@ -1555,6 +1559,28 @@ return {
                 end
                 picker:close()
                 scratch_open({ icon = item.item.icon, file = item.item.file, name = item.item.name, ft = item.item.ft })
+              end,
+              scratch_drop = function(picker, item)
+                local selected = picker:selected({ fallback = true })
+                item = item or selected[1]
+                if not item then
+                  return
+                end
+                local meta = item.item or item
+                if meta.file then
+                  local buf = vim.fn.bufnr(meta.file)
+                  if buf > 0 then
+                    for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+                      if vim.api.nvim_win_get_config(win).relative == "" then
+                        picker:close()
+                        vim.api.nvim_set_current_win(win)
+                        return
+                      end
+                    end
+                  end
+                end
+                picker:close()
+                scratch_open({ icon = meta.icon, file = meta.file, name = meta.name, ft = meta.ft })
               end,
               scratch_new = function(picker)
                 picker:close()
@@ -1639,6 +1665,8 @@ return {
             win = {
               input = {
                 keys = {
+                  ["<Enter>"] = { "scratch_open", mode = { "n", "i" }, desc = "Open scratch here" },
+                  ["<C-Enter>"] = { "scratch_drop", mode = { "n", "i" }, desc = "Drop/focus existing scratch" },
                   ["<c-n>"] = { "list_down", mode = { "n", "i" } },
                   ["<c-p>"] = { "list_up", mode = { "n", "i" } },
                   ["<c-d>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
@@ -1649,6 +1677,12 @@ return {
                   ["<C-t>"] = { "scratch_open_tab", mode = { "n", "i" } },
                   ["<C-s>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
                   ["<C-v>"] = { "scratch_open_split", mode = { "n", "i" } },
+                },
+              },
+              list = {
+                keys = {
+                  ["<Enter>"] = { "scratch_open", mode = { "n", "i" }, desc = "Open scratch here" },
+                  ["<C-Enter>"] = { "scratch_drop", mode = { "n", "i" }, desc = "Drop/focus existing scratch" },
                 },
               },
             },
