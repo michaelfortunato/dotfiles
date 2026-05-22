@@ -872,10 +872,10 @@ return {
             picker:find()
           end,
           buffer_open_or_drop = function(picker)
-            picker:action(active_buffers_filter_level(picker) == 2 and "drop" or "confirm")
+            picker:action("confirm")
           end,
           buffer_drop_or_open = function(picker)
-            picker:action(active_buffers_filter_level(picker) == 2 and "confirm" or "drop")
+            picker:action("drop")
           end,
           buffer_managed_terminal = function(picker, item)
             if active_buffers_filter_level(picker) ~= 2 then
@@ -1409,7 +1409,7 @@ return {
                   ["<c-x>"] = { "bufdelete_force_term", mode = { "n", "i" } },
                   -- NOTE snacks default cr action refocuses the buffer to its oprior slot even if
                   -- its no longer vissible, at least for terminals super fuckign annoying
-                  ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
+                  ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open buffer here" },
                   ["<S-enter>"] = {
                     "buffer_managed_terminal",
                     mode = { "n", "i" },
@@ -1419,7 +1419,7 @@ return {
                   ["<C-Enter>"] = {
                     "buffer_drop_or_open",
                     mode = { "n", "i" },
-                    desc = "Drop/focus (term: open here)",
+                    desc = "Drop/focus existing buffer",
                   },
                   ["<C-h>"] = { "cycle_buffers_filter", mode = { "n", "i" }, desc = "Cycle buffers filter" },
                   ["<C-g>"] = { "toggle_help_input", mode = { "n", "i" }, desc = "Show picker help" },
@@ -1433,7 +1433,7 @@ return {
                 keys = {
                   ["<c-d>"] = { "bufdelete_force_term", mode = { "n", "i" } },
                   ["<c-x>"] = { "bufdelete_force_term", mode = { "n", "i" } },
-                  ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open here (term: drop)" },
+                  ["<Enter>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open buffer here" },
                   ["<S-enter>"] = {
                     "buffer_managed_terminal",
                     mode = { "n", "i" },
@@ -1447,7 +1447,7 @@ return {
                   ["<C-Enter>"] = {
                     "buffer_drop_or_open",
                     mode = { "n", "i" },
-                    desc = "Drop/focus (term: open here)",
+                    desc = "Drop/focus existing buffer",
                   },
                   ["dd"] = { "bufdelete", mode = { "n", "i" } },
                 },
