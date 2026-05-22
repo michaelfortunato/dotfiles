@@ -1,0 +1,49 @@
+nvim/.config/nvim/lua/config/keymaps.lua
+  s_97401dbb644983::t_b11a7763e5e118 251
+  s_ffbc42fdea4c8f::t_fb9d3cb1f0233e 64-109,111-112
+nvim/.config/nvim/lua/plugins/snacks.lua
+  s_97401dbb644983::t_13a079946cb500 1369,1380
+  s_97401dbb644983::t_558063bbba3ea6 1799
+  s_25e48f87069f59::t_ae129f91199ff0 144-175,911,961,964,979,1019,1033,1211,1237,1239-1242,1266-1267,1274-1275,1290,1292,1304,1310,1315,1580,1769-1772,1780-1781,1791-1794,1796-1798,1800-1802,1814-1816,1829-1831,1833,1846-1862
+  s_97401dbb644983::t_9d3fc3e0f52657 70-85
+  s_97401dbb644983::t_87919728e3c016 1161,1171-1188,1244-1246,1281,1291,1293-1302,1308,1313
+  s_97401dbb644983::t_474db67b4dbdfa 1123-1130,1136,1146
+  s_97401dbb644983::t_966c0006712272 1808
+  s_97401dbb644983::t_31e5ca22c979e7 1817,1832
+  s_97401dbb644983::t_b3c514fcc5681e 95,101-107,114,117,136-141
+  s_97401dbb644983::t_1d7e5f14b4c811 86-94,1162-1170,1202-1203,1236,1357-1358,1375-1376
+  s_97401dbb644983::t_3459476086f877 1038
+  s_97401dbb644983::t_45cf45b5c4feaa 1238,1268-1273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "e19814e38ec4bcc792e705837bf0b9c406b1063c",
+  "prompts": {},
+  "sessions": {
+    "s_25e48f87069f59": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e21f2-d232-7181-b2b1-bb9b6ae1c3cc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_ffbc42fdea4c8f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e21eb-c967-7442-8c4d-0896c08c85fb",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
