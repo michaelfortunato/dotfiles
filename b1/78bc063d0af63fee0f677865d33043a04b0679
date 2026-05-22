@@ -1,0 +1,28 @@
+nvim/.config/nvim/lua/mnf/terminal/managed.lua
+  s_97401dbb644983::t_9087cd563c17e0 893-921
+nvim/.config/nvim/lua/plugins/snacks.lua
+  s_97401dbb644983::t_c9d6f94810326b 480
+  s_97401dbb644983::t_13208977d7b161 1428,1446
+  s_97401dbb644983::t_455c9ce6e4a7aa 880-896,1413-1417,1437-1441
+  s_97401dbb644983::t_ca3c287d8cebe9 773
+  s_97401dbb644983::t_817b6f0735cd32 1425-1426,1443-1444
+  s_97401dbb644983::t_d3763d398da419 962-963,1016-1017
+  s_97401dbb644983::t_48d0015cd2d3bb 1650-1651
+  s_97401dbb644983::t_cd2f776ba7ca3d 283,285-287
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "b178bc063d0af63fee0f677865d33043a04b0679",
+  "prompts": {},
+  "sessions": {
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
