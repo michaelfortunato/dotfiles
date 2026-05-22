@@ -67,6 +67,39 @@ local function active_buffers_filter_level(picker)
   return level or initial_buffers_filter_level(picker.opts)
 end
 
+local function picker_view_match(picker, matches)
+  local function view()
+    if not (picker and not picker.closed and picker.list) then
+      return
+    end
+    for item, idx in picker:iter() do
+      if matches(item) then
+        picker.list:view(idx)
+        return true
+      end
+    end
+  end
+
+  if not view() then
+    local task = picker.matcher and picker.matcher.task
+    if task and type(task.running) == "function" and type(task.on) == "function" and task:running() then
+      task:on("done", vim.schedule_wrap(view))
+    else
+      vim.schedule(view)
+    end
+  end
+end
+
+local function picker_current_file(picker)
+  local filter = picker.input and picker.input.filter
+  local buf = filter and filter.current_buf
+  if not (buf and vim.api.nvim_buf_is_valid(buf)) then
+    return nil
+  end
+  local file = vim.api.nvim_buf_get_name(buf)
+  return file ~= "" and vim.fs.normalize(file) or nil
+end
+
 local buffer_label_width = 14
 
 local function buffer_label(buf)
@@ -1198,6 +1231,10 @@ return {
               picker.opts.buf_terms = level == 2
               picker.opts.buf_all = level == 3
               picker:update_titles()
+              local current_buf = picker.input.filter.current_buf
+              picker_view_match(picker, function(item)
+                return item.buf == current_buf
+              end)
             end,
             on_change = function(_, item)
               refresh_terminal_buffer_pos(item)
@@ -1793,6 +1830,20 @@ return {
             -- itself, which breaks file opens from Snacks Zen.
             main = { current = false, float = true, file = true },
             jump = { close = true },
+            on_show = function(picker)
+              local current_file = picker_current_file(picker)
+              if not current_file then
+                return
+              end
+              local include = vim.deepcopy(picker.opts.include or {})
+              table.insert(include, current_file)
+              for parent in Snacks.picker.util.parents(current_file, picker:cwd()) do
+                table.insert(include, parent)
+              end
+              picker.opts.include = include
+              require("snacks.explorer.actions").update(picker, { target = current_file })
+              picker_focus_part(picker, "input")
+            end,
             actions = {
               toggle_left_dropdown_layout = function(picker)
                 local layout = picker.resolved_layout and picker.resolved_layout.layout
