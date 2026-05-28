@@ -210,8 +210,19 @@ fi
 alias vi=nvim
 alias vim=nvim
 alias n="mnf daily" # This one is aggressive!
-alias e="nvim" # This one is aggressive!
+e() {
+  local server="${NVIM:-${NVIM_LISTEN_ADDRESS:-}}"
+  if [[ -n "$server" && $# -gt 0 ]] && command -v nvr >/dev/null 2>&1; then
+    command nvr --servername "$server" --remote-tab-silent "$@"
+  else
+    command nvim "$@"
+  fi
+}
+neovide() {
+  command open -W -n -b com.neovide.neovide --env "PATH=$PATH" --args --chdir "$PWD" "$@"
+}
 alias c="clear"
+alias ls='ls -G -ht'
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
 alias l='ls -ht'  #human readable,sorted by date
 alias lr='ls -ht'  #human readable,sorted by date
@@ -221,7 +232,7 @@ alias 'cd-2'='cd -2'
 alias 'cd-3'='cd -3'
 alias py="ipython" # better python shell
 alias ipy="ipython" # better python shell
-alias lg="lazygit" # lazygit
+alias lg="lazygit --screen-mode half" # lazygit
 alias lt="tree -a" #TODO: Choose
 alias l1="tree -a -L 1"
 alias l2="tree -a -L 2"
@@ -261,7 +272,7 @@ alias help='run-help'
 # py-spy should be call pyspy imo
 alias pyspy='py-spy'
 alias codexconf='(builtin cd "$HOME/.codex" && "${EDITOR:-nvim}" config.toml)'
-alias cm='codex -m gpt-5.4-mini'
+alias cm='codex -m gpt-5.5'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
 #---unaliases-------------------------------------------------------------------
@@ -465,12 +476,15 @@ _fzf_compgen_dir() {
 # NOTE: Improve this. Its not create rn vs. the amazing aliaes cdj cdi ei ...
 export FZF_DEFAULT_COMMAND="bfs . $HOME -color -mindepth 1  -exclude \( -name '.git' -or -name 'node_modules' -or -name 'target/debug' -or -name 'target/release' -or -name 'obj' -or -name 'build' -or -name 'dist' -or -name '__pycache__'  \)"
 # NOTE: Consider adding --ignore-case, though probably best per command
-export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept' --bind 'ctrl-b:preview-page-up' --bind 'ctrl-f:preview-page-down' --bind 'ctrl-d:half-page-down' --bind 'ctrl-u:clear-query'"
+export FZF_DEFAULT_OPTS="--ansi --bind 'ctrl-y:accept' --bind 'ctrl-o:execute-silent(s={}; if [ -e \"\$s\" ]; then p=\$(realpath \"\$s\"); else p=\"\$s\"; fi; printf %s \"\$p\" | { if [ -n \"\$KITTY_WINDOW_ID\" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort' --bind 'ctrl-space:toggle-preview' --bind 'ctrl-b:preview-page-up' --bind 'ctrl-f:preview-page-down' --bind 'ctrl-d:half-page-down' --bind 'ctrl-u:clear-query'"
+
+
 export FZF_ALT_C_COMMAND="fd --type d --hidden --full-path --follow --exclude .git --exclude .git --exclude 'node_modules'  --exclude 'target/debug' --exclude 'target/release' --exclude 'obj' --exclude 'build' --exclude 'dist' --exclude '__pycache__' . $HOME "
 export FZF_ALT_C_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
   --ansi
   --bind=ctrl-y:accept
+  --bind 'ctrl-o:execute-silent(s={}; if [ -e \"\$s\" ]; then p=\$(realpath \"\$s\"); else p=\"\$s\"; fi; printf %s \"\$p\" | { if [ -n \"\$KITTY_WINDOW_ID\" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort'
   --cycle
   --preview 'tree -C {}'"
 export FZF_CTRL_T_COMMAND="command cat <(fd -t d) <(fd -t d . $HOME)"
@@ -478,6 +492,7 @@ export FZF_CTRL_T_OPTS="
   --walker-skip .git,node_modules,target,obj,build,dist
   --preview 'bat -n --color=always {}'
   --bind=ctrl-y:accept
+  --bind 'ctrl-o:execute-silent(s={}; if [ -e \"\$s\" ]; then p=\$(realpath \"\$s\"); else p=\"\$s\"; fi; printf %s \"\$p\" | { if [ -n \"\$KITTY_WINDOW_ID\" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort'
   --cycle
   --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 # CTRL-Y to copy the command into clipboard using pbcopy
@@ -492,14 +507,16 @@ export FZF_CTRL_R_OPTS="
 bindkey '\C-f' fzf-cd-widget
 
 gri() {
-  # NOTE: at start:reload place --hidden before q if you want it to be default
-  # TODO: Toggle hidden ? --bind "ctrl-h:reload:sleep 0.1; $RG_PREFIX '--hidden' {q} || true" \
-  RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case"
-  INITIAL_QUERY="${1:-}"
-  fzf --ansi --disabled --query "$INITIAL_QUERY" \
-      --bind "start:reload:$RG_PREFIX {q}" \
-      --bind "change:reload:sleep 0.1; $RG_PREFIX {q} || true" \
-      --bind "alt-enter:unbind(change,alt-enter)+change-prompt(2. fzf> )+enable-search+clear-query" \
+  local rg_prefix="rg --column --line-number --no-heading --color=always --smart-case"
+  local rg_hidden_prefix="$rg_prefix --hidden --glob '!.git/**'"
+  local rg_reload="if [ \"\$FZF_PROMPT\" = '2. ripgrep+hidden> ' ]; then $rg_hidden_prefix {q}; else $rg_prefix {q}; fi || true"
+  local initial_query="${1:-}"
+  fzf --ansi --disabled --query "$initial_query" \
+      --header 'hidden files off | ctrl-h toggle hidden | alt-enter fzf search' \
+      --bind "start:reload:$rg_reload" \
+      --bind "change:reload:sleep 0.1; $rg_reload" \
+      --bind $'ctrl-h:transform:if [ "$FZF_PROMPT" = "2. ripgrep+hidden> " ]; then\n  echo "change-prompt(1. ripgrep> )+change-header(hidden files off | ctrl-h toggle hidden | alt-enter fzf search)+trigger(change)"\nelse\n  echo "change-prompt(2. ripgrep+hidden> )+change-header(hidden files on | ctrl-h toggle hidden | alt-enter fzf search)+trigger(change)"\nfi' \
+      --bind "alt-enter:unbind(change,ctrl-h,alt-enter)+change-prompt(3. fzf> )+change-header(fzf search over current ripgrep results)+enable-search+clear-query" \
       --color "hl:-1:underline,hl+:-1:underline:reverse" \
       --cycle \
       --prompt '1. ripgrep> ' \
@@ -510,8 +527,8 @@ gri() {
       --bind 'ctrl-y:become($EDITOR {1} +{2})'
 }
 
-cdj() {
-  local search_dirs
+fd() {
+  local -a search_dirs
   if [[ $# -eq 0 ]]; then
     if [[ "$PWD" != "$HOME" ]]; then
       search_dirs=("$PWD" "$HOME")
@@ -521,10 +538,14 @@ cdj() {
   else
     search_dirs=("$@")  # Use all provided arguments as base directories
   fi
-  # If no arguments are provided, use fzf to select a directory
-    # Find directories and pipe to fzf, then cd into the selected one
-    local dir
-    dir=$(bfs "${search_dirs[@]}" -color -mindepth 1  \
+  local dir
+  dir=$(fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
+    --preview 'tree -C -L 2 {} | head -200' \
+    --cycle \
+    --bind 'ctrl-y:accept' \
+    --bind 'ctrl-o:execute-silent(s={}; if [ -e "$s" ]; then p=$(realpath "$s"); else p="$s"; fi; printf %s "$p" | { if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort' \
+    --bind 'ctrl-/:change-preview-window(down|hidden|)' \
+    < <(bfs "${search_dirs[@]}" -mindepth 1  \
      -exclude \( \
     -name ".git" \
     -or -name "node_modules" \
@@ -538,15 +559,106 @@ cdj() {
     -or -path "$HOME/Library/Caches" \
     -or -path "$HOME/Library/Caches/*" \
     -or -name "__pycache__"  \) -type d \
+    2>/dev/null)
+) || return $?
+  print -rn -- "$dir"
+}
+
+_mnf_cdj_restore_p10k_vcs() {
+  if (( ${_mnf_cdj_p10k_vcs_pattern_was_set:-0} )); then
+    typeset -g POWERLEVEL9K_VCS_DISABLED_WORKDIR_PATTERN="${_mnf_cdj_p10k_vcs_pattern-}"
+  else
+    unset POWERLEVEL9K_VCS_DISABLED_WORKDIR_PATTERN
+  fi
+  unset _mnf_cdj_p10k_vcs_pattern _mnf_cdj_p10k_vcs_pattern_was_set
+  precmd_functions=(${precmd_functions:#_mnf_cdj_restore_p10k_vcs})
+}
+
+_mnf_cdj_skip_first_p10k_vcs() {
+  (( ${+functions[_p9k_precmd]} )) || return 0
+  if (( ! ${+_mnf_cdj_p10k_vcs_pattern_was_set} )); then
+    typeset -g _mnf_cdj_p10k_vcs_pattern="${POWERLEVEL9K_VCS_DISABLED_WORKDIR_PATTERN-}"
+    typeset -gi _mnf_cdj_p10k_vcs_pattern_was_set=${+POWERLEVEL9K_VCS_DISABLED_WORKDIR_PATTERN}
+  fi
+  typeset -g POWERLEVEL9K_VCS_DISABLED_WORKDIR_PATTERN='*'
+  if [[ ${precmd_functions[(r)_mnf_cdj_restore_p10k_vcs]} != _mnf_cdj_restore_p10k_vcs ]]; then
+    precmd_functions+=(_mnf_cdj_restore_p10k_vcs)
+  fi
+}
+
+cdj() {
+  local print_only=0
+  if [[ "${1:-}" == "-p" || "${1:-}" == "--print" ]]; then
+    print_only=1
+    shift
+  fi
+
+  local -a search_dirs
+  if [[ $# -eq 0 ]]; then
+    if [[ "$PWD" != "$HOME" ]]; then
+      search_dirs=("$PWD" "$HOME")
+    else
+      search_dirs=("$HOME")
+    fi
+  else
+    search_dirs=("$@")  # Use all provided arguments as base directories
+  fi
+  local dir
+  dir="$(fd "${search_dirs[@]}")" || return $?
+
+  if (( print_only )); then
+    print -r -- "$dir"
+    return 0
+  fi
+
+  builtin cd -- "$dir" || return $?
+  _mnf_cdj_skip_first_p10k_vcs
+}
+
+ff() {
+  local search_dirs
+  if [[ $# -eq 0 ]]; then
+    if [[ "$PWD" != "$HOME" ]]; then
+      search_dirs=("$PWD" "$HOME")
+    else
+      search_dirs=("$HOME")
+    fi
+  else
+    search_dirs=("$@")  # Use all provided arguments as base directories
+  fi
+  # If no arguments are provided, use fzf to select a directory
+    # Find directories and pipe to fzf, then cd into the selected one
+    local file
+    file=$(bfs "${search_dirs[@]}" -mindepth 1  \
+     -exclude \( \
+    -name ".git" \
+    -or -name "node_modules" \
+    -or -name "target/debug" \
+    -or -name "target/release" \
+    -or -name "obj" \
+    -or -name "build" \
+    -or -name "dist" \
+    -or -name ".cache" \
+    -or -name ".Trash" \
+    -or -name "$HOME/Library/Caches" \
+    -or -name "__pycache__"  \) -type f \
     2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
-    --preview 'tree -C -L 2 {} | head -200' \
+    --preview 'bat -n --color=always {}' \
     --cycle \
     --bind 'ctrl-y:accept' \
+    --bind 'ctrl-o:execute-silent(s={}; if [ -e "$s" ]; then p=$(realpath "$s"); else p="$s"; fi; printf %s "$p" | { if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
-) && builtin cd "$dir"
+) || return $?
+  print -rn -- "$file"
 }
 
 cdi() {
+  local print_only=0
+  if [[ "${1:-}" == "-p" || "${1:-}" == "--print" ]]; then
+    print_only=1
+    shift
+  fi
+
   local search_dirs
   if [[ $# -eq 0 ]]; then
     if [[ "$PWD" != "$HOME" ]]; then
@@ -577,11 +689,18 @@ cdi() {
     --preview 'bat -n --color=always {}' \
     --cycle \
     --bind 'ctrl-y:accept' \
+    --bind 'ctrl-o:execute-silent(s={}; if [ -e "$s" ]; then p=$(realpath "$s"); else p="$s"; fi; printf %s "$p" | { if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort' \
     --bind 'ctrl-/:change-preview-window(down|hidden|)'
 ) || return $?
+
+  if (( print_only )); then
+    print -r -- "$file"
+    return 0
+  fi
+
   local dir=${file:h}
-  builtin cd -- $dir
-  $EDITOR "$file"
+  builtin cd -- "$dir"
+  "${EDITOR:-nvim}" "$file"
 # not sure if I want that&& builtin cd "$dir"
 }
 
@@ -613,6 +732,7 @@ ei() {
   2>/dev/null | fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi --walker-skip .git,node_modules,target,obj,build,dist \
   --preview 'bat -n --color=always {}' \
   --cycle \
+  --bind 'ctrl-o:execute-silent(s={}; if [ -e "$s" ]; then p=$(realpath "$s"); else p="$s"; fi; printf %s "$p" | { if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort' \
   --bind 'ctrl-/:change-preview-window(down|hidden|)' \
   --bind 'ctrl-y:become($EDITOR {})' \
   --bind 'enter:become($EDITOR {})'
@@ -648,9 +768,10 @@ yi() {
       \) \
       2>/dev/null |
     fzf --ignore-case --scheme=path --tiebreak='pathname,length,end' --ansi \
-      --preview 'test -d {} && tree -C {} || bat -n --color=always {}' \
+      --preview 'test -d {} && tree -C -L 2 {} | head -200 || bat -n --color=always {}' \
       --cycle \
       --bind 'ctrl-y:accept' \
+      --bind 'ctrl-o:execute-silent(s={}; if [ -e "$s" ]; then p=$(realpath "$s"); else p="$s"; fi; printf %s "$p" | { if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort' \
       --bind 'ctrl-/:change-preview-window(down|hidden|)'
   ) || return $?
 
@@ -833,6 +954,7 @@ cd() {
         --preview 'tree -C {}' \
         --cycle \
         --bind 'ctrl-y:accept' \
+        --bind 'ctrl-o:execute-silent(s={}; if [ -e "$s" ]; then p=$(realpath "$s"); else p="$s"; fi; printf %s "$p" | { if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten >/dev/null 2>&1; then kitten clipboard --wait-for-completion; else pbcopy; fi; })+abort' \
         --bind 'ctrl-/:change-preview-window(down|hidden|)')
   
   # Only cd if a directory was selected (fzf wasn't cancelled)
