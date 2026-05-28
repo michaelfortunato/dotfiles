@@ -1,0 +1,32 @@
+nvim/.config/nvim/lua/plugins/luasnip.lua
+  s_97401dbb644983::t_34441742ee6753 2-4,14,18,72-81
+  s_97401dbb644983::t_d7af7805b07d8d 5-12,15-17
+nvim/.config/nvim/python/mnf_scratch_uv_runner.py
+  s_97401dbb644983::t_e1742fe1655303 8,22,29-39,90-97,102-103,193,219,278-279,285-287,298-304,307-308,314-316
+nvim/.config/nvim/lua/mnf/scratch/python.lua
+  s_97401dbb644983::t_8e14b3405eb9f8 409
+  s_97401dbb644983::t_0060ccacc9cf81 384-389,391-396,399-401,403,416-468
+  s_97401dbb644983::t_53fae41c1a4ae1 646-693
+  s_97401dbb644983::t_d4e17ba448b980 767-780
+nvim/.config/nvim/lua/plugins/snacks.lua
+  s_97401dbb644983::t_c28b0f8d1cf8e0 1423
+  s_97401dbb644983::t_d9599871e700c9 981-982,1022
+  s_97401dbb644983::t_23889f75b25cf5 388-391
+  s_97401dbb644983::t_599d442aace7b9 1662
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "fb8fdb0c6ef15e6630e03817d1a31fab5b400ac5",
+  "prompts": {},
+  "sessions": {
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
