@@ -381,26 +381,91 @@ end
 
 ---@param buf number
 ---@return string
-local function uv_root_for_buf(buf)
-  local filename = vim.api.nvim_buf_get_name(buf)
-  local start = vim.fn.getcwd()
+local function normalize_path(path)
+  if type(path) ~= "string" or path == "" then
+    return nil
+  end
+  return vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
+end
 
-  if type(filename) == "string" and filename ~= "" then
-    start = vim.fn.fnamemodify(filename, ":p:h")
+---@param path string?
+---@return string?
+local function uv_project_root(path)
+  path = normalize_path(path)
+  if not path then
+    return nil
   end
 
+  local stat = vim.uv.fs_stat(path)
+  local start = stat and stat.type == "file" and vim.fn.fnamemodify(path, ":h") or path
+
   if type(vim.fs) == "table" and type(vim.fs.find) == "function" then
-    local marker = vim.fs.find({ "pyproject.toml", "uv.lock", ".python-version", ".git" }, {
+    local marker = vim.fs.find({ "pyproject.toml", "uv.lock", ".python-version", ".venv", ".git" }, {
       path = start,
       upward = true,
     })[1]
 
     if type(marker) == "string" and marker ~= "" then
-      return vim.fn.fnamemodify(marker, ":p:h")
+      return vim.fs.dirname(marker)
     end
   end
 
   return start
+end
+
+---@param path string
+---@return table?
+local function scratch_meta(path)
+  local ok, decoded = pcall(vim.json.decode, table.concat(vim.fn.readfile(path .. ".meta"), "\n"))
+  return ok and type(decoded) == "table" and decoded or nil
+end
+
+---@param buf number
+---@return string?
+local function lazy_root_for_buf(buf)
+  if type(LazyVim) == "table" and LazyVim.root and type(LazyVim.root.get) == "function" then
+    local ok, root = pcall(LazyVim.root.get, { buf = buf, normalize = true })
+    if ok then
+      return normalize_path(root)
+    end
+  end
+  return normalize_path(vim.fn.getcwd())
+end
+
+---@param path string?
+---@return boolean
+local function is_snacks_scratch_path(path)
+  path = normalize_path(path)
+  if not path then
+    return false
+  end
+  local root = normalize_path(vim.fn.stdpath("data") .. "/scratch")
+  return type(root) == "string" and (path == root or path:find(root .. "/", 1, true) == 1)
+end
+
+---@param buf number
+---@return string
+local function uv_root_for_buf(buf)
+  local override = vim.b[buf].mnf_scratch_python_root
+  if type(override) == "string" and override ~= "" then
+    return uv_project_root(override) or override
+  end
+
+  local filename = vim.api.nvim_buf_get_name(buf)
+  if type(filename) == "string" and filename ~= "" then
+    local meta = scratch_meta(filename)
+    if meta and type(meta.cwd) == "string" and meta.cwd ~= "" then
+      return uv_project_root(meta.cwd) or meta.cwd
+    end
+    if is_snacks_scratch_path(filename) then
+      local lazy_root = lazy_root_for_buf(buf)
+      return uv_project_root(lazy_root) or lazy_root or vim.fn.getcwd()
+    end
+    return uv_project_root(filename) or vim.fn.fnamemodify(filename, ":p:h")
+  end
+
+  local lazy_root = lazy_root_for_buf(buf)
+  return uv_project_root(lazy_root) or lazy_root or vim.fn.getcwd()
 end
 
 ---@class MNF.Scratch.Python.UvSessionItem
@@ -578,6 +643,54 @@ local function stop_uv_session(opts)
   end
 end
 
+---@param opts? {buf?:number}
+---@return string?
+function M.uv_root(opts)
+  opts = opts or {}
+  local buf = opts.buf or 0
+  buf = buf == 0 and vim.api.nvim_get_current_buf() or buf
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return nil
+  end
+  return uv_root_for_buf(buf)
+end
+
+---@param root? string
+---@param opts? {buf?:number}
+---@return string?
+function M.set_uv_root(root, opts)
+  opts = opts or {}
+  local buf = opts.buf or 0
+  buf = buf == 0 and vim.api.nvim_get_current_buf() or buf
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return nil
+  end
+
+  local resolved = uv_project_root(root or lazy_root_for_buf(buf) or vim.fn.getcwd())
+  if not resolved then
+    vim.notify("Python scratch: no uv root found.", vim.log.levels.WARN)
+    return nil
+  end
+
+  vim.b[buf].mnf_scratch_python_root = resolved
+  stop_uv_session({ clear_queue = true })
+  vim.notify("Python scratch: uv root set to " .. resolved)
+  return resolved
+end
+
+---@param opts? {buf?:number}
+function M.clear_uv_root(opts)
+  opts = opts or {}
+  local buf = opts.buf or 0
+  buf = buf == 0 and vim.api.nvim_get_current_buf() or buf
+  if not vim.api.nvim_buf_is_valid(buf) then
+    return
+  end
+  vim.b[buf].mnf_scratch_python_root = nil
+  stop_uv_session({ clear_queue = true })
+  vim.notify("Python scratch: uv root reset to " .. uv_root_for_buf(buf))
+end
+
 ---@param item {request:string,root:string,runner:string,uv_cache_dir:string}
 ---@return boolean ok, string? err
 local function ensure_uv_session(item)
@@ -651,10 +764,20 @@ local function ensure_uv_session(item)
               return
             end
 
-            handle_events(current.ctx, events)
-            uv_session.current = nil
-            uv_session.busy = false
-            vim.schedule(drain_uv_queue)
+            local function finish_current()
+              uv_session.current = nil
+              uv_session.busy = false
+              vim.schedule(drain_uv_queue)
+            end
+
+            if events.type == "done" then
+              finish_current()
+            elseif type(events.type) == "string" then
+              handle_events(current.ctx, { events })
+            else
+              handle_events(current.ctx, events)
+              finish_current()
+            end
           end)
         end
       end

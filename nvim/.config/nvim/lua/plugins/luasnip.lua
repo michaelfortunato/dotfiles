@@ -1,4 +1,21 @@
 local SNIPPET_PATH = "~/.config/nvim/lua/plugins/luasnip"
+local SNIPPET_TEMPLATE = [[---@diagnostic disable: undefined-global
+---@module "luasnip"
+
+-- local ls = require("luasnip")
+-- local s = ls.snippet
+-- local t = ls.text_node
+-- local i = ls.insert_node
+-- local c = ls.choice_node
+-- local fmta = require("luasnip.extras.fmt").fmta
+-- local line_begin = require("luasnip.extras.expand_conditions").line_begin
+
+return {
+  -- s({ trig = "trig", snippetType = "autosnippet" }, t("replacement")),
+  -- s("fn", fmta("function <>(<>)\n  <>\nend", { i(1, "name"), i(2), i(0) })),
+  -- s({ trig = "doc", snippetType = "autosnippet" }, t("TODO"), { condition = line_begin }),
+  -- s("choice", c(1, { t("one"), t("two") })),
+}]]
 return {
   {
     "L3MON4D3/LuaSnip",
@@ -52,9 +69,17 @@ return {
       {
         "<leader>mss",
         function()
-          return "<Cmd> edit" .. SNIPPET_PATH .. "/" .. vim.bo.filetype .. ".lua" .. " <CR>"
+          local filepath = vim.fn.expand(SNIPPET_PATH .. "/" .. vim.bo.filetype .. ".lua")
+          local exists = vim.uv.fs_stat(filepath)
+          vim.cmd.edit(vim.fn.fnameescape(filepath))
+          if exists or vim.bo.modified then
+            return
+          end
+          local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+          if #lines == 1 and lines[1] == "" then
+            vim.api.nvim_buf_set_lines(0, 0, -1, false, vim.split(SNIPPET_TEMPLATE, "\n", { plain = true }))
+          end
         end,
-        expr = true,
         desc = "Open snippet for current filetype",
       },
       {

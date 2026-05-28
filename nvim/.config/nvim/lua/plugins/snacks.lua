@@ -385,6 +385,10 @@ vim.api.nvim_create_user_command("ScratchPython", function()
   vim.cmd("Scratch python")
 end, { desc = "Python scratch buffer" })
 
+vim.api.nvim_create_user_command("ScratchPythonRoot", function(cmd)
+  require("mnf.scratch.python").set_uv_root(cmd.args ~= "" and cmd.args or nil)
+end, { nargs = "?", complete = "dir", desc = "Set Python scratch uv root" })
+
 vim.api.nvim_create_user_command("ScratchJavaScript", function()
   vim.cmd("Scratch javascript")
 end, { desc = "JavaScript scratch buffer" })
@@ -974,8 +978,8 @@ return {
               ["<D-p>"] = { "paste", mode = { "n", "i" } },
               -- Probably won't work given this is Tab
               ["<Tab><Enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
-              ["<C-t>"] = { "tabe", mode = { "n", "i" }, desc = "Edit in new tab" },
-              ["O"] = { "tabe", mode = { "n", "i" }, desc = "Edit in new tab" },
+              ["<C-t>"] = { "tab", mode = { "n", "i" }, desc = "Edit in new tab" },
+              ["O"] = { "tab", mode = { "n", "i" }, desc = "Edit in new tab" },
               -- Open file in new tab in background?
               ["<C-S-t>"] = {
                 function(picker, item)
@@ -1015,6 +1019,7 @@ return {
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
               ["<C-s>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
               ["<C-v>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
+              ["<C-t>"] = { "tab", mode = { "i", "n" }, desc = "Edit in new tab" },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
               ["<c-space>"] = { "select_only", mode = { "n", "i" } },
               ["<C-h>"] = false,
@@ -1415,7 +1420,7 @@ return {
                     mode = { "n", "i" },
                     desc = "Show terminal in managed window",
                   },
-                  ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Open buffer here" },
+                  ["<C-y>"] = { "buffer_open_or_drop", mode = { "n", "i" }, desc = "Open buffer here" },
                   ["<C-Enter>"] = {
                     "buffer_drop_or_open",
                     mode = { "n", "i" },
@@ -1586,24 +1591,6 @@ return {
                 picker:close()
                 scratch_open()
               end,
-              scratch_open_tab = function(picker, item)
-                vim.notify("TODO")
-                local selected = picker:selected({ fallback = true })
-
-                item = item or selected[1]
-                if not item then
-                  return
-                end
-
-                local file = item and (item.item or item).file or item._path
-                if not file then
-                  vim.health.warn("Could not find file")
-                  return
-                end
-                Snacks.scratch.open({ file = file, ft = ft, win = { style = "" } })
-                -- TODO: key the buffer local keymaps for python like source the file etc back
-                picker:close()
-              end,
               scratch_open_split = function(picker, item)
                 local selected = picker:selected({ fallback = true })
 
@@ -1672,9 +1659,7 @@ return {
                   ["<c-d>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-x>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-g>c"] = { "scratch_toggle_cwd", mode = { "n", "i" }, desc = "Toggle cwd filter" },
-                  -- NOTE: For some reason the default tab command
-                  -- for snacks treats scratch buffers differently.
-                  ["<C-t>"] = { "scratch_open_tab", mode = { "n", "i" } },
+                  ["<C-t>"] = { "tab", mode = { "n", "i" }, desc = "Edit in new tab" },
                   ["<C-s>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
                   ["<C-v>"] = { "scratch_open_split", mode = { "n", "i" } },
                 },

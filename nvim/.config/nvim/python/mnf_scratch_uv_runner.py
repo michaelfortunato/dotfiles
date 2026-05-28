@@ -5,7 +5,7 @@ import os
 import sys
 import traceback
 from argparse import ArgumentParser
-from typing import Any
+from typing import Any, Callable, TextIO
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if ROOT not in sys.path:
@@ -19,10 +19,22 @@ class _State:
     current_line: int | None = None
     anchor: int = 1
     events: list[dict[str, Any]] | None = None
+    emit: Callable[[dict[str, Any]], None] | None = None
 
 
 STATE = _State()
 ENVS: dict[str, dict[str, Any]] = {}
+
+
+def _record(event: dict[str, Any]) -> None:
+    if STATE.events is not None:
+        STATE.events.append(event)
+    if STATE.emit is not None:
+        STATE.emit(event)
+
+
+def _emit_protocol(out: TextIO, event: dict[str, Any]) -> None:
+    print(json.dumps(event, ensure_ascii=False), file=out, flush=True)
 
 
 def _env_for(filename: str) -> dict[str, Any]:
@@ -75,21 +87,20 @@ class _Stream:
         self._buf += s
         while "\n" in self._buf:
             line, self._buf = self._buf.split("\n", 1)
-            if STATE.events is not None:
-                STATE.events.append(
-                    {
-                        "type": "out",
-                        "line": self._buf_line or callsite,
-                        "stream": self.stream,
-                        "text": line,
-                    }
-                )
+            _record(
+                {
+                    "type": "out",
+                    "line": self._buf_line or callsite,
+                    "stream": self.stream,
+                    "text": line,
+                }
+            )
             self._buf_line = callsite if self._buf else None
         return len(s)
 
     def flush(self):
-        if self._buf and STATE.events is not None:
-            STATE.events.append(
+        if self._buf:
+            _record(
                 {
                     "type": "out",
                     "line": self._buf_line or _stack_target_lineno() or STATE.anchor,
@@ -179,7 +190,7 @@ def _run(code: str, filename: str, anchor: int, *, mpl: bool, cache_dir: str | N
         line = _tb_line(e) or STATE.current_line or anchor
         trace = traceback.format_exception(type(e), e, e.__traceback__)
         trace = [t.rstrip("\n") for t in trace if t]
-        STATE.events.append(
+        _record(
             {
                 "type": "error",
                 "line": line,
@@ -205,7 +216,7 @@ def _run(code: str, filename: str, anchor: int, *, mpl: bool, cache_dir: str | N
                 imgs = []
             for img in imgs or []:
                 if isinstance(img, dict) and img.get("file"):
-                    STATE.events.append(
+                    _record(
                         {
                             "type": "image",
                             "line": int(img.get("line") or anchor),
@@ -264,15 +275,16 @@ def _serve_jsonl() -> int:
             req = json.loads(raw)
         except Exception as e:
             trace = traceback.format_exception(type(e), e, e.__traceback__)
-            out = [
+            _emit_protocol(
+                sys.stdout,
                 {
                     "type": "error",
                     "line": 1,
                     "message": f"uv runner (server): {e}",
                     "trace": [t.rstrip("\n") for t in trace],
-                }
-            ]
-            print(json.dumps(out, ensure_ascii=False), flush=True)
+                },
+            )
+            _emit_protocol(sys.stdout, {"type": "done"})
             continue
 
         try:
@@ -283,19 +295,25 @@ def _serve_jsonl() -> int:
             cache_dir = str(cache_dir) if isinstance(cache_dir, str) and cache_dir else None
             mpl = _bool((req or {}).get("mpl"), True) and _bool((req or {}).get("plots"), True)
 
-            events = _run(code, filename, anchor, mpl=mpl, cache_dir=cache_dir)
-            print(json.dumps(events, ensure_ascii=False), flush=True)
+            protocol_out = sys.stdout
+            STATE.emit = lambda event: _emit_protocol(protocol_out, event)
+            try:
+                _run(code, filename, anchor, mpl=mpl, cache_dir=cache_dir)
+            finally:
+                STATE.emit = None
+            _emit_protocol(protocol_out, {"type": "done"})
         except Exception as e:
             trace = traceback.format_exception(type(e), e, e.__traceback__)
-            out = [
+            _emit_protocol(
+                sys.stdout,
                 {
                     "type": "error",
                     "line": 1,
                     "message": f"uv runner (server): {e}",
                     "trace": [t.rstrip("\n") for t in trace],
-                }
-            ]
-            print(json.dumps(out, ensure_ascii=False), flush=True)
+                },
+            )
+            _emit_protocol(sys.stdout, {"type": "done"})
 
     return 0
 
