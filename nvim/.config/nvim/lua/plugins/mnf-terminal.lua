@@ -57,8 +57,13 @@ return {
 
       vim.keymap.set("n", ";;", function()
         local mnf_terminal = require("mnf.terminal.managed")
-        mnf_terminal.toggle_terminal(mnf_terminal.get_last_used_terminal())
-      end, { desc = "Send File To Terminal (pick)" })
+        if vim.bo.buftype == "terminal" then
+          mnf_terminal.toggle_terminal(mnf_terminal.get_last_used_terminal())
+          return
+        end
+        vim.t.mnf_terminal_layout = "floating"
+        mnf_terminal.toggle_terminal(1)
+      end, { desc = "Toggle Dedicated Floating Terminal" })
 
       -- vim.keymap.set("t", ";;", function()
       --   local mnf_terminal = require("mnf.terminal.managed")
