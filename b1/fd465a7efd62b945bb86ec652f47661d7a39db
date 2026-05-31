@@ -1,0 +1,31 @@
+aerospace/.aerospace.toml
+  s_97401dbb644983::t_0582d05c6b8ffa 271,278-280,285
+  s_97401dbb644983::t_c9522cc171d161 273-274
+  s_ba09f49f934028::t_c68f611cff980c 309-310,312
+  s_97401dbb644983::t_09f64acbe5d8f2 272,276-277,281,283-284
+  s_ba09f49f934028::t_8e994d9779a81d 275,282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b1fd465a7efd62b945bb86ec652f47661d7a39db",
+  "prompts": {},
+  "sessions": {
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_ba09f49f934028": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e21ec-a60f-76d0-b773-ca9ab7abbb2c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
