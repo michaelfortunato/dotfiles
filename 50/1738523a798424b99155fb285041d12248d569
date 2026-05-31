@@ -1,0 +1,19 @@
+worktrunk/.config/worktrunk/config.toml
+  s_ba09f49f934028::t_c3ac68aed172c1 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "501738523a798424b99155fb285041d12248d569",
+  "prompts": {},
+  "sessions": {
+    "s_ba09f49f934028": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e21ec-a60f-76d0-b773-ca9ab7abbb2c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
