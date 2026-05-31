@@ -268,6 +268,22 @@ if.app-id = "net.kovidgoyal.kitty"
 run = "move-node-to-workspace T"  # mnemonics T - Terminal
 
 [[on-window-detected]]
+if.app-id = "com.neovide.neovide"
+run = [
+  # TODO: Investigate how to make two Neovide project windows share one standard
+  # layout container; Aerospace currently does not split/partition them reliably.
+  "layout tiling",
+  "move-node-to-workspace T",  # mnemonics T - Terminal/editor
+]
+
+[[on-window-detected]]
+if.app-name-regex-substring = "^neovide$"
+run = [
+  "layout tiling",
+  "move-node-to-workspace T",  # Homebrew-launched Neovide reports NULL app id
+]
+
+[[on-window-detected]]
 if.app-id = "org.mozilla.firefox"
 run = "move-node-to-workspace G"  # G is leftover - Firefox
 
@@ -290,7 +306,10 @@ run = "move-node-to-workspace G"  # G is leftover - Zen (Firefox->Google fork)
 
 [[on-window-detected]]
 if.app-id = "com.bitwarden.desktop"
-run = "layout floating"
+run = [
+  "layout floating",
+  "move-node-to-workspace X",  # mnemonics B - Bitwarden
+]
 
 [[on-window-detected]]
 if.app-id = "com.apple.iCal"
