@@ -3,6 +3,9 @@
 set -Eeuo pipefail
 trap cleanup SIGINT SIGTERM ERR
 
+# TODO: Look into https://usage.jdx.dev/ for CLI usage specs, generated help,
+# completions, and argument parsing before growing this template by hand.
+
 LOG_LEVEL=3
 
 LOG_LEVEL_ERROR=1
