@@ -1,0 +1,4 @@
+skip-shell-integration-prompt = true
+
+[aliases]
+s = "wt switch {{ args }}"
