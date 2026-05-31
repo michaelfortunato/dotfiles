@@ -1,0 +1,19 @@
+_templates/sh/template.sh
+  s_97401dbb644983::t_8f6e1b95d1ca0b 6-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0023d6dd1ded001c0e2d86785d299c1f301b7027",
+  "prompts": {},
+  "sessions": {
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
