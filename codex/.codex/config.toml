@@ -1,75 +1,87 @@
-approval_policy = "never"
-sandbox_mode = "danger-full-access"
-approvals_reviewer = "user"
+approval_policy = "on-request"
+approvals_reviewer = "guardian_subagent"
 model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 plan_mode_reasoning_effort = "xhigh"
-service_tier = "fast"
+sandbox_mode = "workspace-write"
 suppress_unstable_features_warning = true
 web_search = "live"
 
-notify = [
-  "/Users/michaelfortunato/dotfiles/codex/.codex/plugins/cache/openai-bundled/computer-use/1.0.755/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient",
-  "turn-ended"
-]
+notify = ["/Users/michaelfortunato/dotfiles/codex/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
+service_tier = "fast"
 
 [features]
-codex_hooks = true
+chronicle = false
+guardian_approval = true
+hooks = true
+memories = false
 multi_agent = true
 steer = true
-memories = true
-chronicle = false
+terminal_resize_reflow = true
+js_repl = false
 
-[mcp_servers.context7]
-command = "npx"
-args = ["-y", "@upstash/context7-mcp"]
+[[hooks.PostToolUse]]
 
-[mcp_servers.fetch]
-command = "uvx"
-args = ["mcp-server-fetch"]
+[[hooks.PostToolUse.hooks]]
+command = "/Users/michaelfortunato/.git-ai/bin/git-ai checkpoint codex --hook-input stdin"
+type = "command"
 
-[mcp_servers.fetch.tools.fetch]
-approval_mode = "approve"
+[[hooks.PreToolUse]]
 
-[mcp_servers.linear]
-url = "https://mcp.linear.app/mcp"
+[[hooks.PreToolUse.hooks]]
+command = "/Users/michaelfortunato/.git-ai/bin/git-ai checkpoint codex --hook-input stdin"
+type = "command"
 
-[mcp_servers.memory]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-memory"]
+[[hooks.Stop]]
 
-[mcp_servers.memory.tools.add_observations]
-approval_mode = "approve"
+[[hooks.Stop.hooks]]
+command = "/Users/michaelfortunato/.git-ai/bin/git-ai checkpoint codex --hook-input stdin"
+type = "command"
 
-[mcp_servers.memory.tools.create_entities]
-approval_mode = "approve"
+[hooks.state."/Users/michaelfortunato/.codex/config.toml:post_tool_use:0:0"]
+enabled = true
+trusted_hash = "sha256:8a31b223b17b46894d295227f669aff31b4bf052c311b518e10b016677f52d78"
 
-[mcp_servers.memory.tools.create_relations]
-approval_mode = "approve"
+[hooks.state."/Users/michaelfortunato/.codex/config.toml:pre_tool_use:0:0"]
+enabled = true
+trusted_hash = "sha256:3cf3a6e218972cb62c82f3cd9a5cbd84b6640c80f1fed932b93337818470170f"
 
-[mcp_servers.memory.tools.read_graph]
-approval_mode = "approve"
+[hooks.state."/Users/michaelfortunato/.codex/config.toml:stop:0:0"]
+enabled = true
+trusted_hash = "sha256:d0ade42c8e0168b2c093ec9d90e6b6b52de391a48fe05a6a3c6b8ed00490648d"
+
+[hooks.state."/Users/michaelfortunato/.codex/hooks.json:post_tool_use:0:0"]
+trusted_hash = "sha256:8a31b223b17b46894d295227f669aff31b4bf052c311b518e10b016677f52d78"
+
+[hooks.state."/Users/michaelfortunato/.codex/hooks.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:3cf3a6e218972cb62c82f3cd9a5cbd84b6640c80f1fed932b93337818470170f"
+
+[hooks.state."/Users/michaelfortunato/.codex/hooks.json:stop:0:0"]
+trusted_hash = "sha256:d0ade42c8e0168b2c093ec9d90e6b6b52de391a48fe05a6a3c6b8ed00490648d"
+
+[marketplaces.openai-bundled]
+last_updated = "2026-06-02T17:51:41Z"
+source_type = "local"
+source = "/Users/michaelfortunato/dotfiles/codex/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-06-02T18:50:10Z"
+source_type = "local"
+source = "/Users/michaelfortunato/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [mcp_servers.sequential_thinking]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-enabled = true
 
 [mcp_servers.sequential_thinking.tools.sequentialthinking]
 approval_mode = "approve"
 
-[mcp_servers.github]
-bearer_token_env_var = "CODEX_GITHUB_PERSONAL_ACCESS_TOKEN"
-url = "https://api.githubcopilot.com/mcp/"
-
-[mcp_servers.github.tools.create_pull_request]
-approval_mode = "approve"
-
-[mcp_servers.github.tools.update_pull_request]
-approval_mode = "approve"
+[mcp_servers.terraform-best-practices]
+url = "https://www.terraform-best-practices.com/~gitbook/mcp"
 
 [notice]
+fast_default_opt_out = true
 hide_full_access_warning = true
 "hide_gpt-5.1-codex-max_migration_prompt" = true
 hide_gpt5_1_migration_prompt = true
@@ -80,28 +92,28 @@ hide_rate_limit_model_nudge = true
 "gpt-5.2" = "gpt-5.3-codex"
 "gpt-5.2-codex" = "gpt-5.3-codex"
 
-[plugins."github@openai-curated"]
+[plugins."computer-use@openai-bundled"]
+enabled = false
+
+[plugins."documents@openai-primary-runtime"]
 enabled = true
 
-[plugins."computer-use@openai-bundled"]
+[plugins."github@openai-curated"]
 enabled = true
 
 [plugins."linear@openai-curated"]
 enabled = true
 
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
 [plugins."slack@openai-curated"]
-enabled = true
-
-[plugins."browser-use@openai-bundled"]
-enabled = true
-
-[plugins."documents@openai-primary-runtime"]
 enabled = true
 
 [plugins."spreadsheets@openai-primary-runtime"]
 enabled = true
 
-[plugins."presentations@openai-primary-runtime"]
+[plugins."browser@openai-bundled"]
 enabled = true
 
 [projects."/Users/michaelfortunato/Finance/spending"]
@@ -116,6 +128,9 @@ trust_level = "trusted"
 [projects."/Users/michaelfortunato/OuterProduct"]
 trust_level = "trusted"
 
+[projects."/Users/michaelfortunato/OuterProduct/DMB"]
+trust_level = "trusted"
+
 [projects."/Users/michaelfortunato/OuterProduct/OUT-245"]
 trust_level = "trusted"
 
@@ -128,7 +143,88 @@ trust_level = "trusted"
 [projects."/Users/michaelfortunato/notes/daily"]
 trust_level = "trusted"
 
+[projects."/Users/michaelfortunato/OuterProduct/e2e"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/extract"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/fuck3"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/kumo"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/lab/cleartrace"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/lab/opmodelkit"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/lab/outerproduct-reasoning"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/mnf/credit-product-dashboard"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-api"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-console"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-docs"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-http-types"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-lib"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-lib/awesome-codex-skills"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-reasoning"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-sdk"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-trainer"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/pytabkit-cleartrace-lab"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/sal-invoice-fraud"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/dotfiles"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/dotfiles/codex/.codex"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/notes"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/notes/daily"]
+trust_level = "trusted"
+
 [projects."/Users/michaelfortunato/projects/AGED"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/OUT-245/DMB"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/OUT-245/extract"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/SymD"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/projects/breaking-data-symmetries"]
 trust_level = "trusted"
 
 [projects."/Users/michaelfortunato/projects/codex"]
@@ -146,6 +242,9 @@ trust_level = "trusted"
 [projects."/Users/michaelfortunato/projects/personal-website"]
 trust_level = "trusted"
 
+[projects."/Users/michaelfortunato/scratch"]
+trust_level = "trusted"
+
 [projects."/Users/michaelfortunato/scratch/sambodee"]
 trust_level = "trusted"
 
@@ -155,44 +254,15 @@ trust_level = "trusted"
 [projects."/Users/michaelfortunato/scratch/spending/jp-debit"]
 trust_level = "trusted"
 
-[projects."/Users/michaelfortunato/OuterProduct/cleartrace-api"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/OuterProduct/credit-product-dashboard"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/OuterProduct/DMB"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/OuterProduct/mnf/credit-product-dashboard"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/OuterProduct/Sal"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/scratch"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/OuterProduct/sal-invoice-fraud"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/OuterProduct/extract"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/dotfiles/codex/.codex"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/OuterProduct/pytabkit-cleartrace-lab"]
-trust_level = "trusted"
-
-[projects."/Users/michaelfortunato/projects/SymD"]
+[projects."/Users/michaelfortunato/OuterProduct/outerproduct-mcp"]
 trust_level = "trusted"
 
 [sandbox_workspace_write]
 network_access = false
+
+[[skills.config]]
+enabled = false
+path = "/Users/michaelfortunato/dotfiles/codex/.codex/skills/meeting-notes-and-actions/SKILL.md"
 
 [tui]
 notifications = true
@@ -200,12 +270,14 @@ notifications = true
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 
-[marketplaces.openai-bundled]
-last_updated = "2026-04-24T15:33:09Z"
-source_type = "local"
-source = "/Users/michaelfortunato/dotfiles/codex/.codex/.tmp/bundled-marketplaces/openai-bundled"
+[desktop]
+reviewDelivery = "detached"
+preventSleepWhileRunning = true
+keepRemoteControlAwakeWhilePluggedIn = true
 
-[marketplaces.openai-primary-runtime]
-last_updated = "2026-04-24T04:55:47Z"
-source_type = "local"
-source = "/Users/michaelfortunato/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+[desktop.open-in-target-preferences]
+global = "systemDefault"
+
+[desktop.open-in-target-preferences.perPath]
+"/Users/michaelfortunato" = "ghostty"
+"/Users/michaelfortunato/dotfiles" = "fileManager"
