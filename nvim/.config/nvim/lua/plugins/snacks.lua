@@ -1234,12 +1234,16 @@ return {
                   end
                   set_buffer_label(buf, input)
                   pcall(function()
-                    picker:find()
+                    picker.list:set_target()
+                    picker:find({
+                      on_done = function()
+                        picker_view_match(picker, function(next_item)
+                          return next_item.buf == buf
+                        end)
+                        picker_focus_part(picker, restore_part or "input")
+                      end,
+                    })
                   end)
-                  picker_view_match(picker, function(next_item)
-                    return next_item.buf == buf
-                  end)
-                  picker_focus_part(picker, restore_part or "input")
                 end)
               end,
             },
