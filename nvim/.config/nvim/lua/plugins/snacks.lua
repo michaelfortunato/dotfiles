@@ -1226,6 +1226,7 @@ return {
                 if not (buf and vim.api.nvim_buf_is_valid(buf)) then
                   return
                 end
+                local restore_part = picker_cur_part()
 
                 vim.ui.input({ prompt = "Buffer label: ", default = buffer_label(buf) }, function(input)
                   if input == nil then
@@ -1235,6 +1236,10 @@ return {
                   pcall(function()
                     picker:find()
                   end)
+                  picker_view_match(picker, function(next_item)
+                    return next_item.buf == buf
+                  end)
+                  picker_focus_part(picker, restore_part or "input")
                 end)
               end,
             },
