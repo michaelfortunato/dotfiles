@@ -1,0 +1,19 @@
+nvim/.config/nvim/lua/plugins/kulala.nvim.lua
+  s_0ce1523dfcaa7c::t_457347f909c7aa 4-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.7",
+  "base_commit_sha": "b24d84821748b47af336546bfbe2c4aaa3ef0d49",
+  "prompts": {},
+  "sessions": {
+    "s_0ce1523dfcaa7c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e89cc-f360-7bc0-b45b-9d7e1017828a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
