@@ -965,7 +965,7 @@ return {
               ["<C-o>"] = { "edit_split", mode = { "i", "n" } },
               ["<C-s>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
               ["<C-v>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
-              ["?"] = { "toggle_help_input", mode = { "i", "n" } },
+              ["?"] = { "toggle_help_input", mode = { "n" } },
               -- TODO: ["<C-u>"] = { "disabled", mode = { "i", "n" } },
               ["<C-u>"] = false,
               ["<C-d>"] = false,
@@ -979,7 +979,7 @@ return {
               -- Probably won't work given this is Tab
               ["<Tab><Enter>"] = { "tabdrop", mode = { "n", "i" }, desc = "Edit in new (or existing) tab" },
               ["<C-t>"] = { "tab", mode = { "n", "i" }, desc = "Edit in new tab" },
-              ["O"] = { "tab", mode = { "n", "i" }, desc = "Edit in new tab" },
+              ["O"] = { "tab", mode = { "n" }, desc = "Edit in new tab" },
               -- Open file in new tab in background?
               ["<C-S-t>"] = {
                 function(picker, item)

@@ -62,7 +62,7 @@ return {
           return
         end
         vim.t.mnf_terminal_layout = "floating"
-        mnf_terminal.toggle_terminal(1)
+        mnf_terminal.toggle_terminal(mnf_terminal.get_last_used_terminal())
       end, { desc = "Toggle Dedicated Floating Terminal" })
 
       -- vim.keymap.set("t", ";;", function()
