@@ -1,0 +1,48 @@
+aerospace/.aerospace.toml
+  s_3fd0ab3b9a8ba9::t_b35886901552bb 263
+  s_bae3f4b341e7cd::t_ff1340714aa7a7 131
+  s_0ce1523dfcaa7c::t_6e07f446b2307d 319,322-324
+  s_97401dbb644983::t_0582d05c6b8ffa 370
+  s_0ce1523dfcaa7c::t_942944beff13d4 317-318
+  s_0ce1523dfcaa7c::t_68b21a56de6c3d 320-321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.8",
+  "base_commit_sha": "71085ca9acfef01cf9886105b65b035a799346f8",
+  "prompts": {},
+  "sessions": {
+    "s_0ce1523dfcaa7c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e89cc-f360-7bc0-b45b-9d7e1017828a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_3fd0ab3b9a8ba9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef4ad-1c9a-7572-b676-844b02be8048",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_bae3f4b341e7cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e89a2-0f56-7830-a032-7a4649432bf4",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
