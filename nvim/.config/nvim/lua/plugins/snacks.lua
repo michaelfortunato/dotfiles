@@ -1886,7 +1886,7 @@ return {
             -- global `main.current=true` then points at the picker list
             -- itself, which breaks file opens from Snacks Zen.
             main = { current = false, float = true, file = true },
-            jump = { close = true },
+            jump = { close = false },
             actions = {
               toggle_left_dropdown_layout = function(picker)
                 local layout = picker.resolved_layout and picker.resolved_layout.layout
@@ -2008,6 +2008,7 @@ return {
         end, desc = "Notification History"
       },
       { "<leader>e", function() Snacks.picker.explorer() end, desc = "File explorer" },
+      { "<leader>r", function() Snacks.picker.explorer({ layout = "vertical" }) end, desc = "File explorer (center)" },
       { "<leader>E", function()
         local bufname = vim.api.nvim_buf_get_name(0)
         local dir = bufname ~= "" and vim.fs.dirname(bufname) or vim.fn.getcwd()
