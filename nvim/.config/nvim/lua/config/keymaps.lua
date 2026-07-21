@@ -246,12 +246,12 @@ vim.keymap.set({ "n", "x" }, "<C-y>", function()
   return (vim.v.count1 * 5) .. "<C-y>"
 end, { expr = true, silent = true, desc = "Scroll up faster" })
 
-vim.keymap.set({ "n" }, "<leader>cR", "<CMD>LspRestart<CR>", { desc = "Restart All LSPs" })
+vim.keymap.set({ "n" }, "<leader>cR", "<CMD>lsp restart<CR>", { desc = "Restart All LSPs" })
 del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
 vim.keymap.set({ "n" }, "<leader><leader>", LazyVim.pick("files"), { desc = "Find Files (Root Dir)" })
 vim.keymap.set({ "n" }, "<leader>,", function()
   Snacks.picker.buffers()
-end, { desc = "Find files (Cwd dir)" })
+end, { desc = "Find buffers" })
 del({ "n" }, "f")
 -- This is causing a ton of tabs to be created
 -- vim.keymap.set(
