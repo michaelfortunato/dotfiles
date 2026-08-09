@@ -1,0 +1,14 @@
+mise/.config/mise/config.toml
+  h_09c090fe28971a 2-53,55,58-60,137-184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "b210970bd23949242ef3de5c9c6bed076971e538",
+  "prompts": {},
+  "humans": {
+    "h_09c090fe28971a": {
+      "author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
