@@ -1,0 +1,33 @@
+mise/.config/mise/config.toml
+  s_97401dbb644983::t_5d84d8ae093d7d 2-3,53,57-59
+  s_97401dbb644983::t_0f30370dbced66 1,55
+  s_97401dbb644983::t_2cca82f9cd1d5b 54
+  s_97401dbb644983::t_a14f3c0fd39ac5 4-52,60-89,91-108
+  s_d3c699900a3232::t_75b1bb01b50fe5 90
+  s_97401dbb644983::t_64f3467acf445a 56
+  s_97401dbb644983::t_7706caa5ea5370 109-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "4f4237108c50948b43c39bffb822c0d3999ea144",
+  "prompts": {},
+  "sessions": {
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_d3c699900a3232": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe85c-9b9b-7da1-869c-dc2f29bf8407",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
