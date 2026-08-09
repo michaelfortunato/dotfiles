@@ -1,0 +1,184 @@
+[settings]
+# auto_install = false
+# exec_auto_install = false
+# enable_tools = [
+#   "act",
+#   "actionlint",
+#   "aws",
+#   "aws-cli",
+#   "awscli",
+#   "bat",
+#   "bfs",
+#   "bottom",
+#   "cmake",
+#   "colima",
+#   "direnv",
+#   "dvc",
+#   "eza",
+#   "fd",
+#   "fzf",
+#   "gcloud",
+#   "gh",
+#   "git-lfs",
+#   "go",
+#   "imagemagick",
+#   "just",
+#   "kubectl",
+#   "lazygit",
+#   "lima",
+#   "lua",
+#   "luajit",
+#   "make",
+#   "marksman",
+#   "neovim",
+#   "node",
+#   "npm",
+#   "pandoc",
+#   "perl",
+#   "pnpm",
+#   "protobuf",
+#   "rclone",
+#   "rg",
+#   "ripgrep",
+#   "ruby",
+#   "shellcheck",
+#   "sqlite",
+#   "supabase",
+#   "terraform",
+#   "tree-sitter",
+#   "typstyle",
+#   "uv",
+#   "yazi",
+# ]
+# not_found_auto_install = false
+# Use "create|source" here if you want mise to create the uv venv when missing.
+# python.uv_venv_auto = "source"
+trusted_config_paths = ["/"]
+
+[bootstrap.brew.taps]
+"bufbuild/buf" = "https://github.com/bufbuild/homebrew-buf.git"
+"databricks/tap" = "https://github.com/databricks/homebrew-tap.git"
+"gap-system/gap" = "https://github.com/gap-system/homebrew-gap.git"
+"hashicorp/tap" = "https://github.com/hashicorp/homebrew-tap.git"
+"open-lakehouse/tap" = "https://github.com/open-lakehouse/homebrew-tap.git"
+"ory/tap" = "https://github.com/ory/homebrew-tap.git"
+"restatedev/tap" = "https://github.com/restatedev/homebrew-tap.git"
+"slp/krun" = "https://github.com/slp/homebrew-krun.git"
+
+[bootstrap.packages]
+"brew:act" = "latest"
+"brew:actionlint" = "latest"
+"brew:asciinema" = "latest"
+"brew:awscli" = "latest"
+"brew:bitwarden-cli" = "latest"
+"brew:bufbuild/buf/buf" = "latest"
+"brew:bun" = "latest"
+"brew:cargo-llvm-cov" = "latest"
+"brew:cargo-nextest" = "latest"
+"brew:ory/tap/cli" = "latest"
+"brew:colima" = "latest"
+"brew:convco" = "latest"
+"brew:databricks/tap/databricks" = "latest"
+"brew:datasette" = "latest"
+"brew:docker" = "latest"
+"brew:docker-buildx" = "latest"
+"brew:docker-compose" = "latest"
+"brew:duti" = "latest"
+"brew:dvc" = "latest"
+"brew:gap-system/gap/gap" = "latest"
+"brew:gh" = "latest"
+"brew:gifski" = "latest"
+"brew:git-lfs" = "latest"
+"brew:gnu-sed" = "latest"
+"brew:gnutls" = "latest"
+"brew:go" = "latest"
+"brew:harfbuzz" = "latest"
+"brew:htop" = "latest"
+"brew:imagemagick" = "latest"
+"brew:iproute2mac" = "latest"
+"brew:jupyterlab" = "latest"
+"brew:just" = "latest"
+"brew:slp/krun/krunkit" = "latest"
+"brew:kubernetes-cli" = "latest"
+"brew:make" = "latest"
+"brew:marksman" = "latest"
+"brew:mupdf" = "latest"
+"brew:nmap" = "latest"
+"brew:node" = "latest"
+"brew:nvm" = "latest"
+"brew:pandoc" = "latest"
+"brew:pkgconf" = "latest"
+"brew:postgres-language-server" = "latest"
+"brew:postgresql@18" = "latest"
+"brew:pstree" = "latest"
+"brew:python@3.12" = "latest"
+"brew:qemu" = "latest"
+"brew:rclone" = "latest"
+"brew:render" = "latest"
+"brew:restatedev/tap/restate-server" = "latest"
+"brew:ripgrep" = "latest"
+"brew:rustledger" = "latest"
+"brew:sem-cli" = "latest"
+"brew:stow" = "latest"
+"brew:supabase" = "latest"
+"brew:hashicorp/tap/terraform" = "latest"
+"brew:tor" = "latest"
+"brew:tree" = "latest"
+"brew:open-lakehouse/tap/trestle" = "latest"
+"brew:unbound" = "latest"
+"brew:websocketd" = "latest"
+"brew:weechat" = "latest"
+"brew:wireguard-tools" = "latest"
+"brew:xpdf" = "latest"
+
+# [settings.task]
+# run_auto_install = false
+
+# [tools]
+# act = "path:/opt/homebrew"
+# actionlint = "path:/opt/homebrew"
+# aws = "path:/opt/homebrew"
+# aws-cli = "path:/opt/homebrew"
+# awscli = "path:/opt/homebrew"
+# bat = "path:~/.nix-profile"
+# bfs = "path:~/.nix-profile"
+# bottom = "path:~/.nix-profile"
+# cmake = "path:~/.nix-profile"
+# colima = "path:/opt/homebrew"
+# direnv = "path:~/.nix-profile"
+# dvc = "path:/opt/homebrew"
+# eza = "path:~/.nix-profile"
+# fd = "path:~/.nix-profile"
+# fzf = "path:~/.nix-profile"
+# gcloud = "path:~/.nix-profile"
+# gh = "path:/opt/homebrew"
+# git-lfs = "path:/opt/homebrew"
+# go = "path:/opt/homebrew"
+# imagemagick = "path:/opt/homebrew"
+# just = "path:/opt/homebrew"
+# kubectl = "path:/opt/homebrew"
+# lazygit = "path:~/.nix-profile"
+# lima = "path:/opt/homebrew"
+# lua = "path:/opt/homebrew"
+# luajit = "path:/opt/homebrew"
+# make = "path:/opt/homebrew"
+# marksman = "path:/opt/homebrew"
+# neovim = "path:~/.nix-profile"
+# node = "path:/opt/homebrew"
+# npm = "path:/opt/homebrew"
+# pandoc = "path:/opt/homebrew"
+# perl = "path:/opt/homebrew"
+# pnpm = "path:/opt/homebrew"
+# protobuf = "path:/opt/homebrew"
+# rclone = "path:/opt/homebrew"
+# rg = "path:/opt/homebrew"
+# ripgrep = "path:/opt/homebrew"
+# ruby = "path:/opt/homebrew"
+# shellcheck = "path:/opt/homebrew"
+# sqlite = "path:/opt/homebrew"
+# supabase = "path:/opt/homebrew"
+# terraform = "path:/opt/homebrew"
+# tree-sitter = "path:/opt/homebrew"
+# typstyle = "path:~/.nix-profile"
+# uv = "path:~/.nix-profile"
+# yazi = "path:~/.nix-profile"
