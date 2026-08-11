@@ -20,7 +20,6 @@ These are the default working rules for agents on Michael Fortunato's machine an
   - Use `uv add` / `uv remove` for dependency changes.
   - Use `uv tool install` / `uvx` for isolated CLI tools when appropriate.
   - Do not use global `pip`, ad hoc virtualenvs, Poetry, or Conda unless the repository already owns that workflow or the user asks for it.
-- If a metabuild/task runner is needed, use `just`. Prefer an existing `justfile` over new wrapper scripts.
 - Rust projects use the existing Cargo workspace. Keep domain types independent of optional runtime/compiler internals, make abstractions justify themselves, and prefer concrete flow-oriented code until duplication or complexity earns a shared layer.
 - JavaScript/TypeScript projects should follow the repository's lockfile and package manager. Do not introduce a new package manager for convenience.
 - Shell and Zsh startup changes should be measured or traced in a fresh shell when behavior matters. Keep startup paths fast; avoid adding startup subprocesses unless there is a clear reason.

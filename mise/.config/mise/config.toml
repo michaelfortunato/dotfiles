@@ -1,55 +1,7 @@
 [settings]
+experimental = true
 auto_install = false
 exec_auto_install = false
-enable_tools = [
-  "act",
-  "actionlint",
-  "aws",
-  "aws-cli",
-  "awscli",
-  "bat",
-  "bfs",
-  "bottom",
-  "cmake",
-  "colima",
-  "direnv",
-  "dvc",
-  "eza",
-  "fd",
-  "fzf",
-  "gcloud",
-  "gh",
-  "git-lfs",
-  "go",
-  "imagemagick",
-  "just",
-  "kubectl",
-  "lazygit",
-  "lima",
-  "lua",
-  "luajit",
-  "make",
-  "marksman",
-  "neovim",
-  "node",
-  "npm",
-  "pandoc",
-  "perl",
-  "pnpm",
-  "protobuf",
-  "rclone",
-  "rg",
-  "ripgrep",
-  "ruby",
-  "shellcheck",
-  "sqlite",
-  "supabase",
-  "terraform",
-  "tree-sitter",
-  "typstyle",
-  "uv",
-  "yazi",
-]
 not_found_auto_install = false
 # Use "create|source" here if you want mise to create the uv venv when missing.
 python.uv_venv_auto = "source"
@@ -133,52 +85,3 @@ run_auto_install = false
 "brew:weechat" = "latest"
 "brew:wireguard-tools" = "latest"
 "brew:xpdf" = "latest"
-
-[tools]
-act = "path:/opt/homebrew"
-actionlint = "path:/opt/homebrew"
-aws = "path:/opt/homebrew"
-aws-cli = "path:/opt/homebrew"
-awscli = "path:/opt/homebrew"
-bat = "path:~/.nix-profile"
-bfs = "path:~/.nix-profile"
-bottom = "path:~/.nix-profile"
-cmake = "path:~/.nix-profile"
-colima = "path:/opt/homebrew"
-direnv = "path:~/.nix-profile"
-dvc = "path:/opt/homebrew"
-eza = "path:~/.nix-profile"
-fd = "path:~/.nix-profile"
-fzf = "path:~/.nix-profile"
-gcloud = "path:~/.nix-profile"
-gh = "path:/opt/homebrew"
-git-lfs = "path:/opt/homebrew"
-go = "path:/opt/homebrew"
-imagemagick = "path:/opt/homebrew"
-just = "path:/opt/homebrew"
-kubectl = "path:/opt/homebrew"
-lazygit = "path:~/.nix-profile"
-lima = "path:/opt/homebrew"
-lua = "path:/opt/homebrew"
-luajit = "path:/opt/homebrew"
-make = "path:/opt/homebrew"
-marksman = "path:/opt/homebrew"
-neovim = "path:~/.nix-profile"
-node = "path:/opt/homebrew"
-npm = "path:/opt/homebrew"
-pandoc = "path:/opt/homebrew"
-perl = "path:/opt/homebrew"
-pnpm = "path:/opt/homebrew"
-protobuf = "path:/opt/homebrew"
-rclone = "path:/opt/homebrew"
-rg = "path:/opt/homebrew"
-ripgrep = "path:/opt/homebrew"
-ruby = "path:/opt/homebrew"
-shellcheck = "path:/opt/homebrew"
-sqlite = "path:/opt/homebrew"
-supabase = "path:/opt/homebrew"
-terraform = "path:/opt/homebrew"
-tree-sitter = "path:/opt/homebrew"
-typstyle = "path:~/.nix-profile"
-uv = "path:~/.nix-profile"
-yazi = "path:~/.nix-profile"
