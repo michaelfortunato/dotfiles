@@ -1,0 +1,19 @@
+codex/.codex/config.toml
+  s_f7ac878be9bae6::t_6f8898cd8c9ece 6-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "c57c6b39c054e761fabb5deccf6e03142e964b46",
+  "prompts": {},
+  "sessions": {
+    "s_f7ac878be9bae6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f49a1-ec7a-71f0-a826-74b1eb780152",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
