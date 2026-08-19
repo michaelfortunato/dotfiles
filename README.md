@@ -150,7 +150,7 @@ reach into `Library/` cleanly, so we do a two-hop symlink: stow manages
 `~/.config/<app>/` as usual, and a hand-created `ln -sfn` bridges App Support
 to that.
 
-```
+```text
 ~/Library/Application Support/<App>/<file>
   → ~/.config/<app>/<file>                    (hand-created)
      → ~/dotfiles/<pkg>/.config/<app>/<file>  (created by stow)
