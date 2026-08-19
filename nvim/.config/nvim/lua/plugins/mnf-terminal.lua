@@ -32,6 +32,31 @@ return {
         end, { desc = "Send To Terminal " .. i })
       end
 
+      for i = 1, 9 do
+        vim.keymap.set({ "n", "t" }, [[\]] .. i, function()
+          require("mnf.terminal.managed").toggle_ai_terminal(i)
+        end, { desc = "Toggle AI Terminal " .. i })
+      end
+
+      vim.keymap.set({ "n", "t" }, [[\\]], function()
+        local mnf_terminal = require("mnf.terminal.managed")
+        local id = mnf_terminal.get_last_used_ai_terminal()
+        if mnf_terminal.is_ai_terminal_buffer(vim.api.nvim_get_current_buf()) then
+          mnf_terminal.toggle_ai_terminal(id)
+          return
+        end
+        vim.t.mnf_terminal_layout = "floating"
+        mnf_terminal.toggle_ai_terminal(id)
+      end, { desc = "Toggle Dedicated Floating AI Terminal" })
+
+      vim.keymap.set("n", [[\f]], function()
+        require("mnf.terminal.managed").toggle_layout()
+      end, { desc = "Toggle AI Terminal Layout" })
+
+      vim.keymap.set("n", [[\g]], function()
+        require("mnf.terminal.managed").pick_and_focus_ai_terminal_buffer()
+      end, { desc = "List AI Terminal Buffers" })
+
       vim.keymap.set("n", "fg", function()
         vim.t.mnf_float = vim.t.mnf_float or { win = nil, buf = nil }
         local state = vim.t.mnf_float

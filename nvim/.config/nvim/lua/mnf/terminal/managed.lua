@@ -138,11 +138,12 @@ end
 -- Terminal state
 ---@class TerminalState
 ---@field win integer?
----@field buffers table<integer, {buf: integer, safe_to_send_text: boolean, type?: string}>
----@field current integer?
+---@field buffers table<integer|string, {buf: integer, safe_to_send_text: boolean, type?: string}>
+---@field current integer|string?
 ---@field layout string
 ---@field create_window fun(buf: integer, title: string): integer
 ---@field last_used_terminal integer
+---@field last_used_ai_terminal integer
 ---@field commands table<integer, string>
 M.terminal_state = {
   win = nil,
@@ -151,6 +152,7 @@ M.terminal_state = {
   layout = DEFAULT_LAYOUT,
   create_window = create_vsplit_window,
   last_used_terminal = 1,
+  last_used_ai_terminal = 1,
   commands = {},
 }
 
@@ -239,7 +241,7 @@ function M.get_current()
 end
 
 -- Get or create terminal buffer (or kitty window)
----@param id integer
+---@param id integer|string
 ---@return integer
 local function get_or_create_terminal_buffer(id)
   local buffer_entry = M.terminal_state.buffers[id]
@@ -294,8 +296,17 @@ local function get_or_create_terminal_buffer(id)
   return buf
 end
 
+---@param buf integer?
+---@return boolean
+function M.is_ai_terminal_buffer(buf)
+  return buf ~= nil
+    and vim.api.nvim_buf_is_valid(buf)
+    and vim.bo[buf].buftype == "terminal"
+    and vim.b[buf].mnf_terminal_kind == "ai"
+end
+
 -- Toggle terminal
----@param id integer
+---@param id integer|string
 ---@return nil
 function M.toggle_terminal(id)
   M.terminal_state.last_used_terminal = id
@@ -367,6 +378,43 @@ function M.toggle_terminal(id)
   vim.cmd("startinsert")
 end
 
+---@param id integer
+---@return nil
+function M.toggle_ai_terminal(id)
+  if type(id) ~= "number" or id < 1 or id > 9 or id % 1 ~= 0 then
+    M.notify("AI terminal id must be an integer from 1 to 9", vim.log.levels.ERROR)
+    return
+  end
+  if use_external_kitty then
+    M.notify("AI terminal slots require integrated Neovim terminals", vim.log.levels.ERROR)
+    return
+  end
+
+  local state_id = "ai:" .. id
+  M.terminal_state.last_used_ai_terminal = id
+  local last_used_terminal = M.terminal_state.last_used_terminal
+  M.toggle_terminal(state_id)
+  M.terminal_state.last_used_terminal = last_used_terminal
+
+  local buffer_entry = M.terminal_state.buffers[state_id]
+  local buf = buffer_entry and buffer_entry.buf
+  if buf and vim.api.nvim_buf_is_valid(buf) then
+    -- Keep Neovim's native terminal buftype and add a semantic buffer type.
+    vim.b[buf].mnf_terminal_kind = "ai"
+    vim.b[buf].mnf_ai_terminal_id = id
+    vim.b[buf].mnf_terminal_id = nil
+  end
+end
+
+---@return integer
+function M.get_last_used_ai_terminal()
+  local buf = vim.api.nvim_get_current_buf()
+  if M.is_ai_terminal_buffer(buf) then
+    M.terminal_state.last_used_ai_terminal = tonumber(vim.b[buf].mnf_ai_terminal_id) or 1
+  end
+  return M.terminal_state.last_used_ai_terminal
+end
+
 -- Toggle layout with smooth transition
 -- TODO: Make this cycle layout instead
 -- TODO: Layout config integration with kitty terminals is challenging because
@@ -412,7 +460,9 @@ function M.toggle_layout()
   end
   vim.api.nvim_win_close(current_tab_win, false)
   -- Open new one
-  M.terminal_state.win = M.terminal_state.create_window(buf, "Terminal " .. M.terminal_state.current .. " ")
+  local ai_id = M.is_ai_terminal_buffer(buf) and tonumber(vim.b[buf].mnf_ai_terminal_id) or nil
+  local title = ai_id and ("AI " .. ai_id .. " ") or ("Terminal " .. M.terminal_state.current .. " ")
+  M.terminal_state.win = M.terminal_state.create_window(buf, title)
   vim.cmd("startinsert")
 end
 
@@ -678,8 +728,9 @@ local function terminal_buffer_display_name(buf)
   return name
 end
 
+---@param kind? "ai"|"terminal"
 ---@return table[]
-local function collect_terminal_buffers()
+local function collect_terminal_buffers(kind)
   local entries = {}
   local current_tab = vim.api.nvim_get_current_tabpage()
   local current_wins = vim.api.nvim_tabpage_list_wins(current_tab)
@@ -689,7 +740,9 @@ local function collect_terminal_buffers()
   end
 
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "terminal" then
+    local is_ai = M.is_ai_terminal_buffer(buf)
+    local matches_kind = kind == "ai" and is_ai or kind ~= "ai" and not is_ai
+    if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "terminal" and matches_kind then
       local wins = vim.fn.win_findbuf(buf)
       local tabs_set = {}
       local tabs = {}
@@ -759,11 +812,11 @@ end
 
 -- Terminal buffer picker (all term:// buffers)
 ---@param callback fun(buf: integer): nil
----@param opts? {on_shift?: fun(buf: integer): nil, prompt?: string, shift_desc?: string}
+---@param opts? {on_shift?: fun(buf: integer): nil, prompt?: string, shift_desc?: string, kind?: "ai"|"terminal"}
 function M.pick_terminal_buffer(callback, opts)
   opts = opts or {}
   local items = {}
-  for _, entry in ipairs(collect_terminal_buffers()) do
+  for _, entry in ipairs(collect_terminal_buffers(opts.kind)) do
     local indicator = entry.visible_in_current_tab and "●" or (entry.has_windows and "○" or " ")
     local tabs = #entry.tabs > 0 and ("T:" .. table.concat(entry.tabs, ",")) or "hidden"
     local display = string.format("%s %s (buf %d) · %s", indicator, entry.name, entry.buf, tabs)
@@ -886,6 +939,20 @@ local function terminal_id_for_buffer(buf)
 end
 
 ---@param buf integer
+---@param id integer|string?
+local function remember_focused_terminal(buf, id)
+  if id == nil then
+    return
+  end
+  M.terminal_state.current = id
+  if M.is_ai_terminal_buffer(buf) then
+    M.terminal_state.last_used_ai_terminal = tonumber(vim.b[buf].mnf_ai_terminal_id) or 1
+  else
+    M.terminal_state.last_used_terminal = id
+  end
+end
+
+---@param buf integer
 ---@return nil
 function M.show_terminal_buffer(buf)
   if not (buf and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal") then
@@ -893,13 +960,11 @@ function M.show_terminal_buffer(buf)
   end
 
   local id = terminal_id_for_buffer(buf)
-  if id ~= nil then
-    M.terminal_state.last_used_terminal = id
-    M.terminal_state.current = id
-  end
+  remember_focused_terminal(buf, id)
 
   apply_tab_layout()
-  local title = id and (" Terminal " .. id .. " ") or " Terminal "
+  local ai_id = M.is_ai_terminal_buffer(buf) and tonumber(vim.b[buf].mnf_ai_terminal_id) or nil
+  local title = ai_id and (" AI " .. ai_id .. " ") or (id and (" Terminal " .. id .. " ") or " Terminal ")
   local win = current_tab_terminal_win()
   if win then
     M.terminal_state.win = win
@@ -921,10 +986,7 @@ focus_terminal_buffer = function(buf)
     return
   end
   local focused_id = terminal_id_for_buffer(buf)
-  if focused_id ~= nil then
-    M.terminal_state.last_used_terminal = focused_id
-    M.terminal_state.current = focused_id
-  end
+  remember_focused_terminal(buf, focused_id)
 
   local reusable_win = current_tab_terminal_win()
   if reusable_win then
@@ -968,6 +1030,13 @@ function M.pick_and_focus_terminal_buffer()
   M.pick_terminal_buffer(function(buf)
     focus_terminal_buffer(buf)
   end)
+end
+
+---@return nil
+function M.pick_and_focus_ai_terminal_buffer()
+  M.pick_terminal_buffer(function(buf)
+    focus_terminal_buffer(buf)
+  end, { kind = "ai", prompt = "Select AI Terminal Buffer:" })
 end
 
 -- Terminal picker function
@@ -1015,13 +1084,16 @@ end
 
 ---@return integer
 function M.get_last_used_terminal()
+  if M.is_ai_terminal_buffer(vim.api.nvim_get_current_buf()) then
+    return M.terminal_state.last_used_terminal
+  end
   local focused_id = terminal_id_for_buffer(vim.api.nvim_get_current_buf())
   if focused_id ~= nil then
     M.terminal_state.last_used_terminal = focused_id
     M.terminal_state.current = focused_id
     return focused_id
   end
-  if M.terminal_state.current ~= nil then
+  if type(M.terminal_state.current) == "number" then
     return M.terminal_state.current
   end
   return M.terminal_state.last_used_terminal

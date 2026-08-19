@@ -1445,6 +1445,18 @@ local function editor_close(editor, finish_action)
     pcall(vim.api.nvim_set_current_win, return_win)
   end
 
+  if finish_action == "save" then
+    vim.schedule(function()
+      local mode = vim.api.nvim_get_mode().mode
+      if mode:sub(1, 1) == "t" then
+        local keys = vim.api.nvim_replace_termcodes("<C-\\><C-n>", true, false, true)
+        vim.api.nvim_feedkeys(keys, "n", false)
+      elseif mode:sub(1, 1) == "i" then
+        vim.cmd("stopinsert")
+      end
+    end)
+  end
+
   if finish_action then
     vim.schedule(function()
       callback(finish_action, cfg)
@@ -1983,16 +1995,23 @@ end
 ---@param event? table
 ---@return string?
 local function session_event_path(event)
-  if event and event.file and event.file ~= "" then
-    return event.file
-  end
+  local session_path
   if vim.v.this_session and vim.v.this_session ~= "" then
-    return vim.v.this_session
+    session_path = vim.v.this_session
+  elseif event and event.file and event.file ~= "" then
+    session_path = event.file
+  elseif event and event.match and event.match ~= "" then
+    session_path = event.match
   end
-  if event and event.match and event.match ~= "" then
-    return event.match
+
+  if not session_path then
+    return nil
   end
-  return nil
+
+  local current_path = buf_abspath(0)
+  local session_abs = vim.fn.fnamemodify(session_path, ":p")
+  session_abs = vim.uv.fs_realpath(session_abs) or session_abs
+  return current_path ~= session_abs and session_path or nil
 end
 
 ---@return boolean
@@ -2158,7 +2177,10 @@ function M.setup_session(opts)
     vim.api.nvim_create_autocmd("SessionWritePost", {
       group = group,
       callback = function(event)
-        M.session_save({ quiet = true, session_path = session_event_path(event) })
+        local session_path = session_event_path(event)
+        if session_path then
+          M.session_save({ quiet = true, session_path = session_path })
+        end
       end,
       desc = "Persist jobs_refactor definitions alongside :mksession",
     })
@@ -2168,7 +2190,10 @@ function M.setup_session(opts)
     vim.api.nvim_create_autocmd("SessionLoadPost", {
       group = group,
       callback = function(event)
-        M.session_load({ quiet = true, replace = true, session_path = session_event_path(event) })
+        local session_path = session_event_path(event)
+        if session_path then
+          M.session_load({ quiet = true, replace = true, session_path = session_path })
+        end
       end,
       desc = "Restore jobs_refactor definitions after loading a session",
     })

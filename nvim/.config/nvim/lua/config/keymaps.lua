@@ -55,12 +55,20 @@ end, { expr = true })
 -- Visual paste P be like p but not overrite the yank register
 vim.keymap.set("x", "P", '"_dp', { silent = true, desc = "Paste without yanking selection" })
 
-vim.keymap.set(
-  { "n" },
-  "<leader>\\",
-  "<Cmd>vsplit +terminal<CR>",
-  { desc = "Open new terminal in new vertical split." }
-)
+vim.keymap.set("n", "yp", function()
+  local path = vim.api.nvim_buf_get_name(0)
+  if path == "" then
+    vim.notify_once("Current buffer has no file path", vim.log.levels.WARN)
+    return
+  end
+
+  vim.fn.setreg("+", path)
+  vim.notify_once("Yanked path to +: " .. path, vim.log.levels.INFO)
+end, { desc = "Yank buffer path to +" })
+
+vim.keymap.set({ "n" }, "<leader>\\", function()
+  require("mnf.terminal.managed").pick_and_focus_ai_terminal_buffer()
+end, { desc = "AI Terminal Buffers" })
 
 local function existing_dir(path)
   if not path or path == "" then
@@ -253,6 +261,11 @@ vim.keymap.set({ "n" }, "<leader>,", function()
   Snacks.picker.buffers()
 end, { desc = "Find buffers" })
 del({ "n" }, "f")
+
+vim.keymap.set({ "n" }, "f,", function()
+  Snacks.picker.buffers()
+end, { desc = "Find buffers" })
+
 -- This is causing a ton of tabs to be created
 -- vim.keymap.set(
 --   { "n" },
@@ -274,9 +287,6 @@ del({ "n" }, "f")
 vim.keymap.set("n", "<C-t>", "<Cmd>tabnew<CR>", { desc = "New Tab" })
 vim.keymap.set("n", "H", "<Cmd>tabprev<CR>", { desc = "Previous Tab" })
 vim.keymap.set("n", "L", "<Cmd>tabnext<CR>", { desc = "Next Tab" })
-vim.keymap.set({ "n" }, "<leader><Tab>", function()
-  Snacks.picker.tabs()
-end, { desc = "Search open tabs", noremap = true, silent = true })
 vim.keymap.set({ "n" }, "<Tab>f", function()
   Snacks.picker.tabs()
 end, { desc = "Search open tabs", noremap = true, silent = true })
@@ -391,6 +401,7 @@ map({ "t", "i" }, "<C-l>", function(e)
   vim.cmd("stopinsert")
   require("smart-splits").move_cursor_right()
 end)
+
 -- <S-C-H> and <S-C-L>
 vim.keymap.set({ "n", "i", "v" }, "<C-S-l>", function()
   local ls = require("luasnip")

@@ -386,8 +386,8 @@ vim.api.nvim_create_user_command("ScratchPython", function()
 end, { desc = "Python scratch buffer" })
 
 vim.api.nvim_create_user_command("ScratchPythonRoot", function(cmd)
-  require("mnf.scratch.python").set_uv_root(cmd.args ~= "" and cmd.args or nil)
-end, { nargs = "?", complete = "dir", desc = "Set Python scratch uv root" })
+  require("mnf.scratch.python").set_uv_root(cmd.args)
+end, { nargs = 1, complete = "dir", desc = "Set Python scratch uv root" })
 
 vim.api.nvim_create_user_command("ScratchJavaScript", function()
   vim.cmd("Scratch javascript")
@@ -568,36 +568,6 @@ return {
         --- gets the q --> quit keymap. That will require adding a BufWinEnter to add q to the buffer
         --- and BufWinLeave to remove it, so that the buffer is not effeced anywhere else.
         big_float = { position = "float", width = 0.86, height = 0.86, fixbuf = false, w = { snacks_main = true } },
-        -- NOTE: We need to be careful here
-        -- as zenmode will not restore the c-h etc. mappings once left
-        -- See the `HACK` below on `on_close`.
-        zen = {
-          keys = {
-            ["<C-h>"] = "",
-            ["<C-j>"] = "",
-            ["<C-k>"] = "",
-            ["<C-l>"] = "",
-            ["<leader>ua"] = {
-              ---@param self snacks.win
-              function(self)
-                local statusline = self.meta.statusline
-                vim.notify("Zen sline: " .. (statusline or "nil"))
-                if statusline == false or statusline == nil then
-                  statusline = true
-                else
-                  statusline = false
-                end
-                vim.schedule(function()
-                  require("snacks").zen()
-                  require("snacks").zen({
-                    show = { statusline = statusline },
-                    win = { meta = { statusline = statusline } },
-                  })
-                end)
-              end,
-            },
-          },
-        },
       },
       zen = {
         toggles = {
@@ -609,55 +579,14 @@ return {
         },
         win = {
           width = 0.6, -- or a fixed column count (e.g. 120)
+          -- Keep <C-h/j/k/l> global; Snacks window keys are buffer-local and scratch buffers persist.
+          -- keys = { ["<C-h>"] = false, ["<C-j>"] = false, ["<C-k>"] = false, ["<C-l>"] = false },
           backdrop = {
             transparent = false,
             -- 99 ~= match current buffer bg; you can tweak between 90–99
             blend = 99,
           },
         },
-        ---@param win snacks.win
-        -- HACK: See below for why this is important window navigation given
-        -- i disable the relativent buttons in zen mode
-        -- as zenmode will not restore the c-h etc. mappings once left
-        on_close = function(win)
-          vim.keymap.set({ "n", "v" }, "<C-h>", function()
-            require("smart-splits").move_cursor_left()
-          end, { buffer = win.buf })
-          vim.keymap.set({ "n", "v" }, "<C-j>", function()
-            require("smart-splits").move_cursor_down()
-          end, { buffer = win.buf })
-          vim.keymap.set({ "n", "v" }, "<C-k>", function()
-            require("smart-splits").move_cursor_up()
-          end)
-          vim.keymap.set({ "n", "v" }, "<C-l>", function(e)
-            require("smart-splits").move_cursor_right()
-          end, { buffer = win.buf })
-          --- The splits in insert mode
-          vim.keymap.set({ "i", "t" }, "<C-h>", function()
-            vim.cmd("stopinsert")
-            require("smart-splits").move_cursor_left()
-          end, { buffer = win.buf })
-          vim.keymap.set({ "t", "i" }, "<C-j>", function()
-            vim.cmd("stopinsert")
-            require("smart-splits").move_cursor_down()
-          end, { buffer = win.buf })
-          vim.keymap.set({ "t", "i" }, "<C-k>", function()
-            vim.cmd("stopinsert")
-            require("smart-splits").move_cursor_up()
-          end)
-          vim.keymap.set({ "t", "i" }, "<C-l>", function(e)
-            local ls = require("luasnip")
-            if ls.choice_active() then
-              ls.change_choice(1)
-              return true
-            end
-            vim.cmd("stopinsert")
-            require("smart-splits").move_cursor_right()
-          end, { buffer = win.buf })
-          pcall(function()
-            vim.keymap.del("n", "<leader>ua", { buffer = win.buf })
-          end)
-        end,
       },
       ---@type snacks.lazygit.Config
       lazygit = {
@@ -704,6 +633,20 @@ return {
       --     - transform: post-process (e.g., unique_file to dedupe).
       -- image = {},
       picker = {
+        -- Snacks defaults to `○` for modified and `?` for untracked. Use the
+        -- same unambiguous Codicons as the existing Neo-tree configuration.
+        icons = {
+          git = {
+            staged = "",
+            added = "",
+            deleted = "",
+            ignored = "",
+            modified = "",
+            renamed = "",
+            unmerged = "",
+            untracked = "",
+          },
+        },
         -- Main target window (where `<CR>` opens the selection). This is a global default for all pickers.
         -- Snacks normally prefers a "file" window and will skip `buftype ~= ""` (e.g. `:terminal`), which can make
         -- selections open in some other split when you launch a picker from a terminal. `current=true` pins it.
@@ -857,6 +800,24 @@ return {
             picker.list:set_target()
             picker:find()
           end,
+          cycle_file_visibility = function(picker)
+            local hidden = picker.opts.hidden == true
+            local ignored = picker.opts.ignored == true
+
+            if not hidden and not ignored then
+              picker.opts.hidden = true
+              picker.opts.ignored = false
+            elseif hidden and not ignored then
+              picker.opts.hidden = true
+              picker.opts.ignored = true
+            else
+              picker.opts.hidden = false
+              picker.opts.ignored = false
+            end
+
+            picker.list:set_target()
+            picker:find()
+          end,
           cycle_buffers_filter = function(picker)
             local filter = picker.input and picker.input.filter
             if not filter then
@@ -963,8 +924,8 @@ return {
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<C-y>"] = { "confirm", mode = { "i", "n" } },
               ["<C-o>"] = { "edit_split", mode = { "i", "n" } },
-              ["<C-s>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
-              ["<C-v>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
+              ["<C-s>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
+              ["<C-v>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
               ["?"] = { "toggle_help_input", mode = { "n" } },
               -- TODO: ["<C-u>"] = { "disabled", mode = { "i", "n" } },
               ["<C-u>"] = false,
@@ -1017,11 +978,13 @@ return {
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["?"] = { "toggle_help_list", mode = { "i", "n" } },
-              ["<C-s>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
-              ["<C-v>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
+              ["<C-s>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
+              ["<C-v>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
               ["<C-t>"] = { "tab", mode = { "i", "n" }, desc = "Edit in new tab" },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
               ["<c-space>"] = { "select_only", mode = { "n", "i" } },
+              ["<C-d>"] = { "list_scroll_down", mode = { "i", "n" }, desc = "Page down" },
+              ["<C-u>"] = { "list_scroll_up", mode = { "i", "n" }, desc = "Page up" },
               ["<C-h>"] = false,
               ["<C-j>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = { "focus_input", mode = { "i", "n" }, desc = "Picker focus up" },
@@ -1031,43 +994,6 @@ return {
             }),
           },
           preview = {
-            -- on_close = function(win)
-            --   -- vim.keymap.del({ "i", "n" }, "<C-h>", { buffer = win.buf })
-            --   -- vim.keymap.del({ "i", "n" }, "<C-l>", { buffer = win.buf })
-            --   -- vim.keymap.del({ "i", "n" }, "<C-j>", { buffer = win.buf })
-            --   -- vim.keymap.del({ "i", "n" }, "<C-k>", { buffer = win.buf })
-            --
-            --   vim.keymap.set({ "n", "v" }, "<C-h>", "<C-w><C-h>", { buffer = win.buf })
-            --   vim.keymap.set({ "n", "v" }, "<C-j>", "<C-w><C-j>", { buffer = win.buf })
-            --   vim.keymap.set({ "n", "v" }, "<C-k>", "<C-w><C-k>", { buffer = win.buf })
-            --   vim.keymap.set({ "n", "v" }, "<C-l>", "<C-w><c-l>", { buffer = win.buf })
-            --   --- The splits in insert mode
-            --   vim.keymap.set({ "i", "t" }, "<C-h>", function()
-            --     vim.cmd("stopinsert")
-            --     return "<C-w><C-h>"
-            --     -- require("smart-splits").move_cursor_left()
-            --   end, { buffer = win.buf })
-            --   vim.keymap.set({ "t", "i" }, "<C-j>", function()
-            --     vim.cmd("stopinsert")
-            --     return "<C-w><C-j>"
-            --     -- require("smart-splits").move_cursor_down()
-            --   end, { buffer = win.buf })
-            --   vim.keymap.set({ "t", "i" }, "<C-k>", function()
-            --     vim.cmd("stopinsert")
-            --     return "<C-w><C-k>"
-            --     -- require("smart-splits").move_cursor_up()
-            --   end)
-            --   vim.kemap.set({ "t", "i" }, "<C-l>", function(e)
-            --     local ls = require("luasnip")
-            --     if ls.choice_active() then
-            --       ls.change_choice(1)
-            --       return true
-            --     end
-            --     vim.cmd("stopinsert")
-            --     return "<C-w><C-l>"
-            --   end, { buffer = win.buf })
-            --   vim.keymap.del({ "i", "n" }, "<Esc>", { buffer = win.buf })
-            -- end,
             keys = picker_preview_option_keys({
               -- WARN: Note rn there is a nto so great bug that
               -- where all of these keymaps will be added to buffer local maps
@@ -1211,6 +1137,20 @@ return {
               buf_all = { icon = "A" },
             },
             actions = {
+              confirm = function(picker, item, action)
+                local buf = item and item.buf
+                require("snacks.picker.actions").jump(picker, item, action)
+                vim.schedule(function()
+                  if
+                    buf
+                    and vim.api.nvim_buf_is_valid(buf)
+                    and vim.api.nvim_get_current_buf() == buf
+                    and vim.bo[buf].buftype == "terminal"
+                  then
+                    vim.cmd("startinsert")
+                  end
+                end)
+              end,
               bufdelete_force_term = function(picker)
                 picker.preview:reset()
                 for _, item in ipairs(picker:selected({ fallback = true })) do
@@ -1411,7 +1351,7 @@ return {
                   return bt == ""
                 end
                 if level == 2 then
-                  return bt == "terminal"
+                  return bt == "terminal" and vim.b[item.buf].mnf_terminal_kind ~= "ai"
                 end
                 return true
               end,
@@ -1669,8 +1609,8 @@ return {
                   ["<c-x>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-g>c"] = { "scratch_toggle_cwd", mode = { "n", "i" }, desc = "Toggle cwd filter" },
                   ["<C-t>"] = { "tab", mode = { "n", "i" }, desc = "Edit in new tab" },
-                  ["<C-s>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
-                  ["<C-v>"] = { "scratch_open_split", mode = { "n", "i" } },
+                  ["<C-s>"] = { "scratch_open_split", mode = { "n", "i" } },
+                  ["<C-v>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
                 },
               },
               list = {
@@ -1898,7 +1838,7 @@ return {
               input = {
                 keys = {
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
-                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
                   ["<C-l>"] = false,
                   ["<C-d>"] = {
                     { "focus_list", "list_scroll_down" },
@@ -1918,8 +1858,10 @@ return {
                 keys = {
                   ["<C-y>"] = { "confirm", mode = { "n", "i" }, desc = "Confirm & close" },
                   ["<Right>"] = { "confirm", mode = { "n" }, desc = "Confirm" },
-                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
                   ["<C-l>"] = false,
+                  ["y"] = false,
+                  ["yp"] = { "explorer_yank", mode = { "n", "x" }, desc = "Yank path" },
                   ["<C-w>"] = {
                     "toggle_left_dropdown_layout",
                     mode = { "n", "i" },
@@ -2008,7 +1950,7 @@ return {
         end, desc = "Notification History"
       },
       { "<leader>e", function() Snacks.picker.explorer() end, desc = "File explorer" },
-      { "<leader>r", function() Snacks.picker.explorer({ layout = "vertical" }) end, desc = "File explorer (center)" },
+      { "<leader>r", function() Snacks.picker.explorer({ layout = "vertical", focus = "input", jump = { close = true } }) end, desc = "File explorer (center)" },
       { "<leader>E", function()
         local bufname = vim.api.nvim_buf_get_name(0)
         local dir = bufname ~= "" and vim.fs.dirname(bufname) or vim.fn.getcwd()
