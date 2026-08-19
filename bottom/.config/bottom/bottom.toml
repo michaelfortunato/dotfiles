@@ -1,0 +1,43 @@
+[flags]
+default_widget_type = "proc"
+rate = "1s"
+retention = "5m"
+default_time_value = "2m"
+hide_table_gap = true
+show_table_scroll_position = true
+process_command = true
+process_memory_as_value = true
+unnormalized_cpu = true
+enable_cache_memory = true
+memory_legend = "top-left"
+network_legend = "top-left"
+network_use_bytes = true
+
+[cpu]
+default = "average"
+
+[processes]
+columns = ["PID", "Name", "CPU%", "Mem%", "R/s", "W/s", "User", "State", "Time"]
+
+[disk]
+columns = ["Mount", "Used%", "Free", "Total", "R/s", "W/s"]
+
+[[row]]
+ratio = 28
+[[row.child]]
+type = "cpu"
+
+[[row]]
+ratio = 22
+[[row.child]]
+type = "mem"
+[[row.child]]
+type = "disk"
+[[row.child]]
+type = "net"
+
+[[row]]
+ratio = 50
+[[row.child]]
+type = "proc"
+default = true

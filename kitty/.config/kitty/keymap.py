@@ -31,6 +31,10 @@ Shortcut2Defn: TypeAlias = dict[Shortcut, str]
 ShortcutRepr: TypeAlias = str
 ActionMap: TypeAlias = dict[str, list[ShortcutRepr]]
 
+action_notes: Final[dict[str, str]] = {
+    "detach_tab": "move the current tab to a new OS window",
+}
+
 
 def main(args: list[str]) -> Union[str, None]:
     pass
@@ -72,7 +76,9 @@ def handle_result(args: list[str], answer: str, target_window_id: int, boss: Bos
                 )
                 key_repr = f"{key_repr} {action_fmt}"
             else:
-                key_repr = f"{key_repr} {action}"
+                note = action_notes.get(action)
+                action_with_note = f"{action} — {note}" if note else action
+                key_repr = f"{key_repr} {action_with_note}"
 
             if mode_name != "default":
                 mn = f"Mode {mode_name}"

@@ -218,9 +218,6 @@ e() {
     command nvim "$@"
   fi
 }
-neovide() {
-  command open -W -n -b com.neovide.neovide --env "PATH=$PATH" --args --chdir "$PWD" "$@"
-}
 alias c="clear"
 alias ls='ls -G -ht'
 alias la='ls -lAht' #long list,show almost all,show type,human readable,sorted by date
@@ -265,7 +262,17 @@ alias dotconfig='(builtin cd "$HOME/dotfiles" && "${EDITOR:-nvim}")'
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
 #TODO: Do we need to make this smarter?
 alias yazi="y"
+btm() {
+  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_bottom:tui=1\033\\' > /dev/tty
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_BOTTOM=MQ==\007' > /dev/tty
+  command btm -C "$HOME/dotfiles/bottom/.config/bottom/bottom.toml" "$@"
+  local ret=$?
+  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_bottom:tui=0\033\\' > /dev/tty
+  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_BOTTOM\007' > /dev/tty
+  return $ret
+}
 alias htop="btm" # You are crazy for this one!
+alias btop="btm"
 alias icat="kitten icat" # to see images
 # be more like bash
 alias help='run-help'
@@ -273,6 +280,7 @@ alias help='run-help'
 alias pyspy='py-spy'
 alias codexconf='(builtin cd "$HOME/.codex" && "${EDITOR:-nvim}" config.toml)'
 alias cm='codex -m gpt-5.5'
+alias rust-repl='evcxr'
 # Experimental
 alias kickstart-nvim='NVIM_APPNAME="kickstart-nvim" nvim'
 #---unaliases-------------------------------------------------------------------
@@ -1003,6 +1011,20 @@ _mnf_cache_zsh_source() {
   [[ -r "$1" ]] && source "$1"
 }
 
+_mnf_cache_am_source() {
+  local cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init/am.zsh"
+  local am_cmd="${commands[am]}"
+  local watch_file="$am_cmd"
+  local am_config_dir="$HOME/.config/amoxide"
+  local file
+
+  for file in "$am_config_dir"/config.toml "$am_config_dir"/profiles.toml "$am_config_dir"/session.toml; do
+    [[ -f "$file" && "$file" -nt "$watch_file" ]] && watch_file="$file"
+  done
+
+  _mnf_cache_zsh_source "$cache_file" "$watch_file" "$am_cmd" init zsh
+}
+
 # _mnf_cache_completion <cmd> <func> <generator...>
 # - cmd: command name to attach completion to
 # - func: completion file/function name; keep the leading `_` because zsh
@@ -1045,6 +1067,7 @@ _mnf_cache_completion() {
 (( ${+commands[mnf]} )) && _mnf_cache_completion mnf _clap_dynamic_completer_mnf mnf completion zsh
 # We need this here, can't do the chached route
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+(( ${+commands[am]} )) && _mnf_cache_am_source
 
 export GPG_TTY=$TTY
 if (( ${+commands[gpg-connect-agent]} )); then
@@ -1067,3 +1090,7 @@ unset _mnf_gpg_agent_ssh_sock
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Added by git-ai installer on Wed May  6 10:45:45 EDT 2026
+export PATH="/Users/michaelfortunato/.git-ai/bin:$PATH"
+. "$HOME/.cargo/env"
