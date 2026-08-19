@@ -919,6 +919,13 @@ c.content.fullscreen.window = True
 ## always the global value.
 ## Type: FormatString
 # c.content.headers.user_agent = 'Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {upstream_browser_key}/{upstream_browser_version_short} Safari/{webkit_version}'
+# QtWebEngine 6.11 is based on Chromium 140, which Gmail considers stale.
+# Advertise a recent stable Chrome major while retaining qutebrowser's
+# runtime-derived OS and WebKit fields.
+c.content.headers.user_agent = (
+    "Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} "
+    "(KHTML, like Gecko) Chrome/150.0.0.0 Safari/{webkit_version}"
+)
 
 ## Enable hyperlink auditing (`<a ping>`).
 ## Type: Bool
