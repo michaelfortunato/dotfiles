@@ -17,8 +17,9 @@ gui:
   showBottomLine: true
   # Diff-flow test: allow the startup tip so this block has one more easy review target.
   showRandomTip: true
+  # Start in the layout otherwise reached by pressing + once (nextScreenMode).
+  screenMode: half
   # Candidate layout toggles to revisit after using the current split for a while:
-  # screenMode: half
   # splitDiff: always
   # border: single
   # showPanelJumps: false
@@ -32,6 +33,22 @@ git:
     # Force inline diffs in lazygit even though global delta config uses side-by-side.
     - pager: delta --paging=never --no-gitconfig --navigate --line-numbers --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}" --file-decoration-style="blue ul" --hunk-header-decoration-style="blue box" --hunk-header-style="file line-number syntax"
     - externalDiffCommand: difft --color=always
+customCommands:
+  - key: "T"
+    context: "files"
+    description: "Resolve conflict with CodeDiff"
+    command: "git mergetool --tool=codediff -- {{.SelectedFile.Name | quote}}"
+    output: terminal
+    after:
+      checkForConflicts: true
+  - key: "i"
+    context: "files"
+    description: "Add file to .gitignore"
+    command: "sh -c 'p=$1; touch .gitignore || exit; grep -qxF \"$p\" .gitignore || printf \"%s\\n\" \"$p\" >> .gitignore' sh {{.SelectedFile.Name | quote}}"
+  - key: "I"
+    context: "files"
+    description: "Add file to .git/info/exclude"
+    command: "sh -c 'p=$1; f=$(git rev-parse --git-path info/exclude) || exit; mkdir -p \"$(dirname \"$f\")\" || exit; grep -qxF \"$p\" \"$f\" 2>/dev/null || printf \"%s\\n\" \"$p\" >> \"$f\"' sh {{.SelectedFile.Name | quote}}"
 keybinding:
   universal:
     # should really be gg but this works
@@ -54,7 +71,11 @@ keybinding:
     scrollUpMain-alt2: <disabled>
     # no need for it, swapped pgdown with <c-d>
     scrollDownMain-alt2: <disabled>
+    edit: e
+    openFile: o
   files:
+    # Replaced by custom commands: i -> .gitignore, I -> .git/info/exclude.
+    ignoreFile: <disabled>
     # frees up <c-f>
     findBaseCommitForFixup: <disabled>
     # frees up <c-b>
