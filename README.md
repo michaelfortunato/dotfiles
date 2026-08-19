@@ -376,7 +376,22 @@ echo 'export EDITOR="nvim"' >> ~/.zshrc
 
 [shpool](https://github.com/shell-pool/shpool) is what we want, not some
 complicated solution. It does exactly what we want. I would use it on macOS
-if I could (see [shpool#183](https://github.com/shell-pool/shpool/issues/183))
+if I could (see [shpool#183](https://github.com/shell-pool/shpool/issues/183))A
+
+## Nix on macOS zsh
+
+If macOS update reset a system startup file that Nix had patched, Nix can still be
+installed while `nix` and `~/.nix-profile/bin` are missing from new shells.
+
+<https://github.com/NixOS/nix/issues/3616>
+
+Run `sudo vim /etc/zshrc` and put the following at the bottom of the file:
+
+```zsh
+if [[ -r /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
+  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+fi
+```  
 
 [1]: https://www.reddit.com/r/linuxquestions/comments/kflzb3/a_noobs_guide_to_linux_ricing/
 [2]: https://www.gnu.org/software/stow/manual/stow.html
