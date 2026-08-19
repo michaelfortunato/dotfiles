@@ -1,0 +1,14 @@
+aerospace/.aerospace.toml
+  h_09c090fe28971a 255-259,317-320
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b7d59a34ab79f26c77c1ad22bf300d3997a34f71",
+  "prompts": {},
+  "humans": {
+    "h_09c090fe28971a": {
+      "author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
