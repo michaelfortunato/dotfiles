@@ -1,0 +1,39 @@
+lazygit/.config/lazygit/config.yml
+  s_5ff55ac56ed2cd::t_ae859c2364b5a7 47
+  s_281070c94a8c1d::t_611e5346120f61 36-43,75
+  s_5ff55ac56ed2cd::t_4c06dbf7141b92 44-46,48-50,74,77-78
+  s_79ad2e7502cfbd::t_e3fbe39a5afa78 20-21
+  s_5ff55ac56ed2cd::t_ba2a5cbf6720b4 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "c9661eba25b90e3cc9a2407ad5bcd4fff595f119",
+  "prompts": {},
+  "sessions": {
+    "s_281070c94a8c1d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e3d13-71cb-71a2-8d91-9dd05d5a1e8a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_5ff55ac56ed2cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f231d-abef-7e50-a4cf-9d21920970bc",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_79ad2e7502cfbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9698d29f-6cd4-4d64-9f03-13217c0ea12e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
