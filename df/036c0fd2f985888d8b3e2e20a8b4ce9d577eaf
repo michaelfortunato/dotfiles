@@ -1,0 +1,14 @@
+README.md
+  h_09c090fe28971a 379-394
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "df036c0fd2f985888d8b3e2e20a8b4ce9d577eaf",
+  "prompts": {},
+  "humans": {
+    "h_09c090fe28971a": {
+      "author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
