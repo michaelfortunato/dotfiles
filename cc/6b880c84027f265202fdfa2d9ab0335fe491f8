@@ -1,0 +1,77 @@
+kitty/.config/kitty/keymap.py
+  s_b59e38a3d0520a::t_89942578d3c9cd 34-37,79-81
+kitty/.config/kitty/kitty.conf
+  s_70f4e3edab752d::t_6728708c8238bf 180-184
+  s_ce32abf979250e::t_059af21b591886 58
+zsh/.zshrc
+  4bc0c9636f0520ae 1014-1027,1070
+  s_70f4e3edab752d::t_6728708c8238bf 266-267,269-272
+  s_f7ac878be9bae6::t_c38c4712d3b2a0 265,268,273,275
+  s_c0010b0b282db5::t_528b96aa796d4a 1093-1095
+  s_c0010b0b282db5::t_18240c9f4385a7 1096
+  s_70f4e3edab752d::t_11791e181e62c8 283
+bottom/.config/bottom/bottom.toml
+  s_f7ac878be9bae6::t_c38c4712d3b2a0 1-3,6-10,12-14
+  s_f7ac878be9bae6::t_ecba3c211e8f46 4-5,11,15-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "cc6b880c84027f265202fdfa2d9ab0335fe491f8",
+  "prompts": {
+    "4bc0c9636f0520ae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dc05c-82ff-7382-b603-bdad9993ffea",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 13,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_70f4e3edab752d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01aa8-a9f2-7652-b4de-00cf6699f639",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_b59e38a3d0520a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fddf7-144d-7172-9fd8-025a2e323bf9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_c0010b0b282db5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dfde3-71b9-77d1-a5ca-011560cc6504",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_ce32abf979250e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe7d8-cb1b-7923-8532-98f1a70a39a0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_f7ac878be9bae6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f49a1-ec7a-71f0-a826-74b1eb780152",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
