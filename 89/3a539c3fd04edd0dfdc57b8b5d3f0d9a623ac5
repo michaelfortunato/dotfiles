@@ -1,0 +1,22 @@
+nvim/.config/nvim/lua/plugins/dadbod.lua
+  s_f7ac878be9bae6::t_6baff32eb29732 17
+  s_f7ac878be9bae6::t_4c55a96d875b30 14-16
+  s_f7ac878be9bae6::t_c5ea350126f15f 18-20
+  s_f7ac878be9bae6::t_42c1577179636a 1-13,21-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "893a539c3fd04edd0dfdc57b8b5d3f0d9a623ac5",
+  "prompts": {},
+  "sessions": {
+    "s_f7ac878be9bae6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f49a1-ec7a-71f0-a826-74b1eb780152",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
