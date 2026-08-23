@@ -3,6 +3,214 @@
 -- FIXME: Python LSP servers only! LSP rename fails with "change_annotations must be provided for annotated text edits"
 --- Includes lsp, linting, and formatter configurations
 vim.lsp.set_log_level("ERROR")
+
+-- Keep every LSP client on the protocol's broadly supported position encoding.
+-- Without this, servers choose independently from the default
+-- UTF-8/UTF-16/UTF-32 list, which can leave one buffer attached to clients
+-- using different encodings.
+local lsp_capabilities = vim.lsp.protocol.make_client_capabilities()
+lsp_capabilities.general = vim.tbl_deep_extend("force", lsp_capabilities.general or {}, {
+  positionEncodings = { "utf-16" },
+})
+vim.lsp.config("*", { capabilities = lsp_capabilities })
+
+local function lsp_diagnostic_namespace_client_id(name)
+  return tonumber(name:match("^nvim%.lsp%..+%.(%d+)%.") or name:match("^nvim%.lsp%..+%.(%d+)$"))
+end
+
+local function reset_lsp_diagnostics(buf, is_stale)
+  if not (buf and vim.api.nvim_buf_is_valid(buf)) then
+    return
+  end
+
+  for ns, meta in pairs(vim.diagnostic.get_namespaces()) do
+    local client_id = lsp_diagnostic_namespace_client_id(meta.name or "")
+    if client_id and is_stale(client_id) then
+      vim.diagnostic.reset(ns, buf)
+    end
+  end
+end
+
+local function is_snacks_scratch_buf(buf)
+  local name = vim.api.nvim_buf_get_name(buf)
+  if name == "" then
+    return false
+  end
+
+  local root = vim.fs.normalize(vim.fn.stdpath("data") .. "/scratch")
+  name = vim.fs.normalize(name)
+  return name == root or name:find(root .. "/", 1, true) == 1
+end
+
+local function lsp_workspace_edit_uris(workspace_edit)
+  local uris = {}
+
+  if type(workspace_edit.changes) == "table" then
+    for uri in pairs(workspace_edit.changes) do
+      uris[uri] = true
+    end
+  end
+
+  if type(workspace_edit.documentChanges) == "table" then
+    for _, change in ipairs(workspace_edit.documentChanges) do
+      local text_document = change.textDocument
+      if text_document and text_document.uri then
+        uris[text_document.uri] = true
+      elseif change.kind == "rename" and change.newUri then
+        uris[change.newUri] = true
+      end
+    end
+  end
+
+  return uris
+end
+
+local function write_workspace_edit_buffers(workspace_edit, include_uri)
+  local saved = 0
+  local failed = {}
+
+  for uri in pairs(lsp_workspace_edit_uris(workspace_edit)) do
+    local buf = vim.uri_to_bufnr(uri)
+    if
+      (not include_uri or include_uri(uri))
+      and vim.api.nvim_buf_is_valid(buf)
+      and vim.api.nvim_buf_get_name(buf) ~= ""
+      and vim.bo[buf].buftype == ""
+      and vim.bo[buf].modified
+    then
+      local ok, err = pcall(vim.api.nvim_buf_call, buf, function()
+        vim.cmd("silent update")
+      end)
+      if ok then
+        saved = saved + 1
+      else
+        failed[#failed + 1] = ("%s: %s"):format(vim.uri_to_fname(uri), err)
+      end
+    end
+  end
+
+  if #failed > 0 then
+    vim.notify("LSP rename save failed:\n" .. table.concat(failed, "\n"), vim.log.levels.WARN)
+  elseif saved > 0 then
+    vim.notify(("LSP rename saved %d file%s"):format(saved, saved == 1 and "" or "s"), vim.log.levels.INFO)
+  end
+end
+
+vim.lsp.handlers["textDocument/rename"] = function(err, result, ctx)
+  if err then
+    vim.notify("LSP rename failed: " .. (err.message or tostring(err)), vim.log.levels.WARN)
+    return
+  end
+  if not result then
+    vim.notify("Language server couldn't provide rename result", vim.log.levels.INFO)
+    return
+  end
+
+  local client = vim.lsp.get_client_by_id(ctx.client_id)
+  if not client then
+    vim.notify("LSP rename failed: client disappeared", vim.log.levels.WARN)
+    return
+  end
+
+  local ok, apply_err = pcall(vim.lsp.util.apply_workspace_edit, result, client.offset_encoding)
+  if not ok then
+    vim.notify("LSP rename failed: " .. tostring(apply_err), vim.log.levels.ERROR)
+    return
+  end
+
+  write_workspace_edit_buffers(result)
+end
+
+local function setup_snacks_rename_autosave()
+  local snacks_rename = require("snacks.rename")
+  if snacks_rename["_mnf_saves_lsp_file_rename_edits"] then
+    return
+  end
+  snacks_rename["_mnf_saves_lsp_file_rename_edits"] = true
+
+  snacks_rename.on_rename_file = function(from, to, rename)
+    local changes = {
+      files = {
+        {
+          oldUri = vim.uri_from_fname(from),
+          newUri = vim.uri_from_fname(to),
+        },
+      },
+    }
+    local clients = (vim.lsp.get_clients or vim.lsp.get_active_clients)()
+    local workspace_edits = {}
+
+    for _, client in ipairs(clients) do
+      if client.supports_method("workspace/willRenameFiles") then
+        local response = client.request_sync("workspace/willRenameFiles", changes, 1000, 0)
+        if response and response.result ~= nil then
+          local ok, err = pcall(vim.lsp.util.apply_workspace_edit, response.result, client.offset_encoding)
+          if ok then
+            workspace_edits[#workspace_edits + 1] = response.result
+          else
+            vim.notify("LSP file rename failed: " .. tostring(err), vim.log.levels.ERROR)
+          end
+        end
+      end
+    end
+
+    -- An edit to the renamed file must reach disk before Snacks moves it.
+    for _, workspace_edit in ipairs(workspace_edits) do
+      write_workspace_edit_buffers(workspace_edit, function(uri)
+        return uri == changes.files[1].oldUri
+      end)
+    end
+
+    if rename then
+      rename()
+    end
+
+    for _, client in ipairs(clients) do
+      if client.supports_method("workspace/didRenameFiles") then
+        client.notify("workspace/didRenameFiles", changes)
+      end
+    end
+
+    -- Save only the reference buffers changed by the LSP workspace edit.
+    for _, workspace_edit in ipairs(workspace_edits) do
+      write_workspace_edit_buffers(workspace_edit, function(uri)
+        return uri ~= changes.files[1].oldUri
+      end)
+    end
+  end
+end
+
+vim.api.nvim_create_autocmd("User", {
+  pattern = "VeryLazy",
+  once = true,
+  callback = setup_snacks_rename_autosave,
+})
+
+vim.api.nvim_create_autocmd("LspDetach", {
+  group = vim.api.nvim_create_augroup("MnfLspDiagnostics", { clear = true }),
+  desc = "Clear stale LSP diagnostics when a client detaches",
+  callback = function(ev)
+    local detached_client_id = ev.data and ev.data.client_id
+    reset_lsp_diagnostics(ev.buf, function(client_id)
+      return client_id == detached_client_id
+    end)
+  end,
+})
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = "MnfLspDiagnostics",
+  desc = "Clear diagnostics left behind by inactive LSP clients",
+  callback = function(ev)
+    local active = {}
+    for _, client in ipairs(vim.lsp.get_clients({ bufnr = ev.buf })) do
+      active[client.id] = true
+    end
+    reset_lsp_diagnostics(ev.buf, function(client_id)
+      return not active[client_id]
+    end)
+  end,
+})
+
 -- NOTE: vim.lsp.config does not start the lsp server. Simply configures it.
 -- no need to call vim.lsp.config if we are good with their defaults
 -- FIXME: For some reason some program is enabling ruff, mason automatic enable
@@ -20,6 +228,23 @@ vim.lsp.config("tombi", {
   cmd = { "tombi", "lsp" },
 })
 vim.lsp.enable("tombi")
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = vim.api.nvim_create_augroup("MnfMiseTombiSemanticTokens", { clear = true }),
+  desc = "Let injected shell highlighting win inside Mise TOML strings",
+  callback = function(ev)
+    local client = ev.data and vim.lsp.get_client_by_id(ev.data.client_id)
+    if not client or client.name ~= "tombi" then
+      return
+    end
+
+    local filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(ev.buf), ":t")
+    if filename:match("^%.?mise.*%.toml$") then
+      vim.lsp.semantic_tokens.enable(false, { bufnr = ev.buf, client_id = client.id })
+    end
+  end,
+})
+
 vim.lsp.config("tinymist", {
   settings = {
     -- do not fallb back to lsp formatting, as tinymist
