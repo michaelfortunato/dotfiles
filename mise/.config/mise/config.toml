@@ -1,11 +1,68 @@
 [settings]
 experimental = true
+pin = true
 auto_install = false
 exec_auto_install = false
 not_found_auto_install = false
 # Use "create|source" here if you want mise to create the uv venv when missing.
 python.uv_venv_auto = "source"
 trusted_config_paths = ["/"]
+# Enable nothign so Disable everything
+enable_tools = []
+# disable_tools = [
+#   "act",
+#   "cargo:sqlx-cli",
+#   "cargo:*",  # Do globals work?
+#   "actionlint",
+#   "python",
+#   "aws",
+#   "aws-cli",
+#   "awscli",
+#   "bat",
+#   "bfs",
+#   "bottom",
+#   "buf",
+#   "cargo:release-plz",
+#   "cmake",
+#   "colima",
+#   "direnv",
+#   "dvc",
+#   "eza",
+#   "fd",
+#   "fzf",
+#   "gcloud",
+#   "gh",
+#   "git-lfs",
+#   "go",
+#   "imagemagick",
+#   "just",
+#   "kubectl",
+#   "lazygit",
+#   "lima",
+#   "lua",
+#   "luajit",
+#   "make",
+#   "marksman",
+#   "neovim",
+#   "node",
+#   "npm",
+#   "pandoc",
+#   "perl",
+#   "pnpm",
+#   "protobuf",
+#   "rclone",
+#   "rg",
+#   "ripgrep",
+#   "ruby",
+#   "shellcheck",
+#   "sqlite",
+#   "supabase",
+#   "terraform",
+#   "tree-sitter",
+#   "typstyle",
+#   "uv",
+#   "yazi"
+# ]
 
 [settings.task]
 run_auto_install = false
