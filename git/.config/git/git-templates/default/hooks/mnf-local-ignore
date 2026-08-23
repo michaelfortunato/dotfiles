@@ -1,0 +1,12 @@
+#!/bin/sh
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+local_dir="$root/.local"
+ignore_file="$local_dir/.gitignore"
+
+if [ -e "$ignore_file" ] || [ -L "$ignore_file" ]; then
+  exit 0
+fi
+
+mkdir -p "$local_dir" || exit 0
+printf '*\n' >"$ignore_file" || exit 0

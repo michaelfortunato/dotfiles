@@ -2,7 +2,13 @@
   a = add
   b = branch
   c = commit
-  d = diff
+  # Default diff: file summary followed by the Delta-rendered patch.
+  d = diff --stat --compact-summary --patch
+  # Focused views for unstaged, staged, and all tracked local changes.
+  dstat = diff --stat --compact-summary
+  dfiles = diff --name-status
+  dstaged = diff --cached --stat --compact-summary --patch
+  dall = diff --stat --compact-summary --patch HEAD
   f = fetch
   g = grep
   l = log
@@ -10,6 +16,7 @@
   o = checkout
   p = pull
   s = status #FIXME: `gs` Conflicts with ghostscript
+  sw = switch
   w = whatchanged
   # Difftastic-backed views:
   # - dlog: commit history. Add -p/--patch to see each commit's patch; this
@@ -17,10 +24,10 @@
   dlog = -c diff.external=difft log --ext-diff
   # - dshow: one object/commit, HEAD by default, plus its patch.
   dshow = -c diff.external=difft show --ext-diff
-  # - ddif/ddiff: this worktree's file/index diff. With no args, unstaged
-  #   changes; use --staged for index vs HEAD, or HEAD for all local changes.
-  ddif = -c diff.external=difft diff
-  ddiff = -c diff.external=difft diff
+  # - ddiff: structural view of unstaged changes, including a file summary.
+  # - ddall: structural view of all tracked local changes.
+  ddiff = -c diff.external=difft diff --stat --compact-summary --patch
+  ddall = -c diff.external=difft diff --stat --compact-summary --patch HEAD
 [credential "https://github.com"]
 	helper = 
 	helper = !/opt/homebrew/bin/gh auth git-credential
@@ -43,6 +50,9 @@
 [commit]
 	gpgsign = true
   template = ~/.config/git/git-commit-template
+[push]
+  default = "current"
+  autoSetupRemote = true
 [interactive]
   diffFilter = delta --color-only
 [delta]
@@ -56,9 +66,9 @@
   hunk-header-decoration-style = blue box
   hunk-header-style = file line-number syntax
 [diff]
-  # algorithm = histogram
+  algorithm = histogram
   # colorMoved = zebra
-  renames = true # ???
+  renames = true
 [merge]
   tool = codediff
   conflictstyle = zdiff3 # could be cool
@@ -81,4 +91,4 @@
 	autoStash = true
 [trace2]
 	eventTarget = af_unix:stream:/Users/michaelfortunato/.git-ai/internal/daemon/trace2.sock
-	eventNesting = 10
+	eventNesting = 0

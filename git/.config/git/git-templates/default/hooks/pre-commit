@@ -1,0 +1,4 @@
+#!/bin/sh
+
+hook_dir=$(dirname "$0")
+"$hook_dir/mnf-local-ignore"
