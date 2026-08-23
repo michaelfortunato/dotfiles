@@ -124,7 +124,9 @@ vim.keymap.set({ "n" }, "<leader>.", function()
   Snacks.picker.files({ cwd = dir })
 end, { desc = "Search files in this buffer's cwd" })
 vim.keymap.set("n", "<Enter>", "za", { desc = "Toggle fold under cursor" })
-vim.keymap.set({ "n" }, "<C-q>", "<Cmd>copen<CR>", { desc = "Open Quickfix List" })
+vim.keymap.set("n", "<C-q>", "<Cmd>Trouble diagnostics toggle<CR>", {
+  desc = "Workspace Diagnostics (Trouble)",
+})
 ---
 vim.keymap.set({ "c", "i" }, "<C-a>", "<Home>")
 -- NOTE: blink overrides it with cmap <c-e> but should handle fallback
