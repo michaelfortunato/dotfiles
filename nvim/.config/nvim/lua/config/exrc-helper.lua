@@ -1,10 +1,29 @@
 local M = {}
--- Place this in your `init.lua` or another Neovim config file to add:
--- A keymap (<leader>lt) that bootstraps `~/.config/nvim/.lazy.lua` with your template.
+-- Template used by <leader>mp to bootstrap a project-local `.lazy.lua`.
 M.template = [[ 
--- Example `~/.config/nvim/.lazy.lua` template
+-- Example project-local `.lazy.lua` template
 -- Everything is commented out; uncomment and tweak as needed.
 -- TIP: See Section 4 for how to create your own inline plugin!
+
+-- =========================
+-- PROJECT LSP SETTINGS
+-- =========================
+
+-- Enable selected Cargo features for a Rust workspace member. Cargo accepts
+-- package-qualified feature selectors as "<package>/<feature>"; add as many as
+-- this project needs. This merges with the global rust_analyzer config.
+-- vim.lsp.config("rust_analyzer", {
+--   settings = {
+--     ["rust-analyzer"] = {
+--       cargo = {
+--         features = {
+--           "uc-server/bin",
+--           -- "uc-server/postgres",
+--         },
+--       },
+--     },
+--   },
+-- })
 
 return {}
 
