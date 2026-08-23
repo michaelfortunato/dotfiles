@@ -1,0 +1,14 @@
+nvim/.config/nvim/lua/plugins/luasnip/markdown.lua
+  h_09c090fe28971a 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "b7fb05b3d23cd885354ab993a279aa983497bbcc",
+  "prompts": {},
+  "humans": {
+    "h_09c090fe28971a": {
+      "author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
