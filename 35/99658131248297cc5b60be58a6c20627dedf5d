@@ -1,0 +1,44 @@
+git/.config/git/git-templates/default/hooks/pre-commit
+  s_c2ae2ccaf7f0ef::t_ed1b70ae347f93 3
+  s_c2ae2ccaf7f0ef::t_48d4b29fd4b69d 1-2,4
+git/.config/git/git-templates/default/hooks/mnf-local-ignore
+  s_c2ae2ccaf7f0ef::t_48d4b29fd4b69d 1-12
+git/.config/git/config
+  s_d9e54b99e746c0::t_e4a6c00b5acb4a 19
+  s_487cf7bd07f89d::t_20829ee15a2bf6 5-11,27-30,53-55,69,71,94
+git/.config/git/git-templates/default/hooks/post-checkout
+  s_c2ae2ccaf7f0ef::t_48d4b29fd4b69d 1-2,4
+  s_c2ae2ccaf7f0ef::t_ed1b70ae347f93 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "3599658131248297cc5b60be58a6c20627dedf5d",
+  "prompts": {},
+  "sessions": {
+    "s_487cf7bd07f89d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fc36c-36a8-7b72-9fec-c240a53d8852",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_c2ae2ccaf7f0ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0260e-4e83-7683-b091-540a55d3cae5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_d9e54b99e746c0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5ecf89aa-85da-46df-b866-315ffd41500f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
