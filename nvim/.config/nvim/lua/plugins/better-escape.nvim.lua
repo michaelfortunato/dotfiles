@@ -18,9 +18,7 @@ return {
             -- -- mnf_terminal.toggle_terminal(last_used_term)
             [";"] = function()
               vim.schedule(function()
-                local mnf_terminal = require("mnf.terminal.managed")
-                local last_used_term = mnf_terminal.get_last_used_terminal()
-                mnf_terminal.toggle_terminal(last_used_term)
+                require("mnf.terminal.managed").toggle_last_terminal()
               end)
             end,
             ["g"] = function()

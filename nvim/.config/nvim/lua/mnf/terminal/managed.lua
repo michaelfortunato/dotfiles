@@ -23,12 +23,38 @@ local native_window = require("mnf.terminal.window")
 -- Off by default
 local use_external_kitty = false
 local DEFAULT_LAYOUT = "vsplit"
+local AI_TERMINAL_COMMAND = "codex-mini"
 
 M.defaults = {
   initial_layout = DEFAULT_LAYOUT,
 }
 
 M.config = vim.deepcopy(M.defaults)
+
+local FLOAT_WINDOW_OPTIONS = {
+  -- Keep terminal content on Normal so colorschemes don't tint it like a border.
+  winhighlight = "Normal:Normal,NormalFloat:Normal,FloatBorder:FloatBorder,FloatTitle:FloatTitle",
+  winblend = 0,
+  wrap = false,
+  number = false,
+  relativenumber = false,
+  signcolumn = "no",
+  foldcolumn = "0",
+  colorcolumn = "",
+  sidescrolloff = 0,
+  scrolloff = 0,
+}
+
+---@param win integer
+local function apply_floating_window_style(win)
+  if not (vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_config(win).relative ~= "") then
+    return
+  end
+  for name, value in pairs(FLOAT_WINDOW_OPTIONS) do
+    vim.wo[win][name] = value
+  end
+end
+
 -- Base layout creators
 ---@param buf integer
 ---@param title string
@@ -39,13 +65,7 @@ local function create_floating_window(buf, title)
     width = 0.8,
     height = 0.8,
     border = "rounded",
-    wo = {
-      -- Keep terminal content on Normal so colorschemes don't tint it like a border.
-      winhighlight = "Normal:Normal,NormalFloat:Normal,FloatBorder:FloatBorder,FloatTitle:FloatTitle",
-      wrap = false,
-      sidescrolloff = 0,
-      scrolloff = 0,
-    },
+    wo = FLOAT_WINDOW_OPTIONS,
 
     buf = buf,
     fixbuf = false,
@@ -203,6 +223,43 @@ local function current_tab_terminal_win()
   return nil
 end
 
+---@param win integer
+---@param layout string
+---@return boolean
+local function window_matches_layout(win, layout)
+  local expected_position = ({
+    floating = "float",
+    hsplit = "bottom",
+    split = "bottom",
+    vsplit = "right",
+  })[layout]
+  local ok, position = pcall(vim.api.nvim_win_get_var, win, "mnf_native_position")
+  if ok then
+    return position == expected_position
+  end
+
+  -- Windows created before layout tracking was added can still be classified
+  -- well enough to avoid applying float-only config to a normal split.
+  local is_float = vim.api.nvim_win_get_config(win).relative ~= ""
+  return (layout == "floating") == is_float
+end
+
+---@param buf integer
+local function launch_ai_terminal_command(buf)
+  -- Queue the command through the user's shell after :terminal starts it.
+  -- Shell startup files are processed before the shell reads this input.
+  vim.schedule(function()
+    if not vim.api.nvim_buf_is_valid(buf) or vim.bo[buf].buftype ~= "terminal" then
+      return
+    end
+
+    local channel = vim.bo[buf].channel
+    if channel and channel ~= 0 then
+      vim.api.nvim_chan_send(channel, AI_TERMINAL_COMMAND .. "\n")
+    end
+  end)
+end
+
 ---@param opts? { initial_layout?: "vsplit"|"hsplit"|"floating"|"split" }
 ---@return nil
 function M.setup(opts)
@@ -290,6 +347,10 @@ local function get_or_create_terminal_buffer(id)
       vim.opt_local.spell = false
       vim.cmd("terminal")
     end)
+
+    if type(id) == "string" and id:match("^ai:%d+$") then
+      launch_ai_terminal_command(buf)
+    end
   end
   local buf = M.terminal_state.buffers[id].buf
   vim.b[buf].mnf_terminal_id = id
@@ -303,6 +364,117 @@ function M.is_ai_terminal_buffer(buf)
     and vim.api.nvim_buf_is_valid(buf)
     and vim.bo[buf].buftype == "terminal"
     and vim.b[buf].mnf_terminal_kind == "ai"
+end
+
+---@param buf integer?
+---@return boolean
+function M.is_managed_terminal_buffer(buf)
+  return buf ~= nil
+    and vim.api.nvim_buf_is_valid(buf)
+    and vim.bo[buf].buftype == "terminal"
+    and (M.is_ai_terminal_buffer(buf) or vim.b[buf].mnf_terminal_id ~= nil)
+end
+
+---@param buf integer?
+---@return boolean
+function M.is_regular_terminal_buffer(buf)
+  return M.is_managed_terminal_buffer(buf) and not M.is_ai_terminal_buffer(buf)
+end
+
+---@param buf integer
+---@param id integer
+local function mark_ai_terminal_buffer(buf, id)
+  -- Keep Neovim's native terminal buftype and add a semantic buffer type.
+  vim.b[buf].mnf_terminal_kind = "ai"
+  vim.b[buf].mnf_ai_terminal_id = id
+  vim.b[buf].mnf_terminal_id = nil
+end
+
+---@param win integer
+---@return string?
+local function layout_for_window(win)
+  local ok, position = pcall(vim.api.nvim_win_get_var, win, "mnf_native_position")
+  if ok then
+    return ({
+      float = "floating",
+      bottom = "hsplit",
+      right = "vsplit",
+    })[position]
+  end
+  if vim.api.nvim_win_get_config(win).relative ~= "" then
+    return "floating"
+  end
+end
+
+---@param state_id integer|string
+local function track_current_managed_window(state_id)
+  local win = vim.api.nvim_get_current_win()
+  M.terminal_state.win = win
+  M.terminal_state.current = state_id
+  local layout = layout_for_window(win)
+  if layout then
+    remember_tab_layout(layout)
+  end
+end
+
+---@param state_id integer|string
+---@param title string
+---@return boolean, integer?
+local function replace_current_managed_terminal(state_id, title)
+  local win = vim.api.nvim_get_current_win()
+  local source_buf = vim.api.nvim_win_get_buf(win)
+  if not M.is_managed_terminal_buffer(source_buf) then
+    return false, nil
+  end
+
+  local target_buf = get_or_create_terminal_buffer(state_id)
+  if not target_buf then
+    return false, nil
+  end
+
+  if target_buf ~= source_buf then
+    -- Keep one terminal grid per tab. If the target is already visible, swap
+    -- the managed buffers instead of showing the same PTY at two sizes.
+    local current_tab = vim.api.nvim_get_current_tabpage()
+    for _, other_win in ipairs(vim.fn.win_findbuf(target_buf)) do
+      if
+        other_win ~= win
+        and vim.api.nvim_win_is_valid(other_win)
+        and vim.api.nvim_win_get_tabpage(other_win) == current_tab
+      then
+        vim.api.nvim_win_set_buf(other_win, source_buf)
+        break
+      end
+    end
+    vim.api.nvim_win_set_buf(win, target_buf)
+  end
+
+  track_current_managed_window(state_id)
+  if vim.api.nvim_win_get_config(win).relative ~= "" then
+    apply_floating_window_style(win)
+    vim.api.nvim_win_set_config(win, { title = { { title, "FloatTitle" } } })
+  end
+  vim.cmd("startinsert")
+  return true, target_buf
+end
+
+---@param id integer
+---@return boolean
+function M.show_terminal_in_current_window(id)
+  M.terminal_state.last_used_terminal = id
+  local replaced = replace_current_managed_terminal(id, " Terminal " .. id .. " ")
+  return replaced
+end
+
+---@param id integer
+---@return boolean
+function M.show_ai_terminal_in_current_window(id)
+  M.terminal_state.last_used_ai_terminal = id
+  local replaced, buf = replace_current_managed_terminal("ai:" .. id, " AI " .. id .. " ")
+  if replaced and buf then
+    mark_ai_terminal_buffer(buf, id)
+  end
+  return replaced
 end
 
 -- Toggle terminal
@@ -343,8 +515,19 @@ function M.toggle_terminal(id)
   end
 
   -- Original neovim terminal logic
-  -- If same terminal is open, close it
+  apply_tab_layout()
   local current_tab_win = current_tab_terminal_win()
+
+  -- A mapping can change the tab's requested layout before toggling. Do not
+  -- reuse a split as a float (or vice versa); float-only fields such as title
+  -- are invalid on normal windows.
+  if current_tab_win and not window_matches_layout(current_tab_win, M.terminal_state.layout) then
+    vim.api.nvim_win_close(current_tab_win, false)
+    M.terminal_state.win = nil
+    current_tab_win = nil
+  end
+
+  -- If the same terminal is already open in the requested layout, close it.
   if M.terminal_state.current == id and current_tab_win then
     serialize_and_create_closure()
     vim.api.nvim_win_close(current_tab_win, true)
@@ -354,8 +537,7 @@ function M.toggle_terminal(id)
   end
 
   local buf = get_or_create_terminal_buffer(id)
-  -- Reuse existing window if it's valid and same layout type
-  apply_tab_layout()
+  -- Reuse an existing managed window only when its layout matches.
   current_tab_win = current_tab_terminal_win()
   if current_tab_win then
     M.terminal_state.win = current_tab_win
@@ -363,6 +545,7 @@ function M.toggle_terminal(id)
     -- TODO: WHY?
     -- vim.api.nvim_set_current_win(M.terminal_state.win)
     if M.terminal_state.layout == "floating" then
+      apply_floating_window_style(M.terminal_state.win)
       vim.api.nvim_win_set_config(M.terminal_state.win, {
         title = { { " Terminal " .. id .. " ", "FloatTitle" } },
       })
@@ -399,10 +582,7 @@ function M.toggle_ai_terminal(id)
   local buffer_entry = M.terminal_state.buffers[state_id]
   local buf = buffer_entry and buffer_entry.buf
   if buf and vim.api.nvim_buf_is_valid(buf) then
-    -- Keep Neovim's native terminal buftype and add a semantic buffer type.
-    vim.b[buf].mnf_terminal_kind = "ai"
-    vim.b[buf].mnf_ai_terminal_id = id
-    vim.b[buf].mnf_terminal_id = nil
+    mark_ai_terminal_buffer(buf, id)
   end
 end
 
@@ -966,10 +1146,16 @@ function M.show_terminal_buffer(buf)
   local ai_id = M.is_ai_terminal_buffer(buf) and tonumber(vim.b[buf].mnf_ai_terminal_id) or nil
   local title = ai_id and (" AI " .. ai_id .. " ") or (id and (" Terminal " .. id .. " ") or " Terminal ")
   local win = current_tab_terminal_win()
+  if win and not window_matches_layout(win, M.terminal_state.layout) then
+    vim.api.nvim_win_close(win, false)
+    M.terminal_state.win = nil
+    win = nil
+  end
   if win then
     M.terminal_state.win = win
     vim.api.nvim_win_set_buf(win, buf)
     if M.terminal_state.layout == "floating" then
+      apply_floating_window_style(win)
       vim.api.nvim_win_set_config(win, { title = { { title, "FloatTitle" } } })
     end
   else
@@ -1097,6 +1283,34 @@ function M.get_last_used_terminal()
     return M.terminal_state.current
   end
   return M.terminal_state.last_used_terminal
+end
+
+---@return nil
+function M.toggle_last_terminal()
+  local buf = vim.api.nvim_get_current_buf()
+  local id = M.get_last_used_terminal()
+  if M.is_ai_terminal_buffer(buf) then
+    M.show_terminal_in_current_window(id)
+    return
+  end
+  if M.is_regular_terminal_buffer(buf) then
+    track_current_managed_window(id)
+  end
+  M.toggle_terminal(id)
+end
+
+---@return nil
+function M.toggle_last_ai_terminal()
+  local buf = vim.api.nvim_get_current_buf()
+  local id = M.get_last_used_ai_terminal()
+  if M.is_regular_terminal_buffer(buf) then
+    M.show_ai_terminal_in_current_window(id)
+    return
+  end
+  if M.is_ai_terminal_buffer(buf) then
+    track_current_managed_window("ai:" .. id)
+  end
+  M.toggle_ai_terminal(id)
 end
 
 ---@param callback fun(): nil

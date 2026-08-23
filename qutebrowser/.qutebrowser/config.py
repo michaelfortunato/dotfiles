@@ -732,6 +732,8 @@ c.completion.shrink = True
 ## URL-decoding it).
 ## Type: List of Url
 # c.content.blocking.adblock.lists = ['https://easylist.to/easylist/easylist.txt', 'https://easylist.to/easylist/easyprivacy.txt']
+# Keep ad blocking, but avoid tracker/privacy lists that commonly break auth flows.
+c.content.blocking.adblock.lists = ["https://easylist.to/easylist/easylist.txt"]
 
 ## Enable the ad/host blocker
 ## Type: Bool
@@ -1010,6 +1012,7 @@ c.content.javascript.clipboard = "access-paste"
 ## `confirm()`.
 ## Type: Bool
 # c.content.javascript.modal_dialog = False
+c.content.javascript.modal_dialog = True
 
 ## Show javascript prompts.
 ## Type: Bool
@@ -1118,6 +1121,7 @@ c.content.pdfjs = True
 ##   - false
 ##   - ask
 # c.content.persistent_storage = 'ask'
+c.content.persistent_storage = True
 
 ## Enable plugins in Web pages.
 ## Type: Bool
@@ -1163,6 +1167,7 @@ c.content.pdfjs = True
 ##   - false
 ##   - ask
 # c.content.register_protocol_handler = 'ask'
+c.content.register_protocol_handler = True
 
 ## Enable quirks (such as faked user agent headers) needed to get
 ## specific sites to work properly.

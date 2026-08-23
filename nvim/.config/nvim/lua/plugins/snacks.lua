@@ -51,6 +51,256 @@ local function picker_focus_part(picker, part)
   return false
 end
 
+---@param _ snacks.picker.Matcher
+---@param item snacks.picker.Item
+local function demote_cargo_lock(_, item)
+  if item.file and vim.fs.basename(item.file) == "Cargo.lock" then
+    item.score = item.score * 0.5
+  end
+end
+
+local file_visibility = {
+  -- Explorer includes take precedence over hidden, ignored, and excluded paths.
+  include = { ".env", ".local", ".local/**" },
+  levels = {
+    { hidden = false, ignored = false },
+    { hidden = true, ignored = false },
+    { hidden = true, ignored = true },
+  },
+}
+
+local function normalize_picker_path(path, cwd)
+  if type(path) ~= "string" or path == "" then
+    return nil
+  end
+  if not vim.startswith(path, "/") then
+    path = (cwd or vim.uv.cwd() or ".") .. "/" .. path
+  end
+  return vim.fs.normalize(path):gsub("/$", "")
+end
+
+local function collect_finder(result, cb)
+  if type(result) == "function" then
+    return result(cb)
+  end
+  for _, item in ipairs(result or {}) do
+    cb(item)
+  end
+end
+
+function file_visibility.level(opts)
+  if opts.ignored == true then
+    return 3
+  end
+  return opts.hidden == true and 2 or 1
+end
+
+function file_visibility.apply(picker, level)
+  level = math.max(1, math.min(level or file_visibility.level(picker.opts), #file_visibility.levels))
+  local state = file_visibility.levels[level]
+  local filter = picker.input and picker.input.filter
+  if filter then
+    filter.meta.file_visibility_level = level
+  end
+  picker.opts.hidden = state.hidden
+  picker.opts.ignored = state.ignored
+  picker:update_titles()
+end
+
+function file_visibility.always_visible(path)
+  path = type(path) == "string" and vim.fs.normalize(path) or ""
+  if vim.fs.basename(path) == ".env" then
+    return true
+  end
+  return path == ".local" or path:sub(-7) == "/.local" or path:find("/.local/", 1, true) ~= nil
+end
+
+-- Snacks' Git status reports the ignored contents of directories such as
+-- `.venv/` and `.ruff_cache/`, but can leave the directory nodes themselves
+-- visible. One batched query gives us the ignored roots needed for level 1/2.
+function file_visibility.load_ignored(picker)
+  local filter = picker.input and picker.input.filter
+  if not filter or filter.meta.file_visibility_loading or filter.meta.file_visibility_ignored then
+    return
+  end
+
+  local root = Snacks.git.get_root(picker:cwd())
+  if not root then
+    filter.meta.file_visibility_ignored = {}
+    return
+  end
+
+  filter.meta.file_visibility_loading = true
+  vim.system({ "git", "ls-files", "--others", "--ignored", "--exclude-standard", "--directory", "-z" }, {
+    cwd = root,
+    text = true,
+  }, function(result)
+    local ignored = {}
+    if result.code == 0 then
+      for _, path in ipairs(vim.split(result.stdout or "", "\0", { plain = true, trimempty = true })) do
+        local normalized = normalize_picker_path(path, root)
+        if normalized then
+          ignored[normalized] = true
+        end
+      end
+    end
+
+    vim.schedule(function()
+      if picker.closed or not (picker.input and picker.input.filter) then
+        return
+      end
+      picker.input.filter.meta.file_visibility_loading = nil
+      picker.input.filter.meta.file_visibility_ignored = ignored
+      picker.list:set_target()
+      picker:find()
+    end)
+  end)
+end
+
+function file_visibility.filter(item, filter)
+  if file_visibility.always_visible(item.file) then
+    return true
+  end
+
+  local level = filter.meta.file_visibility_level or 1
+  if level == 3 then
+    return true
+  end
+
+  local path = normalize_picker_path(item.file, filter.cwd)
+  local ignored = filter.meta.file_visibility_ignored or {}
+  while path do
+    if ignored[path] then
+      return false
+    end
+    local parent = vim.fs.dirname(path)
+    path = parent ~= path and parent or nil
+  end
+  return true
+end
+
+function file_visibility.explorer(opts, ctx)
+  local result = require("snacks.picker.source.explorer").explorer(opts, ctx)
+  return function(cb)
+    collect_finder(result, function(item)
+      if file_visibility.filter(item, ctx.filter) then
+        cb(item)
+      end
+    end)
+  end
+end
+
+function file_visibility.setup(picker)
+  file_visibility.apply(picker, file_visibility.level(picker.opts))
+  if picker.opts.source == "explorer" and file_visibility.level(picker.opts) < 3 then
+    file_visibility.load_ignored(picker)
+  end
+end
+
+function file_visibility.cycle(picker)
+  local filter = picker.input and picker.input.filter
+  local level = filter and filter.meta.file_visibility_level or file_visibility.level(picker.opts)
+  file_visibility.apply(picker, (level % #file_visibility.levels) + 1)
+
+  if picker.opts.source == "explorer" and file_visibility.level(picker.opts) < 3 then
+    file_visibility.load_ignored(picker)
+  end
+  picker.list:set_target()
+  picker:find()
+end
+
+-- The regular files finder has no `include` option, so merge its normal
+-- results with an explicit `.env` item and an ignored+hidden `.local/` scan.
+function file_visibility.files(opts, ctx)
+  local source = require("snacks.picker.source.files")
+  local cwd = vim.fs.normalize(opts.cwd or ctx.filter.cwd or vim.uv.cwd() or ".")
+  local normal = source.files(opts, ctx)
+
+  return function(cb)
+    local seen = {}
+    local function emit(item)
+      local path = normalize_picker_path(item.file, item.cwd or cwd)
+      if path and not seen[path] then
+        seen[path] = true
+        cb(item)
+      end
+    end
+
+    collect_finder(normal, emit)
+
+    local local_dir = cwd .. "/.local"
+    if vim.fn.isdirectory(local_dir) == 1 then
+      local extra_opts = vim.tbl_extend("force", vim.deepcopy(opts), {
+        dirs = { local_dir },
+        hidden = true,
+        ignored = true,
+      })
+      collect_finder(source.files(extra_opts, ctx), function(item)
+        local path = normalize_picker_path(item.file, item.cwd or cwd)
+        local relative = path and path:sub(1, #cwd + 1) == cwd .. "/" and path:sub(#cwd + 2) or item.file
+        item.cwd = cwd
+        item.file = relative
+        item.text = relative
+        emit(item)
+      end)
+    end
+
+    if vim.fn.filereadable(cwd .. "/.env") == 1 then
+      emit({ cwd = cwd, file = ".env", text = ".env" })
+    end
+  end
+end
+
+function file_visibility.grep(opts, ctx)
+  local source = require("snacks.picker.source.grep")
+  local cwd = vim.fs.normalize(opts.cwd or ctx.filter.cwd or vim.uv.cwd() or ".")
+  local normal = source.grep(opts, ctx)
+
+  return function(cb)
+    local seen = {}
+    local function emit(item)
+      local path = normalize_picker_path(item.file, item.cwd or cwd)
+      local pos = item.pos or {}
+      local key = path and table.concat({ path, pos[1] or 0, pos[2] or 0 }, ":") or nil
+      if key and not seen[key] then
+        seen[key] = true
+        cb(item)
+      end
+    end
+
+    collect_finder(normal, emit)
+
+    local dirs = {}
+    if vim.fn.isdirectory(cwd .. "/.local") == 1 then
+      dirs[#dirs + 1] = cwd .. "/.local"
+    end
+    if vim.fn.filereadable(cwd .. "/.env") == 1 then
+      dirs[#dirs + 1] = cwd .. "/.env"
+    end
+    if #dirs == 0 then
+      return
+    end
+
+    local extra_opts = vim.tbl_extend("force", vim.deepcopy(opts), {
+      buffers = false,
+      dirs = dirs,
+      hidden = true,
+      ignored = true,
+      rtp = false,
+    })
+    collect_finder(source.grep(extra_opts, ctx), function(item)
+      local path = normalize_picker_path(item.file, item.cwd or cwd)
+      local relative = path and path:sub(1, #cwd + 1) == cwd .. "/" and path:sub(#cwd + 2) or item.file
+      item.cwd = cwd
+      item.file = relative
+      if type(item.text) == "string" and path and item.text:sub(1, #path) == path then
+        item.text = relative .. item.text:sub(#path + 1)
+      end
+      emit(item)
+    end)
+  end
+end
+
 local function initial_buffers_filter_level(opts)
   if opts.buf_all then
     return 3
@@ -113,6 +363,26 @@ local function refresh_terminal_buffer_pos(item)
 
   item.pos = { math.max(vim.api.nvim_buf_line_count(item.buf), 1), 0 }
   return true
+end
+
+local function buffer_preview(ctx)
+  local item = ctx.item
+  local buf = item and item.buf
+  if not (buf and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal") then
+    return require("snacks.picker.preview").file(ctx)
+  end
+
+  -- Preview a snapshot. Displaying the live terminal buffer here would resize
+  -- its PTY to the picker window and can permanently disturb rendered prompts.
+  ctx.preview:reset()
+  ctx.preview:minimal()
+  ctx.preview:set_title(item.preview_title or item.title or vim.api.nvim_buf_get_name(buf))
+  ctx.preview:set_lines(vim.api.nvim_buf_get_lines(buf, 0, -1, false))
+  local last = math.max(vim.api.nvim_buf_line_count(ctx.buf), 1)
+  vim.api.nvim_win_set_cursor(ctx.win, { last, 0 })
+  vim.api.nvim_win_call(ctx.win, function()
+    vim.cmd("normal! zb")
+  end)
 end
 
 local function move_tabpage_to_picker(picker, item, target)
@@ -794,30 +1064,7 @@ return {
               end, { buffer = buf, nowait = true, silent = true })
             end)
           end,
-          toggle_hidden_ignored = function(picker)
-            picker.opts.hidden = not picker.opts.hidden
-            picker.opts.ignored = not picker.opts.ignored
-            picker.list:set_target()
-            picker:find()
-          end,
-          cycle_file_visibility = function(picker)
-            local hidden = picker.opts.hidden == true
-            local ignored = picker.opts.ignored == true
-
-            if not hidden and not ignored then
-              picker.opts.hidden = true
-              picker.opts.ignored = false
-            elseif hidden and not ignored then
-              picker.opts.hidden = true
-              picker.opts.ignored = true
-            else
-              picker.opts.hidden = false
-              picker.opts.ignored = false
-            end
-
-            picker.list:set_target()
-            picker:find()
-          end,
+          cycle_file_visibility = file_visibility.cycle,
           cycle_buffers_filter = function(picker)
             local filter = picker.input and picker.input.filter
             if not filter then
@@ -962,7 +1209,7 @@ return {
               ["<C-enter>"] = { "drop", mode = { "n", "i" }, desc = "Focus existing buffer (or open here)" },
               -- ["<C-S-enter>"] = { "...", mode = { "n", "i" }, desc = "..." },
               --- Navigation
-              ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+              ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
               ["<C-j>"] = { "focus_list", mode = { "i", "n" }, desc = "Picker focus down" },
               ["<C-k>"] = false,
               ["<C-l>"] = { "focus_preview", mode = { "i", "n" }, desc = "Picker focus right" },
@@ -1131,6 +1378,7 @@ return {
             unloaded = true,
             current = true,
             sort_lastused = true,
+            preview = buffer_preview,
             toggles = {
               buf_files = { icon = "F" },
               buf_terms = { icon = "T" },
@@ -1409,15 +1657,52 @@ return {
             },
           },
           files = {
+            finder = file_visibility.files,
+            on_show = file_visibility.setup,
+            matcher = {
+              on_match = demote_cargo_lock,
+            },
             win = {
               input = {
                 keys = {
-                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
                 },
               },
               list = {
                 keys = {
-                  ["<C-h>"] = { "toggle_hidden_ignored", mode = { "n", "i" }, desc = "Toggle hidden+ignored" },
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
+                },
+              },
+            },
+          },
+          grep = {
+            finder = file_visibility.grep,
+            on_show = file_visibility.setup,
+            win = {
+              input = {
+                keys = {
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
+                },
+              },
+              list = {
+                keys = {
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
+                },
+              },
+            },
+          },
+          grep_word = {
+            finder = file_visibility.grep,
+            on_show = file_visibility.setup,
+            win = {
+              input = {
+                keys = {
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
+                },
+              },
+              list = {
+                keys = {
+                  ["<C-h>"] = { "cycle_file_visibility", mode = { "n", "i" }, desc = "Cycle file visibility" },
                 },
               },
             },
@@ -1820,6 +2105,8 @@ return {
             },
           },
           explorer = {
+            include = file_visibility.include,
+            finder = file_visibility.explorer,
             layout = { preset = "left", preview = false },
             focus = "input",
             -- Explorer refreshes its main window when the list gains focus. The
@@ -1827,6 +2114,7 @@ return {
             -- itself, which breaks file opens from Snacks Zen.
             main = { current = false, float = true, file = true },
             jump = { close = false },
+            on_show = file_visibility.setup,
             actions = {
               toggle_left_dropdown_layout = function(picker)
                 local layout = picker.resolved_layout and picker.resolved_layout.layout
@@ -1992,9 +2280,10 @@ return {
       { "<leader>sa", function() Snacks.picker.autocmds() end, desc = "Autocmds" },
       { "<leader>sc", function() Snacks.picker.commands() end, desc = "Commands" },
       { "<leader>sC", function() Snacks.picker.command_history() end, desc = "Command History" },
+      { "<leader>ad", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
       { "fd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
-      { "<leader>sd", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
-      { "<leader>sD", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
+      { "<leader>sd", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
+      { "<leader>sD", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
       { "<leader>sh", function() Snacks.picker.help() end, desc = "Help Pages" },
       { "<leader>sH", function() Snacks.picker.highlights() end, desc = "Highlights" },
       { "<leader>sI", function() Snacks.picker.icons() end, desc = "Icons" },

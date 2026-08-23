@@ -39,15 +39,8 @@ return {
       end
 
       vim.keymap.set({ "n", "t" }, [[\\]], function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        local id = mnf_terminal.get_last_used_ai_terminal()
-        if mnf_terminal.is_ai_terminal_buffer(vim.api.nvim_get_current_buf()) then
-          mnf_terminal.toggle_ai_terminal(id)
-          return
-        end
-        vim.t.mnf_terminal_layout = "floating"
-        mnf_terminal.toggle_ai_terminal(id)
-      end, { desc = "Toggle Dedicated Floating AI Terminal" })
+        require("mnf.terminal.managed").toggle_last_ai_terminal()
+      end, { desc = "Toggle Dedicated AI Terminal" })
 
       vim.keymap.set("n", [[\f]], function()
         require("mnf.terminal.managed").toggle_layout()
@@ -81,14 +74,8 @@ return {
       end, { desc = "Toggle float for current buffer (tab-scoped)" })
 
       vim.keymap.set("n", ";;", function()
-        local mnf_terminal = require("mnf.terminal.managed")
-        if vim.bo.buftype == "terminal" then
-          mnf_terminal.toggle_terminal(mnf_terminal.get_last_used_terminal())
-          return
-        end
-        vim.t.mnf_terminal_layout = "floating"
-        mnf_terminal.toggle_terminal(mnf_terminal.get_last_used_terminal())
-      end, { desc = "Toggle Dedicated Floating Terminal" })
+        require("mnf.terminal.managed").toggle_last_terminal()
+      end, { desc = "Toggle Dedicated Terminal" })
 
       -- vim.keymap.set("t", ";;", function()
       --   local mnf_terminal = require("mnf.terminal.managed")

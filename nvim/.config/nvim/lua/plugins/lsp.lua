@@ -35,12 +35,25 @@ vim.lsp.config("tinymist", {
   },
 })
 vim.lsp.enable("tinymist")
+vim.lsp.config("rust_analyzer", {
+  settings = {
+    ["rust-analyzer"] = {
+      check = {
+        command = "clippy",
+      },
+    },
+  },
+})
 vim.lsp.enable("rust_analyzer")
 vim.lsp.enable("ty")
 vim.lsp.config("ty", {
   root_markers = { "uv.lock" },
 })
 
+vim.lsp.enable("rlsp-yaml")
+vim.lsp.config("rlsp-yaml", {
+  filetypes = { "yaml" },
+})
 -- vim.lsp.enable("ruff")
 -- vim.lsp.config("ruff", {
 --   root_markers = { "uv.lock" },
@@ -275,14 +288,20 @@ return {
         tex = { "tex-fmt" },
         toml = { "tombi" },
         sql = { "sqruff" },
-        python = {
-          -- To fix auto-fixable lint errors.
-          "ruff_fix",
-          -- To run the Ruff formatter.
-          "ruff_format",
-          -- To organize the imports.
-          "ruff_organize_imports",
-        },
+        python = function(bufnr)
+          if is_snacks_scratch_buf(bufnr) then
+            return { "ruff_format" }
+          end
+
+          return {
+            -- To fix auto-fixable lint errors.
+            "ruff_fix",
+            -- To run the Ruff formatter.
+            "ruff_format",
+            -- To organize the imports.
+            "ruff_organize_imports",
+          }
+        end,
         quarto = { "injected" },
         markdown = { "rumdl" },
       },
@@ -294,14 +313,18 @@ return {
         ["tex-fmt"] = {
           prepend_args = { "--wraplen", "79" },
         },
+        -- Explicit restatements of conform's builtin tombi/sqruff definitions.
+        -- NOTE: `command` must be the bare executable; args go in `args`
+        -- (e.g. command = "tombi format" fails with "Command not found").
         tombi = {
-          command = "tombi format",
-          -- So interesting this does not work
-          -- Clearly, I misunderstand unix args
-          -- prepend_args = { "format" },
+          command = "tombi",
+          args = { "format", "--stdin-filename", "$FILENAME", "-" },
+          stdin = true,
         },
         sqruff = {
-          command = "sqruff fix -",
+          command = "sqruff",
+          args = { "fix", "$FILENAME" },
+          stdin = false,
         },
         injected = {
           options = {
