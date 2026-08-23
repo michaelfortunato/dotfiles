@@ -1,0 +1,19 @@
+nvim/.config/nvim/lua/config/keymaps.lua
+  s_c15c5a76116525::t_4eb2ba37372425 127-129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "2f74a16106bfce3333063eb414704feebab6a819",
+  "prompts": {},
+  "sessions": {
+    "s_c15c5a76116525": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02594-ecae-7551-8389-31a308981a85",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
