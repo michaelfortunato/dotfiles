@@ -1,0 +1,19 @@
+mise/.config/mise/config.toml
+  s_ce32abf979250e::t_46e5a2ea969071 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "85ecc1d8a1eae34588e301b0d1328ba4d8d07f37",
+  "prompts": {},
+  "sessions": {
+    "s_ce32abf979250e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe7d8-cb1b-7923-8532-98f1a70a39a0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
