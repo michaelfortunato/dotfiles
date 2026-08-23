@@ -6,16 +6,39 @@ amoxide-tui v0.7.0:
     am-tui
 asm-lsp v0.6.0:
     asm-lsp
+ballista-cli v54.0.0:
+    ballista-cli
+ballista-executor v54.0.0:
+    ballista-executor
+ballista-scheduler v54.0.0:
+    ballista-scheduler
+cargo-autoinherit v0.1.6:
+    cargo-autoinherit
 cargo-binstall v1.16.6:
     cargo-binstall
+cargo-dist v0.32.0:
+    dist
 cargo-expand v1.0.114:
     cargo-expand
+cargo-generate v0.23.14:
+    cargo-generate
+cargo-machete v0.9.2:
+    cargo-machete
+cargo-nextest v0.9.143:
+    cargo-nextest
+cargo-release v1.1.5:
+    cargo-release
 cargo-show-asm v0.2.52:
     cargo-asm
 cargo-shuttle v0.46.0:
     cargo-shuttle
+cargo-workspaces v0.4.2:
+    cargo-workspaces
+    cargo-ws
 codex-acp v0.2.4 (https://github.com/zed-industries/codex-acp#bf8f944c):
     codex-acp
+connectrpc-codegen v0.8.0 (https://github.com/connectrpc/connect-rust?rev=05d8345c04ca5d81621d8a110ba0fef8adf7e838#05d8345c):
+    protoc-gen-connect-rust
 difftastic v0.69.0 (/Users/michaelfortunato/scratch/difftastic):
     difft
 dua-cli v2.33.0:
@@ -26,6 +49,8 @@ evcxr_repl v0.21.1:
     evcxr
 git-delta v0.18.2:
     delta
+gungraun-runner v0.19.4:
+    gungraun-runner
 hayagriva v0.8.1:
     hayagriva
 inkscape-figures-manager v0.2.0:
@@ -38,15 +63,33 @@ kodama v0.3.6 (https://github.com/kokic/kodama.git#5468c344):
     kodama
 miniserve v0.32.0:
     miniserve
+mise v2026.8.2:
+    mise
+olai-trestle v0.0.7:
+    trestle
+pnpm v0.0.0:
+    pnpm
 prek v0.2.29:
     prek
+protoc-gen-buffa v0.9.1:
+    protoc-gen-buffa
+protoc-gen-buffa-packaging v0.9.1:
+    protoc-gen-buffa-packaging
 pueue v4.0.2:
     pueue
     pueued
+rainfrog v0.3.20:
+    rainfrog
 ralph-cli v2.0.9:
     ralph
+resonate v0.9.8 (https://github.com/resonatehq/resonate.git?tag=v0.9.8#8c7c09a8):
+    resonate
 rheo v0.1.1:
     rheo
+rlsp-yaml v0.13.0:
+    rlsp-yaml
+roapi v0.13.0 (https://github.com/roapi/roapi?branch=main#c53bfa48):
+    roapi
 rumdl v0.1.82:
     rumdl
 samply v0.13.1:
@@ -61,7 +104,7 @@ sql-cli v1.67.0:
     dataview_debug
     sql-cli
     sql-cli-chart
-sqlx-cli v0.8.2:
+sqlx-cli v0.9.0:
     cargo-sqlx
     sqlx
 sqruff v0.34.0:
@@ -70,7 +113,13 @@ tokio-console v0.1.14:
     tokio-console
 tree-sitter-cli v0.26.7:
     tree-sitter
+typos-cli v1.49.0:
+    typos
 typst-cli v0.14.2 (https://github.com/typst/typst#e7256a63):
     typst
-worktrunk v0.35.3:
+wasm-bindgen-cli v0.2.126:
+    wasm-bindgen
+    wasm-bindgen-test-runner
+    wasm2es6js
+worktrunk v0.68.0:
     wt

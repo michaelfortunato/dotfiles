@@ -1,114 +1,191 @@
+tap "asmvik/formulae", "https://github.com/asmvik/homebrew-formulae.git"
+tap "bufbuild/buf"
+tap "columnar-tech/tap", trusted: { casks: ["dbc"] }
 tap "cristianoliveira/tap"
+tap "databricks/tap", trusted: true
 tap "gap-system/gap"
+tap "hashicorp/tap"
 tap "homebrew-zathura/zathura"
 tap "homebrew/bundle"
 tap "homebrew/services"
 tap "jesseduffield/lazygit"
-tap "koekeishiya/formulae"
+tap "libkrun/krun", "https://github.com/libkrun/homebrew-krun.git"
 tap "nikitabobko/tap"
+tap "open-lakehouse/tap"
+tap "ory/tap"
+tap "oven-sh/bun"
+tap "restatedev/tap"
+tap "supabase/tap"
+tap "vanchonlee/tap", trusted: { casks: ["krust"] }
 tap "xwmx/taps"
+# Run your GitHub Actions locally
 brew "act"
+# Static checker for GitHub Actions workflow files
+brew "actionlint"
+# Record and share terminal sessions
 brew "asciinema"
+# Official Amazon AWS command-line interface
 brew "awscli"
+# Open-source, cross-platform JavaScript runtime environment
 brew "node"
+# Secure and free password manager for all of your devices
 brew "bitwarden-cli"
+# Incredibly fast JavaScript runtime, bundler, test runner, and package manager
+brew "bun"
+# Cargo subcommand to easily use LLVM source-based code coverage
+brew "cargo-llvm-cov"
+# Next-generation test runner for Rust
+brew "cargo-nextest"
+# Container runtimes on MacOS (and Linux) with minimal setup
 brew "colima"
+# Conventional commits, changelog, versioning, validation
 brew "convco"
+# Open source multi-tool for exploring and publishing data
 brew "datasette"
+# Pack, ship and run any application as a lightweight container
+brew "docker"
+# Docker CLI plugin for extended build capabilities with BuildKit
+brew "docker-buildx"
+# Isolated development environments using Docker
+brew "docker-compose"
+# Select default apps for documents and URL schemes on macOS
 brew "duti"
+# Git for data science projects
 brew "dvc"
+# Validating, recursive, caching DNS resolver
 brew "unbound"
+# GNU Transport Layer Security (TLS) Library
 brew "gnutls"
+# OpenType text shaping engine
 brew "harfbuzz"
+# GitHub command-line tool
 brew "gh"
+# Highest-quality GIF encoder based on pngquant
 brew "gifski"
+# Git extension for versioning large files
 brew "git-lfs"
+# GNU implementation of the famous stream editor
 brew "gnu-sed"
+# Open source programming language to build simple/reliable/efficient software
+brew "go"
+# Improved top (interactive process viewer)
 brew "htop"
+# Interpreted, interactive, object-oriented programming language
 brew "python@3.12"
+# Tools and libraries to manipulate images in select formats
 brew "imagemagick"
+# CLI wrapper for basic network utilities on macOS - ip command
 brew "iproute2mac"
+# Swiss-army knife of markup format conversion
 brew "pandoc"
+# Interactive environments for writing and running code
 brew "jupyterlab"
+# Handy way to save and run project-specific commands
 brew "just"
+# Kubernetes command-line interface
 brew "kubernetes-cli"
+# Utility for directing compilation
 brew "make"
+# Language Server Protocol for Markdown
 brew "marksman"
+# Lightweight PDF and XPS viewer
 brew "mupdf"
+# Port scanning utility for large networks
 brew "nmap"
+# Manage multiple Node.js versions
 brew "nvm"
+# Package compiler and linker metadata toolkit
 brew "pkgconf"
+# Language Server for Postgres
 brew "postgres-language-server"
-brew "postgresql@18", restart_service: :changed
+# Object-relational database system
+brew "postgresql@18"
+# Show ps output as a tree
 brew "pstree"
+# Generic machine emulator and virtualizer
 brew "qemu"
+# Rsync for cloud storage
 brew "rclone"
+# Command-line interface for Render
+brew "render"
+# Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# Fast, pure Rust implementation of Beancount double-entry accounting
 brew "rustledger"
+# Semantic version control CLI with entity-level diffs and blame
 brew "sem-cli"
+# Organize software neatly under a single directory tree (e.g. /usr/local)
 brew "stow"
+# Postgres development platform
+brew "supabase"
+# Anonymizing overlay network for TCP
 brew "tor", restart_service: :changed
+# Display directories as trees (with optional color/HTML output)
 brew "tree"
+# WebSockets the Unix way
 brew "websocketd"
+# Extensible IRC client
 brew "weechat"
+# Tools for the WireGuard secure network tunnel
 brew "wireguard-tools"
+# PDF viewer
 brew "xpdf"
-brew "gap-system/gap/gap"
-cask "nikitabobko/tap/aerospace"
-cask "bitwarden"
-cask "chatgpt"
-cask "claude-code"
-cask "cloudflare-warp"
-cask "codex"
-cask "dbeaver-community"
-cask "font-hack-nerd-font"
-cask "font-jetbrains-mono"
-cask "font-lilex-nerd-font"
-cask "google-chrome"
-cask "gpg-suite-no-mail"
-cask "iina"
-cask "inkscape"
-cask "ipfs-desktop"
-cask "keyboardcleantool"
-cask "kicad"
-cask "linear-linear"
-cask "logisim-evolution"
-cask "obsidian"
-cask "petrichor"
-cask "psst"
-cask "qutebrowser"
-cask "raycast"
-cask "skim"
-cask "slack"
-cask "spotify"
-cask "utm"
-cask "vimr"
-cask "zed@preview"
-cask "zotero"
-cargo "agg"
+# The best way of working with Protocol Buffers.
+brew "bufbuild/buf/buf", trusted: true
+# Command-line interface for the Databricks platform
+brew "databricks/tap/databricks", trusted: true
+# Unified CLI for proto-driven code generation and full-project scaffolding
+brew "open-lakehouse/tap/trestle", trusted: true
+# Use Ory from your terminal!
+brew "ory/tap/cli", trusted: true
+# Restate Server
+brew "restatedev/tap/restate-server", trusted: true
+go "github.com/googleapis/api-linter/v2/cmd/api-linter"
+cargo "agg", source: "https://github.com/asciinema/agg"
 cargo "amoxide"
 cargo "amoxide-tui"
 cargo "asm-lsp"
+cargo "ballista-cli"
+cargo "ballista-executor"
+cargo "ballista-scheduler"
+cargo "cargo-autoinherit"
 cargo "cargo-binstall"
+cargo "cargo-dist"
 cargo "cargo-expand"
+cargo "cargo-generate"
+cargo "cargo-machete"
+cargo "cargo-nextest"
+cargo "cargo-release"
 cargo "cargo-show-asm"
 cargo "cargo-shuttle"
-cargo "codex-acp"
+cargo "cargo-workspaces"
+cargo "codex-acp", source: "https://github.com/zed-industries/codex-acp"
+cargo "connectrpc-codegen", source: "https://github.com/connectrpc/connect-rust?rev=05d8345c04ca5d81621d8a110ba0fef8adf7e838"
 cargo "difftastic"
 cargo "dua-cli"
 cargo "evcxr_jupyter"
 cargo "evcxr_repl"
 cargo "git-delta"
+cargo "gungraun-runner"
 cargo "hayagriva"
 cargo "inkscape-figures-manager"
 cargo "irust"
 cargo "jnv"
-cargo "kodama"
+cargo "kodama", source: "https://github.com/kokic/kodama.git"
 cargo "miniserve"
+cargo "mise"
+cargo "olai-trestle"
+cargo "pnpm"
 cargo "prek"
+cargo "protoc-gen-buffa"
+cargo "protoc-gen-buffa-packaging"
 cargo "pueue"
+cargo "rainfrog"
 cargo "ralph-cli"
+cargo "resonate", source: "https://github.com/resonatehq/resonate.git?tag=v0.9.8"
 cargo "rheo"
+cargo "rlsp-yaml"
+cargo "roapi", source: "https://github.com/roapi/roapi?branch=main"
 cargo "rumdl"
 cargo "samply"
 cargo "selene"
@@ -118,9 +195,22 @@ cargo "sqlx-cli"
 cargo "sqruff"
 cargo "tokio-console"
 cargo "tree-sitter-cli"
-cargo "typst-cli"
+cargo "typos-cli"
+cargo "typst-cli", source: "https://github.com/typst/typst"
+cargo "wasm-bindgen-cli"
 cargo "worktrunk"
+uv "kaggle"
+uv "maturin"
+uv "mkdocs", with: ["email-validator", "markdown-exec<1.12.0", "mkdocs-material==9.5.47", "pydantic>=2.9.2"]
 uv "neovim-remote"
 uv "py-spy"
 uv "rustfava"
+uv "tpchgen-cli"
 uv "ty"
+npm "@bitwarden/cli"
+npm "@github/copilot-language-server"
+npm "@google/gemini-cli"
+npm "@zed-industries/codex-acp"
+npm "pnpm"
+npm "typescript"
+npm "vercel"

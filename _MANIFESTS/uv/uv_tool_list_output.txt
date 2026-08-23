@@ -1,8 +1,16 @@
+kaggle v2.2.1
+- kaggle
+maturin v1.14.0
+- maturin
+mkdocs v1.6.1
+- mkdocs
 neovim-remote v2.5.1
 - nvr
 py-spy v0.4.1
 - py-spy
 rustfava v1.30.12
 - rustfava
-ty v0.0.32
+tpchgen-cli v2.0.2
+- tpchgen-cli
+ty v0.0.49
 - ty
