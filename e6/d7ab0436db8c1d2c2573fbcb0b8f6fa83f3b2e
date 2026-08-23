@@ -1,0 +1,52 @@
+nvim/.config/nvim/lua/plugins/lsp.lua
+  s_c15c5a76116525::t_d7cbf77590986e 68,75-76,123-182
+  s_c15c5a76116525::t_fb536655c5881e 231-241,243-247
+  s_1a0588615cbe7f::t_b71f939db36a01 11-12,14-16
+  s_c15c5a76116525::t_25d9bdeaab8043 242
+  s_f7ac878be9bae6::t_881225cea04763 34-44
+  s_97401dbb644983::t_563b58be65897e 18
+  s_97401dbb644983::t_17143ee43d0373 6,17,19-33,189-213
+  s_f7ac878be9bae6::t_838a29d9b8dda8 45-67,69-74,77-122,188
+  s_c15c5a76116525::t_0ad6c5cb4de278 183-187
+  s_1a0588615cbe7f::t_d07ce330ed9f33 7-10,13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "e6d7ab0436db8c1d2c2573fbcb0b8f6fa83f3b2e",
+  "prompts": {},
+  "sessions": {
+    "s_1a0588615cbe7f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01fae-e1e0-75f0-8d24-2741bf73347a",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_c15c5a76116525": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02594-ecae-7551-8389-31a308981a85",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_f7ac878be9bae6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f49a1-ec7a-71f0-a826-74b1eb780152",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
