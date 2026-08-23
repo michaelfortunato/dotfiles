@@ -1,0 +1,106 @@
+nvim/.config/nvim/lua/plugins/snacks.lua
+  s_c15c5a76116525::t_922c22202b27c7 54-61,1662-1664
+  s_c2ae2ccaf7f0ef::t_b3a4312c4d9623 1677-1680,1693-1696
+  s_c2ae2ccaf7f0ef::t_880277ca29a8cf 118-120,134,140
+  s_c2ae2ccaf7f0ef::t_c5849518c3754d 62-117,121-133,135-139,145-170,174-175,178-181,193-253
+  s_70f4e3edab752d::t_083f8108d738f3 2285-2286
+  s_c2ae2ccaf7f0ef::t_59ae35210347cc 171-173,176-177
+  s_c15c5a76116525::t_8fefc3fb36dbae 368-385,1381
+  s_c2ae2ccaf7f0ef::t_c5b62f65a4c7ae 296-298
+  s_c15c5a76116525::t_3adb2db8f1b87f 2283
+  s_c2ae2ccaf7f0ef::t_c17cb98fae51a7 182-192,2109
+  s_c2ae2ccaf7f0ef::t_9525a40937357b 1067,1212,1660-1661,1668,1673,2108,2117
+  s_c2ae2ccaf7f0ef::t_151c95b2c90a96 254-295,299-303,386
+  s_c2ae2ccaf7f0ef::t_e3a9185a13b173 1674-1676,1681-1692,1697-1705
+  s_c2ae2ccaf7f0ef::t_51001c4f38df27 141-144
+  s_c2ae2ccaf7f0ef::t_c474779c438b02 387
+nvim/.config/nvim/lua/plugins/better-escape.nvim.lua
+  s_c15c5a76116525::t_63ae07fb3a4b21 21
+qutebrowser/.qutebrowser/config.py
+  000229f8f2ebbac4 735-736,1015,1124,1170
+nvim/.config/nvim/lua/mnf/terminal/managed.lua
+  s_c15c5a76116525::t_1872adecd3351d 1149-1153
+  s_c15c5a76116525::t_4456626740c3e3 465-466
+  s_c15c5a76116525::t_8fefc3fb36dbae 226-244,518,520-530,540
+  s_c15c5a76116525::t_44e8c32b90ef58 33-57,68,454,548,1158
+  s_c15c5a76116525::t_8f1ea6b37c55ee 410-420,452,1295-1297,1309-1311
+  s_1a0588615cbe7f::t_eeefdaafb67294 26,247-262,350-353
+  s_c15c5a76116525::t_63ae07fb3a4b21 245,369-409,421-451,453,455-464,467-479,585,1287-1294,1298-1308,1312-1314
+  s_c15c5a76116525::t_cc98eb4234ae04 246
+nvim/.config/nvim/lua/plugins/lsp.lua
+  s_79ad2e7502cfbd::t_66f1ee371c3623 316-318,320-322,325-327
+  s_f7ac878be9bae6::t_5bad5683806bc3 38-46
+  s_f7ac878be9bae6::t_881225cea04763 291-304
+  s_c15c5a76116525::t_8d06ed88dde2d8 53-56
+nvim/.config/nvim/lua/plugins/mnf-terminal.lua
+  s_c15c5a76116525::t_63ae07fb3a4b21 42-43,77-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "7c2106e2d2399f7415cc2e080103da6946299483",
+  "prompts": {
+    "000229f8f2ebbac4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019dc00d-f096-79b0-ad8a-ce1198f453ff",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 6,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_1a0588615cbe7f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01fae-e1e0-75f0-8d24-2741bf73347a",
+        "model": "gpt-5.6-luna"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_70f4e3edab752d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01aa8-a9f2-7652-b4de-00cf6699f639",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_79ad2e7502cfbd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9698d29f-6cd4-4d64-9f03-13217c0ea12e",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_c15c5a76116525": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02594-ecae-7551-8389-31a308981a85",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_c2ae2ccaf7f0ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0260e-4e83-7683-b091-540a55d3cae5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_f7ac878be9bae6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f49a1-ec7a-71f0-a826-74b1eb780152",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
