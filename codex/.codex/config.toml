@@ -83,12 +83,12 @@ trusted_hash = "sha256:6a6f42bc3b58d6262db38bfd74d7f340fcca2b09cdb134aad365063f0
 trusted_hash = "sha256:1423b56c1322f96c8f74c51c1e7ae9a047b904c1fa43ee9165d462fd7a6e70ef"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-08-06T22:44:44Z"
+last_updated = "2026-08-28T19:14:09Z"
 source_type = "local"
 source = "/Users/michaelfortunato/dotfiles/codex/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-08-06T02:50:34Z"
+last_updated = "2026-08-27T08:52:19Z"
 source_type = "local"
 source = "/Users/michaelfortunato/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
@@ -102,23 +102,24 @@ source = "https://github.com/DietrichGebert/ponytail.git"
 url = "https://www.terraform-best-practices.com/~gitbook/mcp"
 
 [mcp_servers.node_repl]
+args = []
 command = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node_repl"
-startup_timeout_sec = 120.0
+startup_timeout_sec = 120
 
 [mcp_servers.node_repl.env]
-BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.715.72359"
-CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
-CODEX_HOME = "/Users/michaelfortunato/.codex"
-NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
-NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
-NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
 NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
 NODE_REPL_NODE_MODULE_DIRS = "/Applications/Codex.app/Contents/Resources/cua_node/lib/node_modules"
 NODE_REPL_NODE_PATH = "/Applications/Codex.app/Contents/Resources/cua_node/bin/node"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f,d0b55a8f9e8e7e9c88421416ea4ce9542c302abf43aa7fc871be4553ea70dd26"
 NODE_REPL_TRUSTED_CODE_PATHS = "/Users/michaelfortunato/.codex"
+CODEX_HOME = "/Users/michaelfortunato/.codex"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f,d0b55a8f9e8e7e9c88421416ea4ce9542c302abf43aa7fc871be4553ea70dd26"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
+NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.715.72359"
+CODEX_CLI_PATH = "/Applications/Codex.app/Contents/Resources/codex"
 
 [mcp_servers.computer-use]
 command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
@@ -366,8 +367,23 @@ trust_level = "trusted"
 [projects."/Users/michaelfortunato/OuterProduct/outerproduct-ai"]
 trust_level = "trusted"
 
+[projects."/Users/michaelfortunato/OuterProduct/trestle"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/thirdparty/project-x"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/thirdparty/resonate"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/test-sdk"]
+trust_level = "trusted"
+
+[projects."/Users/michaelfortunato/OuterProduct/thirdparty/microsandbox-exp"]
+trust_level = "trusted"
+
 [sandbox_workspace_write]
-network_access = false
+network_access = true
 
 [[skills.config]]
 enabled = false
@@ -390,6 +406,8 @@ preventSleepWhileRunning = true
 keepRemoteControlAwakeWhilePluggedIn = true
 followUpQueueMode = "queue"
 dock-icon-preference = "codex-system"
+dictationDictionary = []
+selected-avatar-id = "codex"
 
 [desktop.open-in-target-preferences]
 global = "systemDefault"
@@ -397,6 +415,20 @@ global = "systemDefault"
 [desktop.open-in-target-preferences.perPath]
 "/Users/michaelfortunato" = "kitty"
 "/Users/michaelfortunato/dotfiles" = "fileManager"
+
+[desktop.appearanceLightChromeTheme]
+accent = "#339cff"
+contrast = 45
+ink = "#1a1c1f"
+opaqueWindows = false
+surface = "#ffffff"
+
+[desktop.appearanceLightChromeTheme.fonts]
+
+[desktop.appearanceLightChromeTheme.semanticColors]
+diffAdded = "#00a240"
+diffRemoved = "#ba2623"
+skill = "#924ff7"
 
 [shell_environment_policy.set]
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
