@@ -1,0 +1,152 @@
+nvim/.config/nvim/lua/mnf/terminal/managed.lua
+  s_e36deaa2ecb125::t_75e6851a6cb7c9 26
+nvim/.config/nvim/lua/plugins/lsp.lua
+  s_cd21fe765c0430::t_3a1e068c0833b4 465-466
+  s_e90fb9319eb3d0::t_4af1313db0bb0a 276,279,282
+  s_615b0dc7db5702::t_507f90c621234e 288-299
+yazi/.config/yazi/keymap.toml
+  s_980295e9c0f5f8::t_632174c442447d 16
+  s_980295e9c0f5f8::t_3fd4942beba492 29
+nvim/.config/nvim/lua/mnf/scratch/init.lua
+  s_c10d957ec70515::t_91651b32d75e37 150
+  s_c10d957ec70515::t_7f8bca070152bc 151-155
+  s_c10d957ec70515::t_b8c762db8d9638 37-38
+  s_c10d957ec70515::t_448b3c003268de 1-2,7-36,39-149,156-175
+  s_c10d957ec70515::t_814c9a5f301568 176
+yazi/.config/yazi/package.toml
+  s_980295e9c0f5f8::t_d201fd9069507d 3-4,8-9,13-14
+nvim/.config/nvim/lua/config/autocmds.lua
+  s_97401dbb644983::t_da37ce866f8e55 196,199,209-211,213,219-223,298,301
+  s_0ce1523dfcaa7c::t_d1bef1d2fed6e0 208,212,231,235
+  s_ba09f49f934028::t_d62053cef072b1 291-293
+  s_0ce1523dfcaa7c::t_0f601fe3ccc0ce 214-218
+  s_e90fb9319eb3d0::t_275360e8871121 191-192
+  s_97401dbb644983::t_a3486cae093ef9 197-198
+  s_97401dbb644983::t_cfecad47127a8f 200-201
+  s_0ce1523dfcaa7c::t_b3be9be9a9f6c6 206-207
+  s_e90fb9319eb3d0::t_46702b3957dc40 203-204
+nvim/.config/nvim/lua/plugins/snacks.lua
+  s_c10d957ec70515::t_448b3c003268de 517-519,525
+  s_c10d957ec70515::t_1c531184701e30 514
+  s_e90fb9319eb3d0::t_e5e9df71d80ca0 796-798,1041,1100
+  s_e90fb9319eb3d0::t_da510479c212a4 2076-2077
+yazi/.config/yazi/flavors/catppuccin-mocha.yazi/flavor.toml
+  s_980295e9c0f5f8::t_d201fd9069507d 117,165,167,169,171,180-215
+nvim/.config/nvim/lua/config/keymaps.lua
+  s_e90fb9319eb3d0::t_e764b38298c082 231-233
+  s_e90fb9319eb3d0::t_d3f6732877112e 192-199
+nvim/.config/nvim/lua/plugins/fff.nvim.lua
+  s_f7ac878be9bae6::t_d8d984de8343b5 70-71,81-93,121-122,125-127,135-137
+  s_e90fb9319eb3d0::t_7111684f4806e2 72-76,78,94-120,124,128,133
+  s_e90fb9319eb3d0::t_4904c55a329f8d 1-69,77,123
+  s_f7ac878be9bae6::t_a87d3e79483989 79-80,130-132,134
+  s_f7ac878be9bae6::t_846514b3a94d1f 129
+nvim/.config/nvim/lua/mnf/terminal/window.lua
+  s_c10d957ec70515::t_4db54db22e62be 3-5,94-95
+yazi/.config/yazi/plugins/smart-enter.yazi/main.lua
+  s_980295e9c0f5f8::t_d201fd9069507d 1,8
+yazi/.config/yazi/flavors/catppuccin-latte.yazi/flavor.toml
+  s_980295e9c0f5f8::t_d201fd9069507d 117,165,167,169,171,180-215
+qutebrowser/.qutebrowser/config.py
+  s_1676274128d378::t_ef3b1d95ff6e29 1841-1842
+  s_1676274128d378::t_a044d66607010c 1843
+  s_1676274128d378::t_b5dc744cf53994 2680,2760-2761
+yazi/.config/yazi/plugins/smart-enter.yazi/README.md
+  s_980295e9c0f5f8::t_d201fd9069507d 8,16,24,39-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "8bf5d1aac1bdaa6186d823d0f0618582820c6129",
+  "prompts": {},
+  "sessions": {
+    "s_0ce1523dfcaa7c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e89cc-f360-7bc0-b45b-9d7e1017828a",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_1676274128d378": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04eee-fce6-7c31-8061-1cac2c8886cf",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_615b0dc7db5702": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05e83-a51b-7271-9903-5775124dccae",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_97401dbb644983": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e2745-8ad4-74c0-b738-4b52fea7a6d1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_980295e9c0f5f8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05fd1-97d7-7e82-a124-9bde3bf28290",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_ba09f49f934028": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e21ec-a60f-76d0-b773-ca9ab7abbb2c",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_c10d957ec70515": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a033f6-a136-7fb0-b658-aa54d7030767",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_cd21fe765c0430": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05f8d-11fd-7762-b626-6914024bad71",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_e36deaa2ecb125": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05dcc-f517-70e3-9540-bf4af226bee4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_e90fb9319eb3d0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03f9e-c597-7891-af15-9d8152b4c0aa",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    },
+    "s_f7ac878be9bae6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f49a1-ec7a-71f0-a826-74b1eb780152",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
