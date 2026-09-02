@@ -511,51 +511,18 @@ vim.keymap.set({ "n" }, "<Leader>ux", function()
   end
 end, { desc = "Toggle Dim Mode" })
 
-local scratch_layout_styles = {
-  scratch_float = true,
-  scratch_split = true,
-  scratch_vsplit = true,
-}
-
-local function scratch_layout()
-  local style = vim.t.scratch_layout
-  return scratch_layout_styles[style] and style or nil
-end
-
-local function remember_scratch_layout(style)
-  if scratch_layout_styles[style] then
-    vim.t.scratch_layout = style
-  end
-end
+local last_scratch_ft = "python"
 
 local function scratch_open(opts)
-  local snacks_local = require("snacks")
-  opts = vim.tbl_deep_extend("force", {}, opts or {})
-  local style = opts.win and scratch_layout_styles[opts.win.style] and opts.win.style
-    or scratch_layout()
-    or "scratch_vsplit"
-  local native_window = require("mnf.terminal.window")
-  if style and opts.win == nil then
-    opts.win = { style = style }
-  end
-  if opts.win and scratch_layout_styles[opts.win.style] then
-    remember_scratch_layout(opts.win.style)
-  end
-
-  local result = snacks_local.scratch.open(opts)
-  if style == "scratch_vsplit" and result and result.win and vim.api.nvim_win_is_valid(result.win) then
-    native_window.mark(result.win, "right")
+  local result = require("mnf.scratch").open(opts)
+  if result and result.buf and vim.api.nvim_buf_is_valid(result.buf) then
+    last_scratch_ft = vim.bo[result.buf].filetype
   end
   return result
 end
 
-vim.t.scratch = "python"
-local last_scratch_ft = vim.t.scratch
 vim.keymap.set("n", "''", function()
-  local ft = vim.t.scratch or last_scratch_ft
-  if ft ~= nil then
-    scratch_open({ ft = ft })
-  end
+  scratch_open({ ft = last_scratch_ft })
 end, { desc = "Python scratch buffer" })
 
 -- Main scratch operations
@@ -709,105 +676,6 @@ return {
         replace_netrw = true, -- Replace netrw with the snacks explorer
         trash = true, -- Use the system trash when deleting files
       },
-      scratch = {
-        -- Per-filetype scratch actions (kept in your config; no Snacks patches).
-        -- This mirrors Folke's lua scratch `<cr>` runner, but routes python to `mnf.scratch.python`.
-        win_by_ft = {
-          python = {
-            keys = {
-              ["run"] = {
-                "<cr>",
-                function(self)
-                  require("mnf.scratch.python").run({ buf = self.buf })
-                end,
-                desc = "Run selection (ghost output)",
-                mode = { "n", "x" },
-              },
-              ["clear"] = {
-                ",c",
-                function(self)
-                  require("mnf.scratch.python").clear({ buf = self.buf })
-                end,
-                desc = "Clear output",
-              },
-              ["reset"] = {
-                "R",
-                function(self)
-                  require("mnf.scratch.python").reset({ buf = self.buf })
-                end,
-                desc = "Reset Python session",
-              },
-            },
-          },
-        },
-        win = {
-          style = "scratch_vsplit",
-          wo = {
-            colorcolumn = "",
-            winfixbuf = false,
-          },
-          on_close = function(win)
-            assert(win and win.buf, "We need this to be not none here")
-            local buf = win.buf
-            local ft = vim.bo[buf].filetype
-            vim.t.scratch = ft
-            last_scratch_ft = ft
-          end,
-          on_win = function(win)
-            vim.t.scratch = nil
-          end,
-          -- if you want none
-          -- footer_keys = false,
-          -- Note only works here, not on win_by_ft
-          footer_keys = { "q", "<cr>", "R", ",c" },
-          keys = {
-            -- ["''"] = {
-            --   ---@param arg snacks.win
-            --   "close",
-            --   mode = "n",
-            --   desc = "Close scratch window",
-            -- },
-            ["'f"] = function(win)
-              assert(win and win.opts and win.opts.position, "scratch_cycle_layout: missing win/position")
-              assert(win.buf and vim.api.nvim_buf_is_valid(win.buf), "scratch_cycle_layout: invalid buffer")
-              local next_style = ({
-                float = "scratch_split",
-                bottom = "scratch_vsplit",
-                top = "scratch_vsplit",
-                right = "scratch_float",
-                left = "scratch_float",
-              })[win.opts.position] or "scratch_float"
-              remember_scratch_layout(next_style)
-
-              local buf = win.buf
-              local file = vim.api.nvim_buf_get_name(buf)
-              local ft = vim.bo[buf].filetype
-
-              if win.close then
-                win:close()
-              end
-              scratch_open({ file = file, ft = ft, win = { style = next_style } })
-            end,
-
-            ["''"] = function(win) -- value is fun(self: snacks.win)
-              win:close()
-            end,
-            ["q"] = function(win)
-              -- `q` is buffer-local for Snacks windows. If this scratch buffer is being
-              -- reused inside another float (e.g. goto-preview same-file previews),
-              -- prefer closing the *current* float window first.
-              local ok, close_on_q = pcall(vim.api.nvim_win_get_var, 0, "mnf-close-on-q")
-              local ok2, is_goto_preview = pcall(vim.api.nvim_win_get_var, 0, "is-goto-preview-window")
-              if (ok and close_on_q) or (ok2 and is_goto_preview) then
-                vim.cmd("close")
-                return
-              end
-              win:close()
-            end,
-          },
-        },
-      },
-
       dashboard = {
         enabled = false,
       },
@@ -831,9 +699,6 @@ return {
             linebreak = true,
           },
         },
-        scratch_vsplit = { position = "right", width = 0.50, border = false, backdrop = false, fixbuf = false },
-        scratch_split = { position = "bottom", height = 0.35, width = 1, backdrop = false, fixbuf = false },
-        scratch_float = { position = "float", width = 0.6, height = 0.6, backdrop = 75, fixbuf = false },
         --- TODO: Figure out a way to make sure ever buffer in a floating window, even not the first buffer
         --- gets the q --> quit keymap. That will require adding a BufWinEnter to add q to the buffer
         --- and BufWinLeave to remove it, so that the buffer is not effeced anywhere else.
@@ -928,6 +793,9 @@ return {
         main = { current = true, float = true, file = true },
         ---@type snacks.picker.actions
         actions = {
+          trouble_open = function(picker)
+            require("trouble.sources.snacks").open(picker)
+          end,
           -- TODO: add optional layout-aware direction mapping for non-canonical presets.
           -- Navigation assumes the canonical Snacks layout: input + list stacked on the left,
           -- preview on the right. It's a hard-coded pane cycle via filetypes (no geometry check),
@@ -1170,6 +1038,7 @@ return {
               -- ["<C-l>"] = { "focus_right", mode = { "i", "n" }, desc = "Picker focus right" },
               ["<Esc>"] = { "close_or_hide_help", mode = { "n", "i" }, desc = "Close help or picker" },
               ["<C-y>"] = { "confirm", mode = { "i", "n" } },
+              ["<C-q>"] = { "trouble_open", mode = { "i", "n" }, desc = "Send results to Trouble" },
               ["<C-o>"] = { "edit_split", mode = { "i", "n" } },
               ["<C-s>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
               ["<C-v>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
@@ -1228,6 +1097,7 @@ return {
               ["<C-s>"] = { "edit_split", mode = { "i", "n" }, desc = "Edit in horizontal split" },
               ["<C-v>"] = { "edit_vsplit", mode = { "i", "n" }, desc = "Edit in vertical split" },
               ["<C-t>"] = { "tab", mode = { "i", "n" }, desc = "Edit in new tab" },
+              ["<C-q>"] = { "trouble_open", mode = { "i", "n" }, desc = "Send results to Trouble" },
               ["<c-/>"] = { "cycle_win", mode = { "n", "i" } },
               ["<c-space>"] = { "select_only", mode = { "n", "i" } },
               ["<C-d>"] = { "list_scroll_down", mode = { "i", "n" }, desc = "Page down" },
@@ -1825,38 +1695,6 @@ return {
                 picker:close()
                 scratch_open()
               end,
-              scratch_open_split = function(picker, item)
-                local selected = picker:selected({ fallback = true })
-
-                item = item or selected[1]
-                if not item then
-                  return
-                end
-                local file = item and (item.item or item).file or item._path
-                if not file then
-                  vim.health.warn("Could not find file")
-                  return
-                end
-                -- TODO: key the buffer local keymaps for python like source the file etc back
-                Snacks.scratch.open({ file = file, win = { style = "scratch_split" } })
-                picker:close()
-              end,
-              scratch_open_vsplit = function(picker, item)
-                local selected = picker:selected({ fallback = true })
-
-                item = item or selected[1]
-                if not item then
-                  return
-                end
-                local file = item and (item.item or item).file or item._path
-                if not file then
-                  vim.health.warn("Could not find file")
-                  return
-                end
-                -- TODO: key the buffer local keymaps for python like source the file etc back
-                Snacks.scratch.open({ file = file, win = { style = "scratch_vsplit" } })
-                picker:close()
-              end,
               scratch_delete_confirm = function(picker, item)
                 local selected = picker:selected({ fallback = true })
                 item = item or selected[1]
@@ -1894,8 +1732,6 @@ return {
                   ["<c-x>"] = { "scratch_delete_confirm", mode = { "n", "i" } },
                   ["<c-g>c"] = { "scratch_toggle_cwd", mode = { "n", "i" }, desc = "Toggle cwd filter" },
                   ["<C-t>"] = { "tab", mode = { "n", "i" }, desc = "Edit in new tab" },
-                  ["<C-s>"] = { "scratch_open_split", mode = { "n", "i" } },
-                  ["<C-v>"] = { "scratch_open_vsplit", mode = { "n", "i" } },
                 },
               },
               list = {
@@ -2237,8 +2073,8 @@ return {
           Snacks.picker.notifications()
         end, desc = "Notification History"
       },
-      { "<leader>e", function() Snacks.picker.explorer() end, desc = "File explorer" },
-      { "<leader>r", function() Snacks.picker.explorer({ layout = "vertical", focus = "input", jump = { close = true } }) end, desc = "File explorer (center)" },
+      { "<leader>e", function() Snacks.picker.explorer({ focus = "list" }) end, desc = "File explorer" },
+      { "<leader>r", function() Snacks.picker.explorer({ layout = "vertical", focus = "list", jump = { close = true } }) end, desc = "File explorer (center)" },
       { "<leader>E", function()
         local bufname = vim.api.nvim_buf_get_name(0)
         local dir = bufname ~= "" and vim.fs.dirname(bufname) or vim.fn.getcwd()

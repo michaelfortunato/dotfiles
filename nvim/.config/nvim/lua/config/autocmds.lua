@@ -188,41 +188,51 @@ end, {
   bang = true,
 })
 
--- TODO: Its possible the persistence load screws up refresh for Vimtex
-vim.api.nvim_create_user_command(
-  "Restart",
-  'restart lua require("persistence").load()',
-  { desc = "Restart Neovim and reload last session on reopen" }
-)
-
--- stylua: ignore
-vim.api.nvim_create_user_command("R", "Restart", { desc = "(Restart Alias) Restart Neovim and reload last session on reopen" })
-vim.api.nvim_create_user_command("RR", "restart", { desc = "(Restart [Hard]) Restart Neovim" })
+vim.api.nvim_create_user_command("Restart", "restart", { desc = "Restart Neovim" })
+vim.api.nvim_create_user_command("R", "restart", { desc = "Restart Neovim" })
 vim.api.nvim_create_user_command("Q", "quitall", { desc = "(quitall Alias) Quit Neovim If No Pending Changes" })
 
---- Get the particular terminal to remember its last mode
 local term_group = vim.api.nvim_create_augroup("MNF_TermGroup", { clear = true })
-vim.api.nvim_create_autocmd("ModeChanged", {
+
+local function sync_terminal_shell_color_scheme()
+  vim.env.P10K_COLOR_SCHEME = vim.o.background
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", {
   group = term_group,
-  callback = function(ev)
-    local buf = ev.buf
-    if not buf or vim.bo[buf].buftype ~= "terminal" then
-      return
-    end
-    vim.b[buf].mnf_term_last_mode = vim.fn.mode()
-  end,
+  desc = "Match terminal shell prompt colors to Neovim background",
+  callback = sync_terminal_shell_color_scheme,
 })
+sync_terminal_shell_color_scheme()
+
+local function enter_terminal_mode(buf)
+  if not (buf and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal") then
+    return
+  end
+
+  vim.schedule(function()
+    if
+      vim.api.nvim_buf_is_valid(buf)
+      and vim.api.nvim_get_current_buf() == buf
+      and vim.bo[buf].buftype == "terminal"
+    then
+      vim.cmd("startinsert")
+    end
+  end)
+end
+
 vim.api.nvim_create_autocmd("TermOpen", {
   group = term_group,
   pattern = { "term://*" },
   callback = function(ev)
-    vim.b[ev.buf].mnf_term_last_mode = "terminal"
     local name = vim.api.nvim_buf_get_name(ev.buf)
     if name:match("lazygit") then
       vim.keymap.set("n", "<Esc>", "<Cmd>close<CR>", { buffer = ev.buf, desc = "Exit terminal mode" })
+      enter_terminal_mode(ev.buf)
       return
     end
     vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
+    enter_terminal_mode(ev.buf)
   end,
 })
 
@@ -278,32 +288,17 @@ vim.api.nvim_create_autocmd("TermRequest", {
       vim.b[buf].tui_name = nil
       pcall(vim.keymap.del, "t", "<Esc>", { buffer = buf })
       vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { buffer = ev.buf, desc = "Exit terminal mode" })
-      vim.keymap.set("t", "<C-h>", "<C-\\><C-h>", { buffer = buf })
-      vim.keymap.set("t", "<C-l>", "<C-\\><C-l>", { buffer = buf })
-      vim.keymap.set("t", "<C-j>", "<C-\\><C-j>", { buffer = buf })
-      vim.keymap.set("t", "<C-k>", "<C-\\><C-k>", { buffer = buf })
-      -- Go to <C-w>h right? ? I forget..
-      -- vim.keymap.set("t", "<C-h>", "<C-h>", { buffer = buf })
-      -- vim.keymap.set("t", "<C-l>", "<C-l>", { buffer = buf })
-      -- vim.keymap.set("t", "<C-j>", "<C-j>", { buffer = buf })
-      -- vim.keymap.set("t", "<C-k>", "<C-k>", { buffer = buf })
-      -- For debugging: vim.notify(("Terminal buf %d unmarked as TUI"):format(buf))
+      for _, lhs in ipairs({ "<C-h>", "<C-l>", "<C-j>", "<C-k>" }) do
+        pcall(vim.keymap.del, "t", lhs, { buffer = buf })
+      end
     end
   end,
 })
 
-vim.api.nvim_create_autocmd("BufEnter", {
+vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter", "TabEnter" }, {
   group = term_group,
-  pattern = { "term://*" },
   callback = function(ev)
-    if vim.bo[ev.buf].buftype ~= "terminal" then
-      return
-    end
-    local last_mode = vim.b[ev.buf].mnf_term_last_mode
-    last_mode = last_mode and last_mode:sub(1, 1) or "t"
-    if last_mode == "t" or last_mode == "i" then
-      vim.cmd("startinsert")
-    end
+    enter_terminal_mode(ev.buf or vim.api.nvim_get_current_buf())
   end,
 })
 

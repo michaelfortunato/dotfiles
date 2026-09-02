@@ -1,5 +1,8 @@
 local M = {}
 
+-- Match the Snacks `big_float` style used elsewhere in this config.
+local DEFAULT_FLOAT_SIZE = 0.86
+
 local function size(value, total, fallback)
   value = type(value) == "number" and value or fallback
   if value > 0 and value < 1 then
@@ -88,8 +91,8 @@ function M.open(buf, opts)
   local win
 
   if position == "float" then
-    local width = size(opts.width, vim.o.columns, 0.9)
-    local height = size(opts.height, vim.o.lines, 0.9)
+    local width = size(opts.width, vim.o.columns, DEFAULT_FLOAT_SIZE)
+    local height = size(opts.height, vim.o.lines, DEFAULT_FLOAT_SIZE)
     win = vim.api.nvim_open_win(buf, enter, {
       relative = opts.relative or "editor",
       width = width,

@@ -184,49 +184,19 @@ end, {
 })
 del("v", "q")
 
-vim.keymap.set({ "n" }, "<C-S-[>", function()
-  if require("trouble").is_open() then
-    -- TODO: Would be nice if there was a wraparound behavior or something
-    require("trouble").prev({ skip_groups = true, jump = true })
-  else
-    local ok, err = pcall(vim.cmd.cprev)
-    if not ok then
-      vim.notify(err, vim.log.levels.ERROR)
-    end
-  end
-end, { desc = "Previous Trouble/Quickfix Item" })
--- WARN: Overriding "<C-]>" might effect goto tag functionality, hence
--- why I make it an expression and return <C-]>, still I do the
--- pcall(vim.cmd.cnext) regardless, which might not be ideal.
--- This might be handleable via an autocmd QuickfixPostCmd
---
-vim.keymap.set("n", "<C-]>", function()
-  local trouble = require("trouble")
-
-  if trouble.is_open() then
-    -- Trouble handles jump internally, no expr return needed
-    trouble.next({ skip_groups = true, jump = true })
-    return "" -- prevent inserting anything
-  else
-    if vim.fn.getqflist({ size = 0 }).size > 0 then
-      -- feed `:cnext<CR>` as a key sequence
-      return "<Cmd>cnext<CR>"
-    else
-      -- no quickfix items, fall back to literal <C-]>
-      return "<C-]>"
-    end
-  end
-end, {
-  expr = true,
-  desc = "Next Trouble/Quickfix Item",
-})
 -- The "n" is necesasry to continue the keymap
 -- TODO: Update for ghossty
 vim.keymap.set({ "t", "n" }, "<C-S-Up>", [[<C-\><C-n>5<C-y>]], { silent = true })
 vim.keymap.set({ "t", "n" }, "<C-S-Down>", [[<C-\><C-n>5<C-e>]], { silent = true })
 
-vim.keymap.set("n", "<C-u>", "<C-u>zz")
-vim.keymap.set("n", "<C-d>", "<C-d>zz")
+local function scroll_lines(key)
+  return function()
+    return (vim.v.count > 0 and vim.v.count or 15) .. key .. "zz"
+  end
+end
+
+vim.keymap.set("n", "<C-u>", scroll_lines("<C-u>"), { expr = true, desc = "Scroll up 15 lines" })
+vim.keymap.set("n", "<C-d>", scroll_lines("<C-d>"), { expr = true, desc = "Scroll down 15 lines" })
 vim.keymap.set("n", "<C-S-k>", "kzz")
 vim.keymap.set("n", "<C-S-j>", "jzz")
 -- vim.keymap.set("n", "<C-d>", function()
@@ -258,7 +228,9 @@ end, { expr = true, silent = true, desc = "Scroll up faster" })
 
 vim.keymap.set({ "n" }, "<leader>cR", "<CMD>lsp restart<CR>", { desc = "Restart All LSPs" })
 del({ "n" }, "<leader><leader>") -- lazyvim shenanigans
-vim.keymap.set({ "n" }, "<leader><leader>", LazyVim.pick("files"), { desc = "Find Files (Root Dir)" })
+vim.keymap.set("n", "<leader><leader>", function()
+  require("fff-snacks").find_files({ cwd = vim.fn.getcwd() })
+end, { desc = "FFF Find Files (Cwd)" })
 vim.keymap.set({ "n" }, "<leader>,", function()
   Snacks.picker.buffers()
 end, { desc = "Find buffers" })

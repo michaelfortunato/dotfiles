@@ -1069,6 +1069,7 @@ _mnf_cache_completion() {
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
 (( ${+commands[am]} )) && _mnf_cache_am_source
 
+
 export GPG_TTY=$TTY
 if (( ${+commands[gpg-connect-agent]} )); then
   _mnf_gpg_update_tty_preexec() {
@@ -1094,3 +1095,6 @@ unset _mnf_gpg_agent_ssh_sock
 # Added by git-ai installer on Wed May  6 10:45:45 EDT 2026
 export PATH="/Users/michaelfortunato/.git-ai/bin:$PATH"
 . "$HOME/.cargo/env"
+
+# I feel like this cant be fast lol
+eval "$(mise activate zsh)"

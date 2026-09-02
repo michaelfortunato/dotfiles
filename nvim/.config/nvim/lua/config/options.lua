@@ -85,14 +85,6 @@ vim.opt.guicursor = table.concat({
 -- cursor SLIGHTLY change color on mode switch.
 -- vim.opt.guicursor = "n-v-c-sm:block,i-ci-ve:block,r-cr-o:hor20"
 
--- Consider this for C-u c-d nav, a bit more tractable
--- Causing visual issues
--- vim.wo.scroll = 15
--- vim.o.scroll = 15
--- vim.opt.scroll = 15
--- or this idk
--- vim.wo.scroll = 15
-
 -- Note this was all moved the lualine
 -- -- Winbar: right-aligned status showing MAX and/or tab count (>1)
 -- -- Uses declancm/maximize.nvim's vim.t.maximized flag (per-tabpage)

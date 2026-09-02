@@ -270,8 +270,6 @@ local function open_floating(buf, title)
   return native_window.open(buf, {
     style = "minimal",
     position = "float",
-    width = 0.8,
-    height = 0.8,
     border = {
       { "╭", "FloatBorder" },
       { "─", "FloatBorder" },

@@ -4,11 +4,19 @@ pin = true
 auto_install = false
 exec_auto_install = false
 not_found_auto_install = false
-# Use "create|source" here if you want mise to create the uv venv when missing.
-python.uv_venv_auto = "source"
+python.uv_venv_auto = false
 trusted_config_paths = ["/"]
-# Enable nothign so Disable everything
 enable_tools = []
+
+[settings.task]
+run_auto_install = false
+
+# Discovery --
+# Bare `mise run` delegates to the all-workspace task picker.
+[tasks.default]
+hide = true
+run = "mise run --all"
+
 # disable_tools = [
 #   "act",
 #   "cargo:sqlx-cli",
@@ -63,9 +71,6 @@ enable_tools = []
 #   "uv",
 #   "yazi"
 # ]
-
-[settings.task]
-run_auto_install = false
 
 [bootstrap.brew.taps]
 "bufbuild/buf" = "https://github.com/bufbuild/homebrew-buf.git"

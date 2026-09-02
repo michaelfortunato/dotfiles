@@ -270,19 +270,32 @@ vim.lsp.config("rust_analyzer", {
   },
 })
 vim.lsp.enable("rust_analyzer")
-vim.lsp.enable("ty")
 vim.lsp.config("ty", {
   root_markers = { "uv.lock" },
 })
+vim.lsp.enable("ty")
 
-vim.lsp.enable("rlsp-yaml")
 vim.lsp.config("rlsp-yaml", {
+  cmd = { "rlsp-yaml" },
   filetypes = { "yaml" },
 })
+vim.lsp.enable("rlsp-yaml")
 -- vim.lsp.enable("ruff")
 -- vim.lsp.config("ruff", {
 --   root_markers = { "uv.lock" },
 -- })
+
+vim.filetype.add({
+	filename = {
+		["buf.yaml"] = "buf-config",
+		["buf.gen.yaml"] = "buf-config",
+		["buf.policy.yaml"] = "buf-config",
+		["buf.lock"] = "buf-config",
+	},
+})
+vim.treesitter.language.register("yaml", "buf-config")
+
+vim.lsp.enable("buf_ls")
 
 vim.lsp.inline_completion.enable(false)
 
@@ -449,7 +462,8 @@ return {
         signs = true, -- we still want gutter signs
         float = { -- when we open the popup
           border = "rounded",
-          source = "if_many",
+          -- source = "if_many", -- Show sources only when diagnostics come from multiple producers.
+          source = true, -- Always show the diagnostic source.
           focusable = true,
         },
       },

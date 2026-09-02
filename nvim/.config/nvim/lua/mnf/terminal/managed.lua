@@ -23,7 +23,7 @@ local native_window = require("mnf.terminal.window")
 -- Off by default
 local use_external_kitty = false
 local DEFAULT_LAYOUT = "vsplit"
-local AI_TERMINAL_COMMAND = "codex-mini"
+local AI_TERMINAL_COMMAND = [[codex -m gpt-5.6-sol -c 'model_reasoning_effort="xhigh"']]
 
 M.defaults = {
   initial_layout = DEFAULT_LAYOUT,
@@ -62,8 +62,6 @@ end
 local function create_floating_window(buf, title)
   return native_window.open(buf, {
     position = "float",
-    width = 0.8,
-    height = 0.8,
     border = "rounded",
     wo = FLOAT_WINDOW_OPTIONS,
 

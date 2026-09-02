@@ -1838,7 +1838,9 @@ c.qt.highdpi = True
 ##   - always: Disable renderer accessibility
 ##   - auto: Disable on Qt versions with known issues, enable otherwise
 ##   - never: Enable renderer accessibility
-# c.qt.workarounds.disable_accessibility = 'auto'
+# Work around the Qt 6.11 macOS accessibility crash (QTBUG-145814) without
+# giving up borderless windows.
+c.qt.workarounds.disable_accessibility = "always"
 
 ## Disable the Hangouts extension. The Hangouts extension provides
 ## additional APIs for Google domains only. Hangouts has been replaced
@@ -2273,9 +2275,6 @@ c.url.default_page = "https://google.com/"
 # c.url.searchengines = {"DEFAULT": "https://google.com/search?q={}+-ai&udm=14"}
 c.url.searchengines = {
     "DEFAULT": "https://google.com/search?q={}&udm=14",
-    "gh": "https://github.com/search?q={}",
-    "Gh": "https://github.com/search?q={}",
-    "github": "https://github.com/search?q={}",
 }
 
 ## Page(s) to open at the start.
@@ -2678,6 +2677,7 @@ config.bind("<Ctrl-Y>", "open -t -r -- {url}")
 config.bind("<Ctrl-U>", "scroll-page 0 -0.25")
 config.bind("<Ctrl-D>", "scroll-page 0 0.25")
 config.unbind("d")
+config.bind("dd", "tab-close")
 config.bind("<Tab>d", "tab-close")  # Keep it inline with neovim
 config.bind("<Cmd-N>", "open -w")
 config.bind("<Cmd-Shift-W>", "close")
@@ -2757,6 +2757,8 @@ config.bind("<Cmd-f>", "cmd-set-text /")
 config.bind("<Ctrl-N>", "completion-item-focus --history next", mode="command")
 config.bind("<Ctrl-P>", "completion-item-focus --history prev", mode="command")
 config.bind("<Ctrl-Y>", "command-accept", mode="command")
+config.bind("<Shift-Return>", "open-commandline-in-tab", mode="command")
+config.bind("<Shift-Enter>", "open-commandline-in-tab", mode="command")
 
 ## Bindings for hint mode
 # config.bind('<Ctrl-B>', 'hint all tab-bg', mode='hint')

@@ -375,4 +375,4 @@ run = "layout floating"
 
 [workspace-to-monitor-force-assignment]
 S = "^Sidecar.*"
-D = "^LG.*"
+D = 2
