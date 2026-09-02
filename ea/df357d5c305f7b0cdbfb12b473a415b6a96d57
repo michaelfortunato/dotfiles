@@ -1,0 +1,14 @@
+codex/.codex/config.toml
+  h_09c090fe28971a 86,91,105,107,114-122,370-384,386,409-410,419-432
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "eadf357d5c305f7b0cdbfb12b473a415b6a96d57",
+  "prompts": {},
+  "humans": {
+    "h_09c090fe28971a": {
+      "author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
