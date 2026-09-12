@@ -1,0 +1,19 @@
+nvim/.config/nvim/lua/mnf/terminal/managed.lua
+  s_b3ce6b7924d558::t_81620117d21df3 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6275c132fd98c7ec914415bcdff84001a22f528c",
+  "prompts": {},
+  "sessions": {
+    "s_b3ce6b7924d558": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05fba-4594-7581-9f61-9680dc39d16f",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
