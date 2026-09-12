@@ -1,0 +1,14 @@
+qutebrowser/.qutebrowser/config.py
+  h_09c090fe28971a 2336-2337,2420
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2adce1a8d02aabfc0fabf774b43fc14acc063c80",
+  "prompts": {},
+  "humans": {
+    "h_09c090fe28971a": {
+      "author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
