@@ -2235,7 +2235,7 @@ c.tabs.show = "switching"
 ## for a blank page.
 ## Type: FuzzyUrl
 # c.url.default_page = 'https://start.duckduckgo.com/'
-c.url.default_page = "https://google.com/"
+c.url.default_page = "https://startpage.com/"
 
 ## URL segments where `:navigate increment/decrement` will search for a
 ## number.
@@ -2274,13 +2274,14 @@ c.url.default_page = "https://google.com/"
 ## Type: Dict
 # c.url.searchengines = {"DEFAULT": "https://google.com/search?q={}+-ai&udm=14"}
 c.url.searchengines = {
-    "DEFAULT": "https://google.com/search?q={}&udm=14",
+    # Older default # "DEFAULT": "https://google.com/search?q={}&udm=14",
+    "DEFAULT": "https://www.startpage.com/sp/search?query={}",
 }
 
 ## Page(s) to open at the start.
 ## Type: List of FuzzyUrl, or FuzzyUrl
 # c.url.start_pages = ['https://start.duckduckgo.com']
-c.url.start_pages = ["https://google.com"]
+c.url.start_pages = ["https://startpage.com"]
 
 ## URL parameters to strip when yanking a URL.
 ## Type: List of String
