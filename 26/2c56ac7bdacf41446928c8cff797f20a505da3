@@ -1,0 +1,19 @@
+qutebrowser/.qutebrowser/config.py
+  s_8eeb1a572bf1f4::t_e0a81bf29227d4 2279,2338,2421,2641-2643
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "262c56ac7bdacf41446928c8cff797f20a505da3",
+  "prompts": {},
+  "sessions": {
+    "s_8eeb1a572bf1f4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0933b-4e28-7743-8484-fda628092d19",
+        "model": "unknown"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
