@@ -23,7 +23,7 @@ local native_window = require("mnf.terminal.window")
 -- Off by default
 local use_external_kitty = false
 local DEFAULT_LAYOUT = "vsplit"
-local AI_TERMINAL_COMMAND = [[codex -m gpt-5.6-sol -c 'model_reasoning_effort="xhigh"']]
+local AI_TERMINAL_COMMAND = [[codex -m gpt-6-astra -c 'model_reasoning_effort="xhigh"']]
 
 M.defaults = {
   initial_layout = DEFAULT_LAYOUT,
