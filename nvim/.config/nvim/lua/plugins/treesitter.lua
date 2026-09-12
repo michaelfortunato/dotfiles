@@ -10,6 +10,20 @@ return {
       -- PERF: add nvim-treesitter queries to the rtp early.
       require("lazy.core.loader").add_to_rtp(plugin)
 
+      -- Custom Cedar parsers; keep the vendored highlight queries on this revision too.
+      local parsers = require("nvim-treesitter.parsers").get_parser_configs()
+      for _, language in ipairs({ "cedar", "cedarschema" }) do
+        parsers[language] = {
+          install_info = {
+            url = "https://github.com/SwornSystems/tree-sitter-cedar",
+            revision = "2e9f10824728b13d4c019774b32ca0a883e97f96",
+            location = language,
+            files = { "src/parser.c" },
+          },
+          filetype = language,
+        }
+      end
+
       -- Hot-fix for Neovim 0.12 + nvim-treesitter master:
       -- old custom predicates/directives expect match[capture_id] to be a TSNode,
       -- but core now passes TSNode[] for captures in some paths.
