@@ -726,6 +726,13 @@ return {
       ---@type snacks.lazygit.Config
       lazygit = {
         auto_close = true,
+        config = {
+          os = {
+            -- Keep the nvim-remote integration, but open files in the current tab.
+            edit = [[nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote {{filename}}]],
+            editAtLine = [[nvim --server "$NVIM" --remote-send "q" && nvim --server "$NVIM" --remote {{filename}} && nvim --server "$NVIM" --remote-send ":{{line}}<CR>"]],
+          },
+        },
         ---@type snacks.win.Config
         win = {
           on_buf = function(self)
