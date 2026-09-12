@@ -1,0 +1,19 @@
+nvim/.config/nvim/lua/plugins/snacks.lua
+  s_d1ade1cd0f0f42::t_fbe3a6b9bfc58d 729-735
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d80af0169165d32c458adc7f205608c3e5ec6ca2",
+  "prompts": {},
+  "sessions": {
+    "s_d1ade1cd0f0f42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a08bf9-a8e1-7410-8ca8-514c1c796150",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
