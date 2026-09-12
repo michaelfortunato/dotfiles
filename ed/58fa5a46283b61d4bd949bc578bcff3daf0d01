@@ -1,0 +1,21 @@
+qutebrowser/.qutebrowser/config.py
+  s_8eeb1a572bf1f4::t_a18eda700bbf7d 2277
+  s_8eeb1a572bf1f4::t_f9fccdfb4d39bd 2278
+  s_8eeb1a572bf1f4::t_1823ddc85505c5 2238,2284
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ed58fa5a46283b61d4bd949bc578bcff3daf0d01",
+  "prompts": {},
+  "sessions": {
+    "s_8eeb1a572bf1f4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0933b-4e28-7743-8484-fda628092d19",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
