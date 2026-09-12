@@ -2276,6 +2276,7 @@ c.url.default_page = "https://startpage.com/"
 c.url.searchengines = {
     # Older default # "DEFAULT": "https://google.com/search?q={}&udm=14",
     "DEFAULT": "https://www.startpage.com/sp/search?query={}",
+    "gh:": "https://github.com/search?q={}",
 }
 
 ## Page(s) to open at the start.
@@ -2334,7 +2335,7 @@ c.window.hide_decoration = True
 # config.bind(';R', 'hint --rapid links window')
 # config.bind(';Y', 'hint links yank-primary')
 # Very helpful to see previews
-config.bind(";s", "hint links yank-primary")
+config.bind(";s", "hint links run message-info {hint-url}")
 # config.bind(';b', 'hint all tab-bg')
 # config.bind(';d', 'hint links download')
 # config.bind(';f', 'hint all tab-fg')
@@ -2417,7 +2418,7 @@ config.bind("<Shift-Escape>", "mode-leave", mode="passthrough")
 # config.bind('ZZ', 'quit --save')
 # config.bind('`', 'mode-enter set_mark')
 # config.bind('ad', 'download-cancel')
-config.bind("a", "hint links yank-primary")
+config.bind("a", "hint links run message-info {hint-url}")
 # config.bind('b', 'cmd-set-text -s :quickmark-load')
 # config.bind('cd', 'download-clear')
 # config.bind('co', 'tab-only')
@@ -2637,7 +2638,9 @@ config.bind("<space>pz", "spawn --userscript qute-zotero")
 config.bind("<Ctrl-space>", "spawn --userscript qute-bitwarden")
 config.bind("<Ctrl-space>", "spawn --userscript qute-bitwarden", mode="insert")
 config.bind("<space>pZ", "hint links userscript qute-zotero")
-config.bind("ff", "cmd-set-text -s :open ~/")
+config.bind("ff", "PrintPath")
+config.bind("fh", "cmd-set-text -s :open ~/")
+config.bind("fs", "hint links run message-info {hint-url}")
 config.bind("<space>bd", "tab-close")
 config.bind("<space>wd", "tab-close")  # I like the overload its my editor.
 config.bind("<space>,", "cmd-set-text -s :tab-select")
