@@ -1,0 +1,26 @@
+nvim/.config/nvim/queries/cedarschema/highlights.scm
+  s_d1ade1cd0f0f42::t_2862189358e8ff 1-89
+nvim/.config/nvim/queries/cedar/README.md
+  s_d1ade1cd0f0f42::t_8ca69fa58e543f 1-34
+nvim/.config/nvim/queries/cedar/highlights.scm
+  s_d1ade1cd0f0f42::t_2862189358e8ff 1-152
+nvim/.config/nvim/lua/plugins/treesitter.lua
+  s_d1ade1cd0f0f42::t_16d3a01549a97e 13-25
+  s_d1ade1cd0f0f42::t_509f493b47b810 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1b5a6f919f82bcb5a04192ac72b862eed94be317",
+  "prompts": {},
+  "sessions": {
+    "s_d1ade1cd0f0f42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a08bf9-a8e1-7410-8ca8-514c1c796150",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
