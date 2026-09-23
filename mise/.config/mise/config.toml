@@ -28,7 +28,6 @@ run = "mise run --all"
 #   "awscli",
 #   "bat",
 #   "bfs",
-#   "bottom",
 #   "buf",
 #   "cargo:release-plz",
 #   "cmake",

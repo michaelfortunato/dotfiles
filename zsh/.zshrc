@@ -262,17 +262,6 @@ alias dotconfig='(builtin cd "$HOME/dotfiles" && "${EDITOR:-nvim}")'
 alias uva="source .venv/bin/activate" #TODO: Do we need to make this smarter?
 #TODO: Do we need to make this smarter?
 alias yazi="y"
-btm() {
-  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_bottom:tui=1\033\\' > /dev/tty
-  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_BOTTOM=MQ==\007' > /dev/tty
-  command btm -C "$HOME/dotfiles/bottom/.config/bottom/bottom.toml" "$@"
-  local ret=$?
-  [[ -n "$NVIM" && -w /dev/tty ]] && printf '\033_bottom:tui=0\033\\' > /dev/tty
-  [[ -w /dev/tty ]] && printf '\x1b]1337;SetUserVar=IS_BOTTOM\007' > /dev/tty
-  return $ret
-}
-alias htop="btm" # You are crazy for this one!
-alias btop="btm"
 alias icat="kitten icat" # to see images
 # be more like bash
 alias help='run-help'

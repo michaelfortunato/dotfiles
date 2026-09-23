@@ -12,7 +12,6 @@ enable_tools = []
 #   "awscli",
 #   "bat",
 #   "bfs",
-#   "bottom",
 #   "buf",
 #   "cargo:release-plz",
 #   "cmake",
