@@ -1,0 +1,19 @@
+_MANIFESTS/nix/profile.json
+  s_0d7deef107e5d9::t_1fcbd77433a5fc 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "df5647936c522b9c372530e3daec4ab4cc41720f",
+  "prompts": {},
+  "sessions": {
+    "s_0d7deef107e5d9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0cc34-ae68-7293-bd7e-b166c85fcd5f",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Michael Fortunato <michael.n.fortunato@gmail.com>"
+    }
+  }
+}
